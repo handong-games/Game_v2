@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="../../View/Common/Common.uss" />
+    <Style src="../../View/Common/Responsive.uss" />
+    <Style src="SettingsView.uss" />
+
+    <ui:VisualElement name="settings-screen" class="screen screen--visible settings-screen">
+        <ui:VisualElement class="settings-screen__background" picking-mode="Ignore">
+            <ui:VisualElement class="settings-screen__glow settings-screen__glow--left" />
+            <ui:VisualElement class="settings-screen__glow settings-screen__glow--right" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="settings-panel" class="settings-screen__panel">
+            <ui:VisualElement name="settings-tabs" class="settings-screen__tabs">
+                <ui:Button name="tab-general" text="General" class="settings-screen__tab-button settings-screen__tab-button--active">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text"
+                                                                 table="SettingsView"
+                                                                 entry="tab_general" />
+                    </Bindings>
+                </ui:Button>
+                <ui:Button name="tab-graphics" text="Graphics" class="settings-screen__tab-button">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text"
+                                                                 table="SettingsView"
+                                                                 entry="tab_graphics" />
+                    </Bindings>
+                </ui:Button>
+                <ui:Button name="tab-audio" text="Audio" class="settings-screen__tab-button">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text"
+                                                                 table="SettingsView"
+                                                                 entry="tab_audio" />
+                    </Bindings>
+                </ui:Button>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="settings-content" class="settings-screen__content">
+                <ui:ScrollView name="general-tab-content" class="settings-screen__tab-panel settings-screen__tab-panel--active" mode="Vertical">
+                    <ui:VisualElement class="settings-screen__row settings-row settings-screen__row--last">
+                        <ui:Label text="Language" class="settings-screen__label settings-row__label">
+                            <Bindings>
+                                <UnityEngine.Localization.LocalizedString property="text"
+                                                                         table="SettingsView"
+                                                                         entry="general_language_label" />
+                            </Bindings>
+                        </ui:Label>
+                        <ui:VisualElement class="settings-screen__control settings-row__control">
+                            <ui:DropdownField name="language-field" class="settings-screen__dropdown" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:ScrollView>
+
+                <ui:ScrollView name="graphics-tab-content" class="settings-screen__tab-panel" mode="Vertical">
+                    <ui:VisualElement name="row-fullscreen" class="settings-screen__row settings-row fullscreen-row">
+                        <ui:Label text="Fullscreen" class="settings-screen__label settings-row__label">
+                            <Bindings>
+                                <UnityEngine.Localization.LocalizedString property="text"
+                                                                         table="SettingsView"
+                                                                         entry="graphics_fullscreen_label" />
+                            </Bindings>
+                        </ui:Label>
+                        <ui:VisualElement class="settings-screen__control settings-row__control">
+                            <ui:Toggle name="fullscreen-toggle" class="settings-screen__toggle" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="row-resolution" class="settings-screen__row settings-row windowed-only">
+                        <ui:Label text="Resolution" class="settings-screen__label settings-row__label">
+                            <Bindings>
+                                <UnityEngine.Localization.LocalizedString property="text"
+                                                                         table="SettingsView"
+                                                                         entry="graphics_resolution_label" />
+                            </Bindings>
+                        </ui:Label>
+                        <ui:VisualElement class="settings-screen__control settings-row__control">
+                            <ui:DropdownField name="resolution-field" class="settings-screen__dropdown" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="row-aspect-ratio" class="settings-screen__row settings-row">
+                        <ui:Label text="Aspect Ratio" class="settings-screen__label settings-row__label">
+                            <Bindings>
+                                <UnityEngine.Localization.LocalizedString property="text"
+                                                                         table="SettingsView"
+                                                                         entry="graphics_aspect_ratio_label" />
+                            </Bindings>
+                        </ui:Label>
+                        <ui:VisualElement class="settings-screen__control settings-row__control">
+                            <ui:DropdownField name="aspect-ratio-field" class="settings-screen__dropdown" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                </ui:ScrollView>
+
+                <ui:ScrollView name="audio-tab-content" class="settings-screen__tab-panel" mode="Vertical">
+                    <ui:VisualElement class="settings-screen__row settings-row">
+                        <ui:Label text="Master Volume" class="settings-screen__label settings-row__label">
+                            <Bindings>
+                                <UnityEngine.Localization.LocalizedString property="text"
+                                                                         table="SettingsView"
+                                                                         entry="audio_master_volume_label" />
+                            </Bindings>
+                        </ui:Label>
+                        <ui:VisualElement class="settings-screen__control settings-row__control settings-screen__control--slider">
+                            <ui:Label name="master-value" text="100" class="settings-screen__value" />
+                            <ui:Slider name="master-slider" class="settings-screen__slider" low-value="0" high-value="1" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="settings-screen__row settings-row">
+                        <ui:Label text="BGM Volume" class="settings-screen__label settings-row__label">
+                            <Bindings>
+                                <UnityEngine.Localization.LocalizedString property="text"
+                                                                         table="SettingsView"
+                                                                         entry="audio_bgm_volume_label" />
+                            </Bindings>
+                        </ui:Label>
+                        <ui:VisualElement class="settings-screen__control settings-row__control settings-screen__control--slider">
+                            <ui:Label name="bgm-value" text="80" class="settings-screen__value" />
+                            <ui:Slider name="bgm-slider" class="settings-screen__slider" low-value="0" high-value="1" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="settings-screen__row settings-row">
+                        <ui:Label text="SFX Volume" class="settings-screen__label settings-row__label">
+                            <Bindings>
+                                <UnityEngine.Localization.LocalizedString property="text"
+                                                                         table="SettingsView"
+                                                                         entry="audio_sfx_volume_label" />
+                            </Bindings>
+                        </ui:Label>
+                        <ui:VisualElement class="settings-screen__control settings-row__control settings-screen__control--slider">
+                            <ui:Label name="sfx-value" text="80" class="settings-screen__value" />
+                            <ui:Slider name="sfx-slider" class="settings-screen__slider" low-value="0" high-value="1" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement class="settings-screen__row settings-row settings-screen__row--last">
+                        <ui:Label text="Mute in Background" class="settings-screen__label settings-row__label">
+                            <Bindings>
+                                <UnityEngine.Localization.LocalizedString property="text"
+                                                                         table="SettingsView"
+                                                                         entry="audio_mute_in_background_label" />
+                            </Bindings>
+                        </ui:Label>
+                        <ui:VisualElement class="settings-screen__control settings-row__control">
+                            <ui:Toggle name="mute-background-toggle" class="settings-screen__toggle" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:ScrollView>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="settings-footer" class="settings-screen__footer">
+                <ui:Button name="settings-close-button" text="Close" class="settings-screen__footer-button">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text"
+                                                                 table="SettingsView"
+                                                                 entry="footer_close" />
+                    </Bindings>
+                </ui:Button>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

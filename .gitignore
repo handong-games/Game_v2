@@ -1,0 +1,39 @@
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/MemoryCaptures/
+/Recordings/
+
+# Addressables generated content
+/Assets/AddressableAssetsData/*/*.bin*
+
+# IDE / generated project files
+/.idea/
+/.vs/
+/.vscode/
+*.csproj
+*.sln
+*.user
+*.tmp
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity generated
+sysinfo.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local analysis artifacts
+/artifacts/sts2_ildasm.txt

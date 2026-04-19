@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: SettingsView Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: SettingsView
+  m_TableCollectionNameGuidString: a18b3a7f10824024eb538086ff6d89b1
+  m_Entries:
+  - m_Id: 377401344
+    m_Key: tab_general
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402567168
+    m_Key: tab_graphics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761472
+    m_Key: tab_audio
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761473
+    m_Key: general_language_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761474
+    m_Key: graphics_fullscreen_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761475
+    m_Key: graphics_display_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761476
+    m_Key: graphics_resolution_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761477
+    m_Key: graphics_aspect_ratio_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761478
+    m_Key: graphics_window_resize_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761479
+    m_Key: audio_master_volume_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761482
+    m_Key: audio_bgm_volume_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761483
+    m_Key: audio_sfx_volume_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761480
+    m_Key: audio_mute_in_background_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406761481
+    m_Key: footer_close
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 3071815903912394752
+  references:
+    version: 2
+    RefIds:
+    - rid: 3071815903912394752
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1776129158150

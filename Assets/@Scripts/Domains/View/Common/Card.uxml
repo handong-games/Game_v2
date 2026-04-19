@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Card.uss"/>
+    <ui:VisualElement class="card">
+        <ui:VisualElement name="card-body" class="card__body">
+            <ui:VisualElement name="card-illustration" class="card__illustration"/>
+            <ui:VisualElement name="card-selection-overlay" class="card__selection-overlay"/>
+            <ui:VisualElement name="card-lock" class="card__lock">
+                <ui:Label text="LOCK" class="card__lock-text"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="card-name-bar" class="card__name-bar">
+                <ui:Label name="card-name" text="" class="card__name"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
