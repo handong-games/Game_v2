@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:l="UnityEngine.Localization" editor-extension-mode="False">
-    <Style src="../Common/Common.uss" />
-    <Style src="../Common/Responsive.uss" />
     <Style src="TitleView.uss" />
+    <Style src="TitleView.Animation.uss" />
 
     <ui:VisualElement class="screen">
         <ui:VisualElement name="title-screen-root" class="title-screen">
             <ui:VisualElement name="background-layer" class="title-screen__background" picking-mode="Ignore">
-                <ui:VisualElement class="title-screen__frame title-screen__frame--left" />
-                <ui:VisualElement class="title-screen__frame title-screen__frame--left-secondary" />
-                <ui:VisualElement class="title-screen__frame title-screen__frame--right" />
-                <ui:VisualElement class="title-screen__frame title-screen__frame--right-secondary" />
+                <ui:VisualElement class="title-screen__layer title-screen__layer--left" />
+                <ui:VisualElement class="title-screen__layer title-screen__layer--left-secondary" />
+                <ui:VisualElement class="title-screen__layer title-screen__layer--right" />
+                <ui:VisualElement class="title-screen__layer title-screen__layer--right-secondary" />
                 <ui:VisualElement class="title-screen__line title-screen__line--left-a" />
                 <ui:VisualElement class="title-screen__line title-screen__line--left-b" />
                 <ui:VisualElement class="title-screen__line title-screen__line--left-c" />
@@ -26,7 +25,7 @@
                 <ui:VisualElement class="title-screen__node title-screen__node--mid-right" />
             </ui:VisualElement>
 
-            <ui:VisualElement name="title-content" class="title-screen__content title-screen__layout-frame">
+            <ui:VisualElement name="title-content" class="title-screen__content title-screen__layout-layer">
                 <ui:VisualElement name="title-branding" class="title-screen__branding">
                     <ui:VisualElement class="title-screen__branding-stack">
                         <ui:Label name="title-text-echo" text="Game Logo" class="title-screen__branding-echo">

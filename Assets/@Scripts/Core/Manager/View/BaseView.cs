@@ -12,6 +12,8 @@ namespace Game.Core.Managers.View
         public void Bind(VisualElement root)
         {
             _root = root;
+            _root.RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
+            _root.RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
             OnBind(root);
         }
 
@@ -24,6 +26,14 @@ namespace Game.Core.Managers.View
         }
 
         protected abstract void OnBind(VisualElement root);
+
+        protected virtual void OnAttachedToPanel(AttachToPanelEvent evt)
+        {
+        }
+
+        protected virtual void OnDetachedFromPanel(DetachFromPanelEvent evt)
+        {
+        }
 
         protected TField BindElement<TField>(string name)
             where TField : VisualElement
@@ -45,6 +55,13 @@ namespace Game.Core.Managers.View
             field?.UnregisterValueChangedCallback(handler);
         }
 
-        public abstract void Dispose();
+        public virtual void Dispose()
+        {
+            if (_root == null)
+                return;
+
+            _root.UnregisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
+            _root.UnregisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
+        }
     }
 }

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <Style src="../../View/Common/Common.uss" />
-    <Style src="../../View/Common/Responsive.uss" />
     <Style src="SettingsView.uss" />
 
     <ui:VisualElement name="settings-screen" class="screen screen--visible settings-screen">

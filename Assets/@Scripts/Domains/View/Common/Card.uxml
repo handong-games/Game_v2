@@ -1,5 +1,4 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <Style src="Card.uss"/>
     <ui:VisualElement class="card">
         <ui:VisualElement name="card-body" class="card__body">
             <ui:VisualElement name="card-illustration" class="card__illustration"/>

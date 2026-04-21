@@ -1,14 +1,14 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:l="UnityEngine.Localization" editor-extension-mode="False">
-    <Style src="../Common/Common.uss"/>
-    <Style src="../Common/Responsive.uss"/>
+    <ui:Template name="CardTemplate" src="../Common/Card.uxml" />
+    <Style src="../Common/Card.uss"/>
     <Style src="CharacterSelectView.uss"/>
     <ui:VisualElement class="screen">
         <ui:VisualElement class="character-select">
-            <ui:VisualElement name="pattern-bg" class="character-select__pattern character-select__background"/>
-            <ui:VisualElement name="dim-bg" class="character-select__dim character-select__background"/>
-            <ui:VisualElement class="character-select__frame">
+            <ui:VisualElement name="pattern-bg" class="character-select__pattern"/>
+            <ui:VisualElement name="dim-bg" class="character-select__dim"/>
+            <ui:VisualElement class="character-select__layer">
                 <ui:VisualElement class="character-select__header">
-                    <ui:Label name="title-text" text="Select Your Character" class="character-select__title">
+                    <ui:Label name="title-text" text="" class="character-select__title">
                         <Bindings>
                             <l:LocalizedString property="text" table="CharacterSelectView" entry="character_select_title"/>
                             <l:LocalizedFont property="style.unityFontDefinition" table="FontAssets" entry="UIToolkitFont"/>
@@ -16,41 +16,14 @@
                     </ui:Label>
                 </ui:VisualElement>
                 <ui:VisualElement name="card-container" class="character-select__card-list">
-                    <ui:VisualElement name="card-0" class="character-select__card">
-                        <ui:VisualElement class="character-select__card-body">
-                            <ui:VisualElement name="card-illustration-0" class="character-select__card-illustration character-select__card-illustration--warrior"/>
-                            <ui:VisualElement class="character-select__card-overlay"/>
-                            <ui:VisualElement class="character-select__card-lock">
-                                <ui:Label text="LOCK" class="character-select__card-lock-text"/>
-                            </ui:VisualElement>
-                            <ui:VisualElement class="character-select__card-footer">
-                                <ui:Label text="WARRIOR" class="character-select__card-name"/>
-                            </ui:VisualElement>
-                        </ui:VisualElement>
+                    <ui:VisualElement name="card-0" class="character-select__card character-select__card--warrior">
+                        <ui:Instance template="CardTemplate" name="card-template-0" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="card-1" class="character-select__card">
-                        <ui:VisualElement class="character-select__card-body">
-                            <ui:VisualElement name="card-illustration-1" class="character-select__card-illustration character-select__card-illustration--mage"/>
-                            <ui:VisualElement class="character-select__card-overlay"/>
-                            <ui:VisualElement class="character-select__card-lock">
-                                <ui:Label text="LOCK" class="character-select__card-lock-text"/>
-                            </ui:VisualElement>
-                            <ui:VisualElement class="character-select__card-footer">
-                                <ui:Label text="MAGE" class="character-select__card-name"/>
-                            </ui:VisualElement>
-                        </ui:VisualElement>
+                    <ui:VisualElement name="card-1" class="character-select__card character-select__card--mage">
+                        <ui:Instance template="CardTemplate" name="card-template-1" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="card-2" class="character-select__card character-select__card--locked">
-                        <ui:VisualElement class="character-select__card-body">
-                            <ui:VisualElement name="card-illustration-2" class="character-select__card-illustration character-select__card-illustration--rogue"/>
-                            <ui:VisualElement class="character-select__card-overlay"/>
-                            <ui:VisualElement class="character-select__card-lock">
-                                <ui:Label text="LOCK" class="character-select__card-lock-text"/>
-                            </ui:VisualElement>
-                            <ui:VisualElement class="character-select__card-footer">
-                                <ui:Label text="ROGUE" class="character-select__card-name"/>
-                            </ui:VisualElement>
-                        </ui:VisualElement>
+                    <ui:VisualElement name="card-2" class="character-select__card character-select__card--rogue">
+                        <ui:Instance template="CardTemplate" name="card-template-2" />
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="detail-slot" class="character-select__detail">

@@ -25,6 +25,7 @@ namespace Game.Core.Managers.Dependency.Generated
     {
         public static readonly DependencyDescriptor[] All =
         {
+            new(typeof(global::Domains.CharacterSelect.CharacterSelectController), false, "TitleScene"),
             new(typeof(global::Views.TitleView.TitleViewController), false, "TitleScene"),
         };
     }

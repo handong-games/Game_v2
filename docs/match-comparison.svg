@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="560" viewBox="0 0 1320 560">
+  <defs>
+    <style>
+      .bg { fill: #0b0d11; }
+      .panel { fill: #141922; stroke: #3d4659; stroke-width: 2; }
+      .ui { fill: rgba(214,189,97,0.18); stroke: #d6bd61; stroke-width: 2; }
+      .clip { fill: rgba(214,189,97,0.28); }
+      .label { fill: #f0ece3; font: 700 24px sans-serif; }
+      .sub { fill: #b8bfcc; font: 16px sans-serif; }
+      .note { fill: #d7dce5; font: 14px sans-serif; }
+      .guide { fill: none; stroke: #2a3140; stroke-width: 1; stroke-dasharray: 6 6; }
+    </style>
+    <clipPath id="frame-a"><rect x="70" y="120" width="340" height="212.5" rx="0" ry="0"/></clipPath>
+    <clipPath id="frame-b"><rect x="490" y="120" width="340" height="212.5" rx="0" ry="0"/></clipPath>
+    <clipPath id="frame-c"><rect x="910" y="120" width="340" height="212.5" rx="0" ry="0"/></clipPath>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1320" height="560"/>
+
+  <text class="label" x="60" y="48">PanelSettings match 비교</text>
+  <text class="sub" x="60" y="78">Reference: 1920x1080 / Actual Window: 1920x1200 (세로가 더 큰 창)</text>
+
+  <text class="label" x="190" y="104">match = 0</text>
+  <text class="sub" x="146" y="364">폭 기준 스케일</text>
+  <rect class="panel" x="70" y="120" width="340" height="212.5"/>
+  <line class="guide" x1="70" y1="226.25" x2="410" y2="226.25"/>
+  <rect class="ui" x="70" y="130.625" width="340" height="191.25"/>
+  <text class="note" x="88" y="392">UI 높이가 덜 커져서 위/아래 여유가 남는 느낌</text>
+
+  <text class="label" x="590" y="104">match = 0.5</text>
+  <text class="sub" x="547" y="364">폭/높이 절충</text>
+  <rect class="panel" x="490" y="120" width="340" height="212.5"/>
+  <line class="guide" x1="490" y1="226.25" x2="830" y2="226.25"/>
+  <rect class="ui" x="473" y="120" width="374" height="210.375" clip-path="url(#frame-b)"/>
+  <text class="note" x="508" y="392">가장 중립적. 폭과 높이 차이를 반씩 섞음</text>
+
+  <text class="label" x="1030" y="104">match = 1</text>
+  <text class="sub" x="990" y="364">높이 기준 스케일</text>
+  <rect class="panel" x="910" y="120" width="340" height="212.5"/>
+  <line class="guide" x1="910" y1="226.25" x2="1250" y2="226.25"/>
+  <g clip-path="url(#frame-c)">
+    <rect class="clip" x="891" y="120" width="378.89" height="212.5"/>
+    <rect class="ui" x="891" y="120" width="378.89" height="212.5"/>
+  </g>
+  <text class="note" x="918" y="392">UI가 더 커지고 좌우가 더 타이트해지는 느낌</text>
+
+  <text class="sub" x="60" y="470">읽는 법</text>
+  <text class="note" x="60" y="496">큰 사각형은 실제 창, 금색 영역은 같은 UI가 스케일된 결과를 개념적으로 그린 것입니다.</text>
+  <text class="note" x="60" y="520">실제 UI Toolkit 내부 계산은 더 정교하지만, 시각적으로는 낮을수록 width 우선, 높을수록 height 우선으로 이해하면 됩니다.</text>
+</svg>

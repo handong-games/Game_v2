@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System;
-using Game.Core.Managers.Garphic;
 using Game.Core.Managers.Save;
 using Game.Core.Managers.View;
 using UnityEngine;
@@ -68,8 +67,7 @@ namespace Domains.Settings.View
             OnBindGraphics();
             OnBindAudio();
 
-            UpdateFullscreenVisualState(GraphicManager.Instance.IsFullscreen());
-            UpdateSharedRootState();
+            UpdateRootLayerState();
             SelectTab(1);
         }
 
@@ -105,17 +103,16 @@ namespace Domains.Settings.View
             ViewManager.Instance.Pop();
         }
 
-        private void UpdateSharedRootState()
+        private void UpdateRootLayerState()
         {
-            VisualElement sharedRoot = ViewManager.Instance.SharedViewRoot;
-            if (sharedRoot == null)
+            VisualElement rootLayer = ViewManager.Instance.RootLayer;
+            if (rootLayer == null)
                 return;
 
-            bool isFullscreen = GraphicManager.Instance.IsFullscreen();
-            sharedRoot.EnableInClassList("app--fullscreen", isFullscreen);
-            sharedRoot.EnableInClassList("app--windowed", !isFullscreen);
-            sharedRoot.EnableInClassList("app--single-display", Mathf.Max(Display.displays.Length, 1) <= 1);
-            sharedRoot.EnableInClassList("app--multi-display", Mathf.Max(Display.displays.Length, 1) > 1);
+            rootLayer.EnableInClassList("app--fullscreen", false);
+            rootLayer.EnableInClassList("app--windowed", true);
+            rootLayer.EnableInClassList("app--single-display", Mathf.Max(Display.displays.Length, 1) <= 1);
+            rootLayer.EnableInClassList("app--multi-display", Mathf.Max(Display.displays.Length, 1) > 1);
         }
 
         private void UpdateFullscreenVisualState(bool isFullscreen)

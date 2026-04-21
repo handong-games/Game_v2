@@ -1,0 +1,494 @@
+/* ===========================
+   TitleView 스타일
+   =========================== */
+.screen {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+}
+
+.title-screen {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    background-color: rgb(12, 14, 18);
+}
+
+.title-screen__background {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.title-screen__content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.title-screen__layout-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.title-screen__layer,
+.title-screen__line,
+.title-screen__node {
+    position: absolute;
+    opacity: 1;
+}
+
+.title-screen__layer {
+    border-width: 1px;
+    border-color: rgba(210, 218, 230, 0.075);
+    background-color: rgba(246, 238, 225, 0.003);
+}
+
+.title-screen__layer--left {
+    left: -10%;
+    top: 8%;
+    width: 33%;
+    height: 26%;
+    rotate: -12deg;
+}
+
+.title-screen__layer--left-secondary {
+    left: -4%;
+    top: 13%;
+    width: 20%;
+    height: 14%;
+    opacity: 0.55;
+    rotate: -9deg;
+}
+
+.title-screen__layer--right {
+    right: -12%;
+    bottom: 6%;
+    width: 45%;
+    height: 26%;
+    rotate: 9deg;
+}
+
+.title-screen__layer--right-secondary {
+    right: 2%;
+    top: 9%;
+    width: 20%;
+    height: 14%;
+    opacity: 0.45;
+    rotate: 14deg;
+}
+
+.title-screen__line {
+    height: 1px;
+    background-color: rgba(222, 229, 239, 0.11);
+}
+
+.title-screen__line--left-a {
+    left: -3%;
+    top: 20%;
+    width: 39%;
+    rotate: -16deg;
+}
+
+.title-screen__line--left-b {
+    left: 5%;
+    top: 64%;
+    width: 22%;
+    opacity: 0.06;
+    rotate: 30deg;
+}
+
+.title-screen__line--left-c {
+    left: 10%;
+    top: 28%;
+    width: 14%;
+    opacity: 0.08;
+    rotate: -34deg;
+}
+
+.title-screen__line--top-right-a {
+    right: -1%;
+    top: 17%;
+    width: 28%;
+    opacity: 0.06;
+    rotate: 28deg;
+}
+
+.title-screen__line--top-right-b {
+    right: 12%;
+    top: 28%;
+    width: 16%;
+    opacity: 0.05;
+    rotate: -12deg;
+}
+
+.title-screen__line--top-right-c {
+    right: 15%;
+    top: 11%;
+    width: 11%;
+    opacity: 0.08;
+    rotate: 22deg;
+}
+
+.title-screen__line--bottom-right-a {
+    right: -8%;
+    bottom: 19%;
+    width: 46%;
+    rotate: 12deg;
+}
+
+.title-screen__line--bottom-right-b {
+    right: 11%;
+    bottom: 13%;
+    width: 16%;
+    opacity: 0.06;
+    rotate: -31deg;
+}
+
+.title-screen__line--bottom-right-c {
+    right: 23%;
+    bottom: 28%;
+    width: 11%;
+    opacity: 0.07;
+    rotate: 38deg;
+}
+
+.title-screen__node {
+    width: 8px;
+    height: 8px;
+    border-width: 1px;
+    border-color: rgba(219, 225, 234, 0.14);
+    background-color: rgba(245, 236, 220, 0.018);
+}
+
+.title-screen__node--top-right {
+    right: 14%;
+    top: 15%;
+    rotate: 18deg;
+}
+
+.title-screen__node--bottom-left {
+    left: 10%;
+    bottom: 17%;
+    opacity: 0.75;
+    rotate: -24deg;
+}
+
+.title-screen__node--mid-left {
+    left: 18%;
+    top: 33%;
+    opacity: 0.45;
+    rotate: 12deg;
+}
+
+.title-screen__node--mid-right {
+    right: 20%;
+    bottom: 24%;
+    opacity: 0.42;
+    rotate: -11deg;
+}
+
+/* === 콘텐츠 구역 === */
+.title-screen__branding,
+.title-screen__menu {
+    position: absolute;
+}
+
+.title-screen__branding {
+    left: 50%;
+    translate: -50% 0;
+    align-items: center;
+}
+
+.title-screen__branding {
+    top: 27%;
+    width: 68%;
+    max-width: 820px;
+    min-height: 16%;
+    justify-content: center;
+}
+
+.title-screen__branding-stack {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.title-screen__branding-echo,
+.title-screen__branding-text {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    color: rgba(236, 226, 208, 0.96);
+    -unity-text-align: middle-center;
+    font-size: 108px;
+    letter-spacing: 10px;
+    opacity: 0;
+    translate: 0 14px;
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+}
+
+.title-screen__branding-echo {
+    color: rgba(146, 133, 111, 0.09);
+    opacity: 0;
+    translate: 4px 18px;
+}
+
+.title-screen__branding-text {
+    -unity-font-style: bold;
+}
+
+.title-screen__branding-echo--visible {
+    opacity: 1;
+    translate: 4px 4px;
+}
+
+.title-screen__branding-text--visible {
+    opacity: 1;
+    translate: 0 0;
+}
+
+/* === 메뉴 영역 === */
+.title-screen__menu {
+    left: 0;
+    right: 0;
+    top: 62%;
+    width: auto;
+    max-width: none;
+    height: auto;
+    justify-content: flex-start;
+    align-items: center;
+    translate: 0 0;
+    opacity: 0;
+    flex-direction: column;
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
+    transition-delay: 0s;
+    transition-timing-function: ease-out;
+}
+
+.title-screen__menu--visible {
+    opacity: 1;
+    translate: 0 0;
+}
+
+/* === 메뉴 버튼 === */
+.title-screen__menu-button {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: none;
+    border-width: 0;
+    border-radius: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    min-width: 0;
+    align-self: center;
+    margin-top: 0;
+    margin-bottom: 2.5%;
+}
+
+.title-screen__menu-label {
+    width: auto;
+    height: auto;
+    align-self: center;
+    color: rgba(247, 247, 247, 0.96);
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    font-size: 44px;
+    letter-spacing: 1.9px;
+    opacity: 1;
+    text-shadow: 0 0 18px rgba(184, 149, 90, 0.18), 0 3px 16px rgba(0, 0, 0, 0.96), 0 0 3px rgba(12, 8, 4, 0.98);
+    scale: 1;
+    translate: 0 0;
+    -unity-text-outline-width: 1.5px;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.96);
+    transition-property: color, opacity, translate, text-shadow, scale, letter-spacing, -unity-text-outline-width, -unity-text-outline-color;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out;
+}
+
+.title-screen__menu-button:hover .title-screen__menu-label {
+    color: rgba(255, 255, 255, 1);
+    opacity: 1;
+    text-shadow: 0 0 22px rgba(214, 178, 113, 0.24), 0 5px 20px rgba(0, 0, 0, 0.98), 0 0 4px rgba(14, 10, 6, 1);
+    scale: 1.125;
+    letter-spacing: 3.1px;
+    translate: 0 0;
+    -unity-text-outline-width: 1.5px;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.98);
+}
+
+.title-screen__menu-button:active .title-screen__menu-label {
+    color: rgba(236, 236, 236, 0.98);
+    opacity: 1;
+    text-shadow: 0 0 14px rgba(181, 149, 95, 0.2), 0 2px 10px rgba(0, 0, 0, 0.92);
+    scale: 1.01;
+    letter-spacing: 2.4px;
+    translate: 0 1px;
+    -unity-text-outline-width: 1.9px;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.98);
+}
+
+/* === 버전 영역 === */
+.title-screen__footer {
+    position: absolute;
+    right: 2%;
+    bottom: 2.5%;
+    width: auto;
+    height: auto;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.title-screen__footer-version {
+    color: rgba(118, 114, 108, 0.78);
+    -unity-text-align: middle-right;
+    letter-spacing: 1px;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+    transition-delay: 0s;
+    transition-timing-function: ease-out;
+}
+
+.title-screen__footer-version--visible {
+    opacity: 1;
+}
+
+/* === 전역 반응형 상태 === */
+.app--aspect-narrow .title-screen__layout-layer {
+}
+
+.app--aspect-narrow .title-screen__layer--left {
+    left: -6%;
+    top: 6%;
+    width: 38%;
+    height: 30%;
+}
+
+.app--aspect-narrow .title-screen__layer--right {
+    right: -8%;
+    bottom: 4%;
+    width: 48%;
+    height: 30%;
+}
+
+.app--aspect-narrow .title-screen__layer--left-secondary {
+    left: -1%;
+    top: 12%;
+    width: 24%;
+    height: 16%;
+}
+
+.app--aspect-narrow .title-screen__layer--right-secondary {
+    right: 1%;
+    top: 8%;
+    width: 18%;
+    height: 14%;
+}
+
+.app--aspect-narrow .title-screen__line--left-a {
+    left: -1%;
+    width: 44%;
+}
+
+.app--aspect-narrow .title-screen__line--bottom-right-a {
+    right: -2%;
+    width: 42%;
+}
+
+.app--aspect-narrow .title-screen__branding-text,
+.app--aspect-narrow .title-screen__branding-echo {
+    font-size: 56px;
+    letter-spacing: 6px;
+}
+
+.app--aspect-narrow .title-screen__branding {
+    top: 29%;
+}
+
+.app--aspect-narrow .title-screen__menu {
+    top: 64%;
+}
+
+.app--aspect-narrow .title-screen__menu-label {
+    font-size: 36px;
+}
+
+.app--aspect-ultrawide .title-screen__layer--left {
+    left: -14%;
+    width: 38%;
+}
+
+.app--aspect-ultrawide .title-screen__layer--right {
+    right: -16%;
+    width: 46%;
+}
+
+.app--aspect-ultrawide .title-screen__layer--left-secondary {
+    left: -6%;
+    width: 22%;
+}
+
+.app--aspect-ultrawide .title-screen__layer--right-secondary {
+    right: 0;
+    width: 20%;
+}
+
+.app--aspect-ultrawide .title-screen__line--left-a {
+    left: -8%;
+    width: 48%;
+}
+
+.app--aspect-ultrawide .title-screen__line--bottom-right-a {
+    right: -9%;
+    width: 50%;
+}
+
+.app--aspect-ultrawide .title-screen__line--top-right-a {
+    right: -3%;
+    width: 28%;
+}
+
+.app--aspect-ultrawide .title-screen__node--top-right {
+    right: 14%;
+}
+
+.app--aspect-ultrawide .title-screen__node--mid-right {
+    right: 18%;
+}
+
+.app--aspect-ultrawide .title-screen__branding {
+    top: 25%;
+}
+
+.app--aspect-ultrawide .title-screen__menu {
+    top: 60%;
+}
+
+.app--aspect-ultrawide .title-screen__branding-text,
+.app--aspect-ultrawide .title-screen__branding-echo {
+    font-size: 140px;
+    letter-spacing: 12px;
+}
+
+.app--aspect-ultrawide .title-screen__menu-label {
+    font-size: 46px;
+}

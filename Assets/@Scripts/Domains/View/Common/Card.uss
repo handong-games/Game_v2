@@ -15,7 +15,9 @@
     border-width: 1px;
     border-color: rgba(255, 255, 255, 0.14);
     background-color: rgba(255, 255, 255, 0.026);
-    transition: border-color 0.12s ease-out, background-color 0.12s ease-out, scale 0.12s ease-out;
+    transition-property: border-color, background-color, scale;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out;
 }
 
 .card__illustration {
@@ -24,7 +26,7 @@
     top: 0;
     width: 100%;
     height: 100%;
-    opacity: 0.8;
+    opacity: 0.78;
     -unity-background-scale-mode: scale-and-crop;
     transition: opacity 0.12s ease-out;
 }

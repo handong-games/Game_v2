@@ -27,21 +27,6 @@
     height: 100%;
 }
 
-.character-select__pattern-line {
-    position: absolute;
-    background-color: rgba(255, 255, 255, 0.022);
-}
-
-.character-select__pattern-line--vertical {
-    width: 1px;
-    height: 100%;
-}
-
-.character-select__pattern-line--horizontal {
-    width: 100%;
-    height: 1px;
-}
-
 .character-select__dim {
     position: absolute;
     width: 100%;
@@ -54,16 +39,16 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-.character-select__frame {
+.character-select__layer {
     width: 100%;
     height: 100%;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     padding-top: 72px;
-    padding-right: 112px;
+    padding-right: 96px;
     padding-bottom: 56px;
-    padding-left: 112px;
+    padding-left: 96px;
 }
 
 .character-select__header {
@@ -99,165 +84,110 @@
 }
 
 .character-select__card {
-    width: 256px;
-    height: 352px;
-    margin-left: 18px;
-    margin-right: 18px;
+    position: relative;
     opacity: 0;
-    transition: opacity 0.28s ease-out;
+    translate: 0 18px;
+    transition: opacity 0.28s ease-out, translate 0.28s ease-out;
 }
 
 .character-select__card--visible {
     opacity: 1;
+    translate: 0 0;
 }
 
-.character-select__card-body {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    overflow: hidden;
-    padding-bottom: 22px;
-    border-radius: 18px;
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.14);
-    background-color: rgba(255, 255, 255, 0.026);
-    transition: border-color 0.12s ease-out, background-color 0.12s ease-out, translate 0.08s ease-out;
-}
-
-.character-select__card-body:hover {
+.character-select__card:not(.character-select__card--locked):hover .card__body {
     border-color: rgba(255, 255, 255, 0.22);
     background-color: rgba(255, 255, 255, 0.04);
 }
 
-.character-select__card-illustration {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    opacity: 0.78;
-    -unity-background-scale-mode: scale-and-crop;
+.character-select__card:not(.character-select__card--locked):hover .card__illustration {
+    opacity: 0.86;
 }
 
-.character-select__card-illustration--warrior {
-    background-color: rgba(220, 220, 220, 0.16);
-}
-
-.character-select__card-illustration--mage {
-    background-color: rgba(190, 190, 190, 0.14);
-}
-
-.character-select__card-illustration--rogue {
-    background-color: rgba(150, 150, 150, 0.1);
-}
-
-.character-select__card-overlay {
-    position: absolute;
-    width: 100%;
-    height: 100%;
+.character-select__card--locked:hover .card__body {
+    border-color: rgba(255, 255, 255, 0.16);
     background-color: rgba(255, 255, 255, 0.03);
-    opacity: 0;
-    transition: opacity 0.12s ease-out, background-color 0.12s ease-out;
 }
 
-.character-select__card-lock {
-    position: absolute;
-    right: 14px;
-    top: 14px;
-    width: auto;
-    height: auto;
-    align-items: center;
-    justify-content: center;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 4px;
-    padding-bottom: 4px;
-    border-radius: 999px;
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.18);
-    background-color: rgba(10, 10, 14, 0.72);
-    opacity: 0;
+.character-select__card--locked:hover .card__lock {
+    background-color: rgba(10, 10, 14, 0.8);
 }
 
-.character-select__card-lock-text {
-    color: rgba(255, 255, 255, 0.88);
-    -unity-font-style: bold;
-    font-size: 11px;
-    letter-spacing: 1px;
+.character-select__card--warrior .card__illustration {
+    background-color: rgba(170, 129, 93, 0.34);
 }
 
-.character-select__card-footer {
-    position: relative;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
+.character-select__card--mage .card__illustration {
+    background-color: rgba(88, 111, 160, 0.32);
 }
 
-.character-select__card-name {
-    color: rgba(244, 244, 244, 0.96);
-    -unity-font-style: bold;
-    font-size: 22px;
-    letter-spacing: 2px;
-    -unity-text-align: middle-center;
-    padding-left: 12px;
-    padding-right: 12px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    background-color: rgba(10, 10, 14, 0.52);
-    border-radius: 8px;
+.character-select__card--rogue .card__illustration {
+    background-color: rgba(110, 132, 102, 0.28);
 }
 
-.character-select__card--selected .character-select__card-body {
-    border-color: rgba(255, 255, 255, 0.48);
-    background-color: rgba(255, 255, 255, 0.085);
-}
-
-.character-select__card--selected .character-select__card-overlay {
-    opacity: 1;
-    background-color: rgba(255, 255, 255, 0.16);
-}
-
-.character-select__card--selected .character-select__card-illustration {
-    opacity: 0.82;
-}
-
-.character-select__card--subdued .character-select__card-body {
-    border-color: rgba(255, 255, 255, 0.1);
-    background-color: rgba(255, 255, 255, 0.016);
-}
-
-.character-select__card--subdued .character-select__card-illustration {
-    opacity: 0.42;
-}
-
-.character-select__card--locked .character-select__card-body {
-    border-color: rgba(255, 255, 255, 0.14);
-    background-color: rgba(255, 255, 255, 0.026);
-}
-
-.character-select__card--locked .character-select__card-lock {
-    opacity: 1;
-}
-
-.character-select__card--locked .character-select__card-body:hover {
-    border-color: rgba(255, 255, 255, 0.22);
-    background-color: rgba(255, 255, 255, 0.04);
-}
-
-.character-select__card--locked-feedback-left .character-select__card-body {
-    translate: -10px 0;
-    border-color: rgba(255, 255, 255, 0.34);
-}
-
-.character-select__card--locked-feedback-right .character-select__card-body {
-    translate: 10px 0;
-    border-color: rgba(255, 255, 255, 0.34);
-}
-
-.character-select__card--locked-feedback-left .character-select__card-lock,
-.character-select__card--locked-feedback-right .character-select__card-lock {
+.character-select__card--selected .card__body {
+    border-color: rgba(255, 255, 255, 0.5);
     background-color: rgba(255, 255, 255, 0.08);
+    scale: 1.035 1.035;
+}
+
+.character-select__card--selected .card__selection-overlay {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.character-select__card--selected .card__illustration {
+    opacity: 0.94;
+}
+
+.character-select__card--selected:not(.character-select__card--locked) .card__name-bar {
+    opacity: 1;
+}
+
+.character-select__card--subdued .card__body {
+    border-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.character-select__card--subdued .card__illustration {
+    opacity: 0.44;
+}
+
+.character-select__card--subdued .card__selection-overlay {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.18);
+}
+
+.character-select__card--locked .card__body {
+    border-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.018);
+}
+
+.character-select__card--locked .card__illustration {
+    opacity: 0.52;
+}
+
+.character-select__card--locked .card__selection-overlay {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.22);
+}
+
+.character-select__card--locked .card__lock {
+    opacity: 1;
+}
+
+.character-select__card--locked .card__name-bar {
+    opacity: 0;
+}
+
+.character-select__card--locked-feedback-left .card__body,
+.character-select__card--locked-feedback-right .card__body {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.character-select__card--locked-feedback-left .card__lock,
+.character-select__card--locked-feedback-right .card__lock {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .character-select__detail {
@@ -265,7 +195,7 @@
     min-height: 220px;
     align-items: center;
     justify-content: center;
-    margin-top: 36px;
+    margin-top: 26px;
 }
 
 .character-select__detail-panel {

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="760" viewBox="0 0 1440 760">
+  <defs>
+    <style>
+      .bg { fill: #0b0d11; }
+      .title { fill: #f1eee6; font: 700 28px sans-serif; }
+      .sub { fill: #b5becc; font: 16px sans-serif; }
+      .label { fill: #ece7dd; font: 700 22px sans-serif; }
+      .note { fill: #cfd5df; font: 14px sans-serif; }
+      .window { fill: #171c25; stroke: #445066; stroke-width: 2; }
+      .content { fill: rgba(214,189,97,0.20); stroke: #d6bd61; stroke-width: 2; }
+      .extra { fill: rgba(129,154,193,0.18); stroke: #6d87b3; stroke-width: 2; stroke-dasharray: 8 6; }
+      .guide { fill: none; stroke: #2d3545; stroke-width: 1; stroke-dasharray: 6 6; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1440" height="760"/>
+
+  <text class="title" x="56" y="50">STS2 Auto Aspect Buckets</text>
+  <text class="sub" x="56" y="78">Auto는 현재 창 비율을 보고 narrow / standard / ultrawide 중 하나를 고릅니다.</text>
+
+  <!-- Narrow -->
+  <text class="label" x="160" y="132">Narrow</text>
+  <text class="sub" x="86" y="158">ratio &lt; 1.3333334</text>
+  <text class="sub" x="70" y="180">KeepHeight + 1680x1260</text>
+  <rect class="window" x="70" y="210" width="280" height="360"/>
+  <line class="guide" x1="70" y1="390" x2="350" y2="390"/>
+  <rect class="content" x="70" y="285" width="280" height="210"/>
+  <text class="note" x="62" y="606">세로를 신뢰해서 콘텐츠 높이를 유지</text>
+  <text class="note" x="73" y="628">좁은 창에서도 위/아래 리듬이 덜 무너짐</text>
+
+  <!-- Standard -->
+  <text class="label" x="620" y="132">Standard</text>
+  <text class="sub" x="523" y="158">1.3333334 ≤ ratio ≤ 2.3888888</text>
+  <text class="sub" x="555" y="180">Expand + 1680x1080</text>
+  <rect class="window" x="470" y="280" width="360" height="240"/>
+  <line class="guide" x1="470" y1="400" x2="830" y2="400"/>
+  <rect class="content" x="506" y="280" width="288" height="240"/>
+  <rect class="extra" x="470" y="280" width="36" height="240"/>
+  <rect class="extra" x="794" y="280" width="36" height="240"/>
+  <text class="note" x="490" y="606">보통 비율에서는 콘텐츠를 너무 답답하게 자르지 않음</text>
+  <text class="note" x="532" y="628">좌우로 더 보여줄 수 있으면 보여주는 쪽</text>
+
+  <!-- UltraWide -->
+  <text class="label" x="1086" y="132">UltraWide</text>
+  <text class="sub" x="1016" y="158">ratio &gt; 2.3888888</text>
+  <text class="sub" x="996" y="180">KeepWidth + 2580x1080</text>
+  <rect class="window" x="910" y="310" width="430" height="180"/>
+  <line class="guide" x1="910" y1="400" x2="1340" y2="400"/>
+  <rect class="content" x="910" y="333.75" width="430" height="132.5"/>
+  <text class="note" x="975" y="606">가로를 신뢰해서 ultrawide에서도 중앙 UI가</text>
+  <text class="note" x="1018" y="628">과하게 좁아지지 않게 유지</text>
+
+  <text class="sub" x="56" y="690">읽는 법</text>
+  <text class="note" x="56" y="716">회색 큰 박스는 실제 창, 금색은 STS2가 선택한 논리 콘텐츠 기준입니다. 파란 점선은 Expand 계열에서 더 보여줄 수 있는 영역을 개념적으로 나타냅니다.</text>
+</svg>

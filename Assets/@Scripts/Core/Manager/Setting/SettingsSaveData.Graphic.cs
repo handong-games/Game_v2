@@ -1,5 +1,5 @@
 using System;
-using Game.Core.Managers.Garphic;
+using Game.Core.Define;
 using UnityEngine;
 
 namespace Domains.Settings
@@ -13,7 +13,7 @@ namespace Domains.Settings
         public int targetDisplayIndex = 0;
         public int windowPositionX = -1;
         public int windowPositionY = -1;
-        public EDisplayAspectPreset aspectPreset = EDisplayAspectPreset.Auto;
+        public EDisplayAspect aspect = EDisplayAspect.Auto;
     }
     
     public sealed partial class SettingsSaveData
