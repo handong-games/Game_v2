@@ -32,7 +32,7 @@ namespace Domains.Settings.View
             if (Root.childCount == 0)
                 return;
 
-            _screenRoot = Root.Q<VisualElement>("settings-screen");
+            _screenRoot = Root.Q<VisualElement>("settings-root");
             _tabGeneral = Root.Q<Button>("tab-general");
             _tabGraphics = Root.Q<Button>("tab-graphics");
             _tabAudio = Root.Q<Button>("tab-audio");

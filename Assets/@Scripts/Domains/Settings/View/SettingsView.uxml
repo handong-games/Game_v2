@@ -2,7 +2,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="SettingsView.uss" />
 
-    <ui:VisualElement name="settings-screen" class="screen screen--visible settings-screen">
+    <ui:VisualElement name="settings-root" class="screen screen--visible settings-screen">
         <ui:VisualElement class="settings-screen__background" picking-mode="Ignore">
             <ui:VisualElement class="settings-screen__glow settings-screen__glow--left" />
             <ui:VisualElement class="settings-screen__glow settings-screen__glow--right" />

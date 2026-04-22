@@ -7,6 +7,9 @@ namespace Game.Core.Managers.View
     {
         private const float AutoNarrowThreshold = 1.3333334f;
         private const float AutoUltraWideThreshold = 2.3888888f;
+        private const string NarrowBucketClass = "app-view-layer--narrow";
+        private const string StandardBucketClass = "app-view-layer--standard";
+        private const string UltraWideBucketClass = "app-view-layer--ultrawide";
         private EDisplayAspect _currentAspect = EDisplayAspect.Auto;
 
         private void OnViewAspectChanged(EDisplayAspect aspect)
@@ -27,21 +30,59 @@ namespace Game.Core.Managers.View
 
         private void ApplyAspectFrame(int viewWidth, int viewHeight)
         {
-            Vector2Int targetSize = ResolveTargetSize((float)viewWidth / viewHeight);
+            float aspectRatio = (float)viewWidth / viewHeight;
+            Vector2Int targetSize = ResolveTargetSize(aspectRatio);
+            float frameWidth;
+            float frameHeight;
+            float left;
+            float top;
 
-            float scale = Mathf.Min(
-                viewWidth / (float)targetSize.x,
-                viewHeight / (float)targetSize.y);
+            if (_currentAspect == EDisplayAspect.Auto)
+            {
+                if (aspectRatio > AutoUltraWideThreshold)
+                {
+                    // STS2 KeepWidth: logical width is fixed, physical content keeps full height.
+                    frameHeight = viewHeight;
+                    frameWidth = viewHeight * (targetSize.x / (float)targetSize.y);
+                    left = (viewWidth - frameWidth) * 0.5f;
+                    top = 0f;
+                }
+                else if (aspectRatio < AutoNarrowThreshold)
+                {
+                    // STS2 KeepHeight: logical height is fixed, physical content keeps full width.
+                    frameWidth = viewWidth;
+                    frameHeight = viewWidth * (targetSize.y / (float)targetSize.x);
+                    left = 0f;
+                    top = (viewHeight - frameHeight) * 0.5f;
+                }
+                else
+                {
+                    // STS2 Expand: content fills the whole window.
+                    frameWidth = viewWidth;
+                    frameHeight = viewHeight;
+                    left = 0f;
+                    top = 0f;
+                }
+            }
+            else
+            {
+                float frameScale = Mathf.Min(
+                    viewWidth / (float)targetSize.x,
+                    viewHeight / (float)targetSize.y);
 
-            float frameWidth = targetSize.x * scale;
-            float frameHeight = targetSize.y * scale;
-            float left = (viewWidth - frameWidth) * 0.5f;
-            float top = (viewHeight - frameHeight) * 0.5f;
+                frameWidth = targetSize.x * frameScale;
+                frameHeight = targetSize.y * frameScale;
+                left = (viewWidth - frameWidth) * 0.5f;
+                top = (viewHeight - frameHeight) * 0.5f;
+            }
 
             _viewLayer.style.left = left;
             _viewLayer.style.top = top;
             _viewLayer.style.width = frameWidth;
             _viewLayer.style.height = frameHeight;
+
+            ApplyAspectBucketClass(aspectRatio);
+            //ApplyResponsiveLayoutToViews(frameScale, frameWidth, frameHeight, targetSize);
         }
 
         private Vector2Int ResolveTargetSize(float aspectRatio)
@@ -72,5 +113,37 @@ namespace Game.Core.Managers.View
                     return new Vector2Int(1920, 1080);
             }
         }
+
+        private void ApplyAspectBucketClass(float aspectRatio)
+        {
+            _viewLayer.EnableInClassList(NarrowBucketClass, false);
+            _viewLayer.EnableInClassList(StandardBucketClass, false);
+            _viewLayer.EnableInClassList(UltraWideBucketClass, false);
+
+            if (_currentAspect == EDisplayAspect.Auto)
+            {
+                if (aspectRatio > AutoUltraWideThreshold)
+                {
+                    _viewLayer.AddToClassList(UltraWideBucketClass);
+                    return;
+                }
+
+                if (aspectRatio < AutoNarrowThreshold)
+                {
+                    _viewLayer.AddToClassList(NarrowBucketClass);
+                    return;
+                }
+            }
+
+            _viewLayer.AddToClassList(StandardBucketClass);
+        }
+
+        /*private void ApplyResponsiveLayoutToViews(float frameScale, float frameWidth, float frameHeight, Vector2Int targetSize)
+        {
+            foreach (BaseView view in _views)
+            {
+                view?.ApplyResponsiveLayout(frameScale, frameWidth, frameHeight, targetSize);
+            }
+        }*/
     }
 }

@@ -76,6 +76,5 @@ namespace Views.TitleView
 
             return element;
         }
-
     }
 }

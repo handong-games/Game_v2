@@ -3,7 +3,7 @@
     <Style src="../Common/Card.uss"/>
     <Style src="CharacterSelectView.uss"/>
     <ui:VisualElement class="screen">
-        <ui:VisualElement class="character-select">
+        <ui:VisualElement name="character-select-root" class="character-select">
             <ui:VisualElement name="pattern-bg" class="character-select__pattern"/>
             <ui:VisualElement name="dim-bg" class="character-select__dim"/>
             <ui:VisualElement class="character-select__layer">

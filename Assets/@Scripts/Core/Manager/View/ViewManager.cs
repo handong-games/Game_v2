@@ -53,8 +53,9 @@ namespace Game.Core.Managers.View
             _viewLayer.AddToClassList("app-view-layer");
             _viewLayer.style.position = Position.Absolute;
             _viewLayer.style.overflow = Overflow.Hidden;
-
+            
             _rootLayer.Add(_viewLayer);
+            
             root.Add(_rootLayer);
 
             OnViewAspectChanged(GraphicManager.Instance.GetAspectPreset());
@@ -106,11 +107,13 @@ namespace Game.Core.Managers.View
             container.style.top = 0;
             container.style.right = 0;
             container.style.bottom = 0;
-
+            
             visualTreeAsset.CloneTree(container);
             baseView.Bind(container);
             _viewLayer.Add(container);
             _views.Push(baseView);
+
+            OnViewportSizeChanged(Screen.width, Screen.height);
         }
 
         public void Pop()

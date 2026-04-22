@@ -8,14 +8,6 @@ namespace Domains.CharacterSelect
 {
     public class CharacterSelectView : BaseView
     {
-        private const float MinimumLayoutSize = 64f;
-        private const float ContentHeightRatio = 0.78f;
-        private const float CardAspectWidth = 220f;
-        private const float CardAspectHeight = 330f;
-        private const float CardCenterSpacingRatio = 1.3f;
-        private const float TitleWeight = 1.1f;
-        private const float CardWeight = 2.0f;
-        private const float DetailWeight = 0.9f;
         private const int CardRevealStartMs = 120;
         private const int CardRevealStepMs = 80;
         private const int ButtonsRevealMs = 420;
@@ -40,11 +32,9 @@ namespace Domains.CharacterSelect
         private CharacterSelectController _controller;
 
         private VisualElement _screenRoot;
-        private VisualElement _contentLayer;
         private VisualElement _dimBackground;
         private VisualElement _titleArea;
         private VisualElement _cardContainer;
-        private VisualElement _detailSlot;
         private VisualElement _detailPanel;
         private VisualElement _skillList;
         private VisualElement _buttons;
@@ -67,12 +57,10 @@ namespace Domains.CharacterSelect
             if (Root.childCount == 0)
                 return;
 
-            _screenRoot = Root.Q<VisualElement>(className: "character-select");
-            _contentLayer = Root.Q<VisualElement>(className: "character-select__layer");
+            _screenRoot = Root.Q<VisualElement>("character-select-root");
             _dimBackground = Root.Q<VisualElement>("dim-bg");
             _titleArea = Root.Q<VisualElement>(className: "character-select__header");
             _cardContainer = Root.Q<VisualElement>("card-container");
-            _detailSlot = Root.Q<VisualElement>("detail-slot");
             _detailPanel = Root.Q<VisualElement>("detail-panel");
             _detailName = Root.Q<Label>("detail-name");
             _detailHp = Root.Q<Label>("detail-hp");
@@ -81,8 +69,6 @@ namespace Domains.CharacterSelect
             _buttons = Root.Q<VisualElement>(className: "character-select__actions");
             _backButton = Root.Q<Button>("btn-back");
             _startButton = Root.Q<Button>("btn-start");
-
-            Root.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
             _isClosing = false;
             _selectedIndex = -1;
@@ -98,7 +84,6 @@ namespace Domains.CharacterSelect
             ApplyCardData();
             ResetSelectionState();
             ApplyEntranceStates();
-            ApplyResponsiveLayout();
 
             if (_backButton != null)
             {
@@ -114,8 +99,6 @@ namespace Domains.CharacterSelect
 
         public override void Dispose()
         {
-            Root?.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
-
             if (_screenRoot != null)
             {
                 _screenRoot.UnregisterCallback<TransitionEndEvent>(OnClose);
@@ -143,11 +126,9 @@ namespace Domains.CharacterSelect
             }
 
             _screenRoot = null;
-            _contentLayer = null;
             _dimBackground = null;
             _titleArea = null;
             _cardContainer = null;
-            _detailSlot = null;
             _detailPanel = null;
             _skillList = null;
             _buttons = null;
@@ -395,7 +376,6 @@ namespace Domains.CharacterSelect
                 }
             }
 
-            ApplyResponsiveLayout();
         }
 
         private void TriggerLockedFeedback(int index)
@@ -438,73 +418,6 @@ namespace Domains.CharacterSelect
 
             _isClosing = false;
             ViewManager.Instance.Pop();
-        }
-
-        private void OnGeometryChanged(GeometryChangedEvent evt)
-        {
-            ApplyResponsiveLayout();
-        }
-
-        private void ApplyResponsiveLayout()
-        {
-            if (_screenRoot == null || _contentLayer == null || _titleArea == null || _cardContainer == null || _detailSlot == null || _buttons == null)
-                return;
-
-            float width = Root.resolvedStyle.width;
-            float height = Root.resolvedStyle.height;
-            if (width < MinimumLayoutSize || height < MinimumLayoutSize)
-                return;
-
-            float contentHeight = height * ContentHeightRatio;
-            float totalWeight = TitleWeight + CardWeight + DetailWeight;
-            float titleAreaHeight = contentHeight * (TitleWeight / totalWeight);
-            float cardAreaHeight = contentHeight * (CardWeight / totalWeight);
-            float detailAreaHeight = contentHeight * (DetailWeight / totalWeight);
-
-            _titleArea.style.height = titleAreaHeight;
-            _titleArea.style.width = width * 0.5f;
-            _titleArea.style.marginBottom = height * 0.028f;
-
-            Label titleText = Root.Q<Label>("title-text");
-            if (titleText != null)
-            {
-                titleText.style.fontSize = Mathf.Clamp(titleAreaHeight * 0.42f, 24f, 52f);
-            }
-
-            _cardContainer.style.height = cardAreaHeight;
-            _cardContainer.style.marginBottom = height * 0.02f;
-
-            float cardBodyHeight = cardAreaHeight * 0.92f;
-            float cardBodyWidth = cardBodyHeight * (CardAspectWidth / CardAspectHeight);
-            float gap = cardBodyWidth * Mathf.Max(CardCenterSpacingRatio - 1f, 0.12f) * 0.5f;
-
-            for (int i = 0; i < _cards.Length; i++)
-            {
-                if (_cards[i] == null)
-                    continue;
-
-                _cards[i].style.width = cardBodyWidth;
-                _cards[i].style.height = cardBodyHeight;
-                _cards[i].style.marginLeft = gap;
-                _cards[i].style.marginRight = gap;
-            }
-
-            float detailWidth = Mathf.Min(width * 0.56f, width * 0.72f);
-            _detailSlot.style.width = detailWidth;
-            _detailSlot.style.height = detailAreaHeight * 0.92f;
-            _detailPanel.style.width = detailWidth;
-            _detailPanel.style.minHeight = detailAreaHeight * 0.92f;
-
-            float buttonHeight = Mathf.Clamp(height * 0.07f, 44f, 68f);
-            float buttonWidth = Mathf.Clamp(buttonHeight * 1.45f, 76f, 98f);
-            float sideInset = Mathf.Max(width * 0.08f, 42f);
-            _buttons.style.width = width;
-            _buttons.style.paddingLeft = sideInset;
-            _buttons.style.paddingRight = sideInset;
-            _backButton.style.width = buttonWidth;
-            _backButton.style.height = buttonHeight;
-            _startButton.style.width = buttonWidth;
-            _startButton.style.height = buttonHeight;
         }
 
         private SO_CharacterData GetCharacterData(int index)

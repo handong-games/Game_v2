@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Game.Core.Managers.View
@@ -53,6 +54,10 @@ namespace Game.Core.Managers.View
             where TField : BaseField<TValue>
         {
             field?.UnregisterValueChangedCallback(handler);
+        }
+
+        public virtual void ApplyResponsiveLayout(float frameScale, float frameWidth, float frameHeight, Vector2Int targetSize)
+        {
         }
 
         public virtual void Dispose()

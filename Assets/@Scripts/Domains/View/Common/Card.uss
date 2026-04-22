@@ -63,11 +63,16 @@
 }
 
 .card__lock-text {
+    width: 100%;
     color: rgba(255, 255, 255, 0.88);
+    -unity-text-generator: advanced;
     -unity-font-style: bold;
     font-size: 11px;
+    -unity-text-auto-size: best-fit 7px 11px;
     letter-spacing: 1px;
     -unity-text-align: middle-center;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .card__name-bar {
@@ -82,8 +87,10 @@
 
 .card__name {
     color: rgba(244, 244, 244, 0.96);
+    -unity-text-generator: advanced;
     -unity-font-style: bold;
     font-size: 20px;
+    -unity-text-auto-size: best-fit 9px 20px;
     letter-spacing: 2px;
     -unity-text-align: middle-center;
     padding-left: 16px;
@@ -92,4 +99,6 @@
     padding-bottom: 8px;
     background-color: rgba(10, 10, 14, 0.48);
     border-radius: 8px;
+    white-space: nowrap;
+    overflow: hidden;
 }

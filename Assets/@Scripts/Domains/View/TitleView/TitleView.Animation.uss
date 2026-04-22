@@ -1,26 +1,8 @@
 .title-screen__branding-echo,
 .title-screen__branding-text {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    color: rgba(236, 226, 208, 0.96);
-    -unity-text-align: middle-center;
-    font-size: 96px;
-    letter-spacing: 8px;
     transition-property: opacity, translate;
     transition-duration: 300ms;
     transition-timing-function: ease-out;
-}
-
-.title-screen__branding-echo {
-    color: rgba(146, 133, 111, 0.09);
-    translate: 4px 18px;
-}
-
-.title-screen__branding-text {
-    -unity-font-style: bold;
 }
 
 .title-screen__footer-version {
