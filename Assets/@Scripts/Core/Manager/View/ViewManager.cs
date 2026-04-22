@@ -107,9 +107,19 @@ namespace Game.Core.Managers.View
             container.style.top = 0;
             container.style.right = 0;
             container.style.bottom = 0;
-            
-            visualTreeAsset.CloneTree(container);
-            baseView.Bind(container);
+
+            VisualElement logicalRoot = new VisualElement
+            {
+                name = $"{baseView.GetType().Name}-logical-root"
+            };
+            logicalRoot.AddToClassList("app-view__logical-root");
+            logicalRoot.style.position = Position.Absolute;
+            logicalRoot.style.left = 0;
+            logicalRoot.style.top = 0;
+
+            container.Add(logicalRoot);
+            visualTreeAsset.CloneTree(logicalRoot);
+            baseView.Bind(container, logicalRoot);
             _viewLayer.Add(container);
             _views.Push(baseView);
 

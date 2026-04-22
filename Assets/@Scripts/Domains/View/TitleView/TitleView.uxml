@@ -5,124 +5,83 @@
 
     <ui:VisualElement class="screen">
         <ui:VisualElement name="title-root" class="title-screen">
-            <ui:VisualElement name="background-layer" class="title-screen__background" picking-mode="Ignore">
-                <ui:VisualElement class="title-screen__layer title-screen__layer--left" />
-                <ui:VisualElement class="title-screen__layer title-screen__layer--left-secondary" />
-                <ui:VisualElement class="title-screen__layer title-screen__layer--right" />
-                <ui:VisualElement class="title-screen__layer title-screen__layer--right-secondary" />
-                <ui:VisualElement class="title-screen__line title-screen__line--left-a" />
-                <ui:VisualElement class="title-screen__line title-screen__line--left-b" />
-                <ui:VisualElement class="title-screen__line title-screen__line--left-c" />
-                <ui:VisualElement class="title-screen__line title-screen__line--top-right-a" />
-                <ui:VisualElement class="title-screen__line title-screen__line--top-right-b" />
-                <ui:VisualElement class="title-screen__line title-screen__line--top-right-c" />
-                <ui:VisualElement class="title-screen__line title-screen__line--bottom-right-a" />
-                <ui:VisualElement class="title-screen__line title-screen__line--bottom-right-b" />
-                <ui:VisualElement class="title-screen__line title-screen__line--bottom-right-c" />
-                <ui:VisualElement class="title-screen__node title-screen__node--top-right" />
-                <ui:VisualElement class="title-screen__node title-screen__node--bottom-left" />
-                <ui:VisualElement class="title-screen__node title-screen__node--mid-left" />
-                <ui:VisualElement class="title-screen__node title-screen__node--mid-right" />
+            <ui:VisualElement name="background-layer" class="title-screen__background" picking-mode="Ignore" />
+
+            <ui:VisualElement name="title-branding" class="title-screen__branding">
+                <ui:VisualElement class="title-screen__branding-stack">
+                    <ui:Label name="title-text-echo" text="Game Logo" class="title-screen__branding-echo">
+                        <Bindings>
+                            <UnityEngine.Localization.LocalizedString property="text"
+                                                                     table="TitleView"
+                                                                     entry="title_logo" />
+                        </Bindings>
+                    </ui:Label>
+
+                    <ui:Label name="title-text" text="Game Logo" class="title-screen__branding-text">
+                        <Bindings>
+                            <UnityEngine.Localization.LocalizedString property="text"
+                                                                     table="TitleView"
+                                                                     entry="title_logo" />
+                        </Bindings>
+                    </ui:Label>
+                </ui:VisualElement>
             </ui:VisualElement>
 
-            <ui:VisualElement name="title-display-root" class="title-screen__display-root">
-                <ui:VisualElement name="title-logical-root" class="title-screen__logical-root">
-                    <ui:VisualElement name="blur-backstop" class="title-screen__blur-backstop" />
+            <ui:VisualElement name="title-menu" class="title-screen__menu">
+                <ui:Button name="btn-new-game" class="title-screen__menu-button">
+                    <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--left" picking-mode="Ignore" />
+                    <ui:Label name="btn-new-game-label" text="New Game" class="title-screen__menu-label" picking-mode="Ignore">
+                        <Bindings>
+                            <l:LocalizedString property="text"
+                                               table="TitleView"
+                                               entry="menu_new_game" />
+                            <l:LocalizedFont property="style.unityFontDefinition"
+                                             table="FontAssets"
+                                             entry="UIToolkitFont" />
+                        </Bindings>
+                    </ui:Label>
+                    <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--right" picking-mode="Ignore" />
+                </ui:Button>
 
-                    <ui:VisualElement name="profile-button" class="title-screen__profile-button">
-                        <ui:VisualElement class="title-screen__profile-icon" />
-                        <ui:Label text="Profile 1" class="title-screen__profile-title" />
-                        <ui:Label text="Select profile" class="title-screen__profile-description" />
-                    </ui:VisualElement>
+                <ui:Button name="btn-settings" class="title-screen__menu-button">
+                    <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--left" picking-mode="Ignore" />
+                    <ui:Label name="btn-settings-label" text="Settings" class="title-screen__menu-label" picking-mode="Ignore">
+                        <Bindings>
+                            <l:LocalizedString property="text"
+                                               table="TitleView"
+                                               entry="menu_settings" />
+                            <l:LocalizedFont property="style.unityFontDefinition"
+                                             table="FontAssets"
+                                             entry="UIToolkitFont" />
+                        </Bindings>
+                    </ui:Label>
+                    <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--right" picking-mode="Ignore" />
+                </ui:Button>
 
-                    <ui:VisualElement name="patch-notes-button" class="title-screen__patch-button">
-                        <ui:Label text="!" class="title-screen__patch-label" />
-                    </ui:VisualElement>
+                <ui:Button name="btn-quit" class="title-screen__menu-button">
+                    <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--left" picking-mode="Ignore" />
+                    <ui:Label name="btn-quit-label" text="Quit" class="title-screen__menu-label" picking-mode="Ignore">
+                        <Bindings>
+                            <l:LocalizedString property="text"
+                                               table="TitleView"
+                                               entry="menu_quit" />
+                            <l:LocalizedFont property="style.unityFontDefinition"
+                                             table="FontAssets"
+                                             entry="UIToolkitFont" />
+                        </Bindings>
+                    </ui:Label>
+                    <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--right" picking-mode="Ignore" />
+                </ui:Button>
+            </ui:VisualElement>
 
-                    <ui:VisualElement name="title-branding" class="title-screen__branding">
-                        <ui:VisualElement class="title-screen__branding-stack">
-                            <ui:Label name="title-text-echo" text="Game Logo" class="title-screen__branding-echo">
-                                <Bindings>
-                                    <UnityEngine.Localization.LocalizedString property="text"
-                                                                             table="TitleView"
-                                                                             entry="title_logo" />
-                                </Bindings>
-                            </ui:Label>
-
-                            <ui:Label name="title-text" text="Game Logo" class="title-screen__branding-text">
-                                <Bindings>
-                                    <UnityEngine.Localization.LocalizedString property="text"
-                                                                             table="TitleView"
-                                                                             entry="title_logo" />
-                                </Bindings>
-                            </ui:Label>
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-
-                    <ui:VisualElement name="title-menu" class="title-screen__menu">
-                        <ui:Button name="btn-new-game" class="title-screen__menu-button">
-                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--left" picking-mode="Ignore" />
-                            <ui:Label name="btn-new-game-label" text="New Game" class="title-screen__menu-label" picking-mode="Ignore">
-                                <Bindings>
-                                    <l:LocalizedString property="text"
-                                                       table="TitleView"
-                                                       entry="menu_new_game" />
-                                    <l:LocalizedFont property="style.unityFontDefinition"
-                                                     table="FontAssets"
-                                                     entry="UIToolkitFont" />
-                                </Bindings>
-                            </ui:Label>
-                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--right" picking-mode="Ignore" />
-                        </ui:Button>
-
-                        <ui:Button name="btn-settings" class="title-screen__menu-button">
-                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--left" picking-mode="Ignore" />
-                            <ui:Label name="btn-settings-label" text="Settings" class="title-screen__menu-label" picking-mode="Ignore">
-                                <Bindings>
-                                    <l:LocalizedString property="text"
-                                                       table="TitleView"
-                                                       entry="menu_settings" />
-                                    <l:LocalizedFont property="style.unityFontDefinition"
-                                                     table="FontAssets"
-                                                     entry="UIToolkitFont" />
-                                </Bindings>
-                            </ui:Label>
-                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--right" picking-mode="Ignore" />
-                        </ui:Button>
-
-                        <ui:Button name="btn-quit" class="title-screen__menu-button">
-                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--left" picking-mode="Ignore" />
-                            <ui:Label name="btn-quit-label" text="Quit" class="title-screen__menu-label" picking-mode="Ignore">
-                                <Bindings>
-                                    <l:LocalizedString property="text"
-                                                       table="TitleView"
-                                                       entry="menu_quit" />
-                                    <l:LocalizedFont property="style.unityFontDefinition"
-                                                     table="FontAssets"
-                                                     entry="UIToolkitFont" />
-                                </Bindings>
-                            </ui:Label>
-                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--right" picking-mode="Ignore" />
-                        </ui:Button>
-                    </ui:VisualElement>
-
-                    <ui:VisualElement name="continue-run-info" class="title-screen__continue-info">
-                        <ui:Label text="최근 진행 정보" class="title-screen__continue-info-title" />
-                        <ui:Label text="후속 연결 placeholder" class="title-screen__continue-info-body" />
-                    </ui:VisualElement>
-
-                    <ui:VisualElement name="title-footer" class="title-screen__footer">
-                        <ui:Label name="version-text" text="v0.1.0" class="title-screen__footer-version">
-                            <Bindings>
-                                <UnityEngine.Localization.LocalizedString property="text"
-                                                                         table="TitleView"
-                                                                         entry="version_text" />
-                            </Bindings>
-                        </ui:Label>
-                    </ui:VisualElement>
-
-                    <ui:VisualElement name="submenu-stack" class="title-screen__submenu-stack" />
-                </ui:VisualElement>
+            <ui:VisualElement name="title-footer" class="title-screen__footer">
+                <ui:Label name="version-text" text="v0.1.0" class="title-screen__footer-version">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text"
+                                                                 table="TitleView"
+                                                                 entry="version_text" />
+                    </Bindings>
+                </ui:Label>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

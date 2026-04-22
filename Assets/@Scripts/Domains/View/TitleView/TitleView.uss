@@ -7,9 +7,6 @@
 
 .title-screen,
 .title-screen__background,
-.title-screen__display-root,
-.title-screen__logical-root,
-.title-screen__blur-backstop,
 .title-screen__branding,
 .title-screen__branding-stack,
 .title-screen__branding-echo,
@@ -18,18 +15,8 @@
 .title-screen__menu-button,
 .title-screen__menu-label,
 .title-screen__menu-reticle,
-.title-screen__continue-info,
-.title-screen__continue-info-title,
-.title-screen__continue-info-body,
-.title-screen__profile-button,
-.title-screen__profile-icon,
-.title-screen__profile-title,
-.title-screen__profile-description,
-.title-screen__patch-button,
-.title-screen__patch-label,
 .title-screen__footer,
-.title-screen__footer-version,
-.title-screen__submenu-stack {
+.title-screen__footer-version {
     margin-top: 0;
     margin-right: 0;
     margin-bottom: 0;
@@ -48,43 +35,13 @@
     background-color: rgb(12, 14, 18);
 }
 
-.title-screen__background,
-.title-screen__display-root,
-.title-screen__blur-backstop,
-.title-screen__submenu-stack {
+.title-screen__background {
     position: absolute;
     left: 0;
     top: 0;
     right: 0;
     bottom: 0;
-}
-
-.title-screen__background {
     background-color: rgba(8, 12, 16, 0.18);
-}
-
-.title-screen__layer,
-.title-screen__line,
-.title-screen__node {
-    display: none;
-}
-
-.title-screen__display-root {
-    overflow: hidden;
-}
-
-.title-screen__logical-root {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 1680px;
-    height: 1080px;
-    transform-origin: 0 0;
-}
-
-.title-screen__blur-backstop {
-    background-color: rgba(0, 0, 0, 0);
-    opacity: 0;
 }
 
 .title-screen__branding {
@@ -193,102 +150,6 @@
     rotate: 45deg;
 }
 
-.title-screen__continue-info {
-    position: absolute;
-    left: 145px;
-    top: 5px;
-    width: 448px;
-    height: 200px;
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    padding-top: 12px;
-    padding-right: 16px;
-    padding-bottom: 12px;
-    padding-left: 16px;
-    background-color: rgba(10, 12, 16, 0.52);
-    border-width: 1px;
-    border-color: rgba(214, 189, 97, 0.12);
-}
-
-.title-screen__menu-button--focused .title-screen__continue-info {
-    display: flex;
-}
-
-.title-screen__continue-info-title {
-    color: rgba(237, 226, 196, 0.92);
-    -unity-font-style: bold;
-    font-size: 18px;
-    margin-bottom: 8px;
-}
-
-.title-screen__continue-info-body {
-    color: rgba(198, 196, 190, 0.82);
-    font-size: 14px;
-}
-
-.title-screen__profile-button {
-    position: absolute;
-    left: 18px;
-    top: 16px;
-    width: 172px;
-    height: 64px;
-    opacity: 0.45;
-}
-
-.title-screen__profile-icon {
-    position: absolute;
-    left: 8px;
-    top: 8px;
-    width: 48px;
-    height: 48px;
-    border-width: 1px;
-    border-color: rgba(214, 189, 97, 0.25);
-    background-color: rgba(255, 255, 255, 0.06);
-}
-
-.title-screen__profile-title {
-    position: absolute;
-    left: 64px;
-    top: 5px;
-    width: 170px;
-    height: 35px;
-    color: rgba(239, 200, 81, 1);
-    -unity-font-style: bold;
-    font-size: 24px;
-}
-
-.title-screen__profile-description {
-    position: absolute;
-    left: 64px;
-    top: 33px;
-    width: 170px;
-    height: 26px;
-    color: rgba(135, 206, 235, 1);
-    font-size: 18px;
-}
-
-.title-screen__patch-button {
-    position: absolute;
-    right: 24px;
-    top: 16px;
-    width: 64px;
-    height: 64px;
-    align-items: center;
-    justify-content: center;
-    border-width: 1px;
-    border-color: rgba(214, 189, 97, 0.2);
-    background-color: rgba(255, 255, 255, 0.04);
-    opacity: 0.45;
-}
-
-.title-screen__patch-label {
-    color: rgba(247, 246, 240, 0.96);
-    -unity-font-style: bold;
-    font-size: 28px;
-    -unity-text-align: middle-center;
-}
-
 .title-screen__footer {
     position: absolute;
     right: 8px;
@@ -307,8 +168,4 @@
     font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
-}
-
-.title-screen__submenu-stack {
-    display: none;
 }

@@ -82,8 +82,8 @@ namespace Game.Core.Managers.View
             _viewLayer.style.height = frameHeight;
 
             ApplyAspectBucketClass(aspectRatio);
-            float responsiveScale = Mathf.Min(frameWidth / targetSize.x, frameHeight / targetSize.y);
-            ApplyResponsiveLayoutToViews(responsiveScale, frameWidth, frameHeight, targetSize);
+            LogicalCanvasResult logicalCanvas = ResolveLogicalCanvas(frameWidth, frameHeight);
+            ApplyResponsiveLayoutToViews(logicalCanvas);
         }
 
         private Vector2Int ResolveTargetSize(float aspectRatio)
@@ -139,11 +139,39 @@ namespace Game.Core.Managers.View
             _viewLayer.AddToClassList(StandardBucketClass);
         }
 
-        private void ApplyResponsiveLayoutToViews(float frameScale, float frameWidth, float frameHeight, Vector2Int targetSize)
+        private LogicalCanvasResult ResolveLogicalCanvas(float frameWidth, float frameHeight)
+        {
+            const float logicalBaseHeight = 1080f;
+            const float logicalMinWidth = 1680f;
+            const float logicalMaxWidth = 2580f;
+            const float logicalMinAspect = logicalMinWidth / logicalBaseHeight;
+
+            float aspectRatio = frameWidth / frameHeight;
+            float logicalWidth;
+            float logicalHeight;
+
+            if (aspectRatio < logicalMinAspect)
+            {
+                logicalWidth = logicalMinWidth;
+                logicalHeight = logicalWidth / aspectRatio;
+            }
+            else
+            {
+                logicalWidth = Mathf.Clamp(aspectRatio * logicalBaseHeight, logicalMinWidth, logicalMaxWidth);
+                logicalHeight = logicalBaseHeight;
+            }
+
+            float uniformScale = Mathf.Min(frameWidth / logicalWidth, frameHeight / logicalHeight);
+            float offsetX = (frameWidth - logicalWidth * uniformScale) * 0.5f;
+            float offsetY = (frameHeight - logicalHeight * uniformScale) * 0.5f;
+            return new LogicalCanvasResult(logicalWidth, logicalHeight, uniformScale, offsetX, offsetY);
+        }
+
+        private void ApplyResponsiveLayoutToViews(LogicalCanvasResult logicalCanvas)
         {
             foreach (BaseView view in _views)
             {
-                view?.ApplyResponsiveLayout(frameScale, frameWidth, frameHeight, targetSize);
+                view?.ApplyResponsiveLayout(logicalCanvas);
             }
         }
     }
