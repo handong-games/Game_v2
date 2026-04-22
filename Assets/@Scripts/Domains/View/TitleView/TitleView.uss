@@ -7,10 +7,9 @@
 
 .title-screen,
 .title-screen__background,
-.title-screen__content,
-.title-screen__header-region,
-.title-screen__menu-region,
-.title-screen__footer-region,
+.title-screen__display-root,
+.title-screen__logical-root,
+.title-screen__blur-backstop,
 .title-screen__branding,
 .title-screen__branding-stack,
 .title-screen__branding-echo,
@@ -18,8 +17,19 @@
 .title-screen__menu,
 .title-screen__menu-button,
 .title-screen__menu-label,
+.title-screen__menu-reticle,
+.title-screen__continue-info,
+.title-screen__continue-info-title,
+.title-screen__continue-info-body,
+.title-screen__profile-button,
+.title-screen__profile-icon,
+.title-screen__profile-title,
+.title-screen__profile-description,
+.title-screen__patch-button,
+.title-screen__patch-label,
 .title-screen__footer,
-.title-screen__footer-version {
+.title-screen__footer-version,
+.title-screen__submenu-stack {
     margin-top: 0;
     margin-right: 0;
     margin-bottom: 0;
@@ -31,30 +41,26 @@
 }
 
 .title-screen {
-    --title-header-height: 38%;
-    --title-menu-height: 42%;
-    --title-footer-height: 20%;
-    --title-branding-width: 72%;
-    --title-branding-height: 62%;
-    --title-menu-width: 56%;
-    --title-logo-font-max: 96px;
-    --title-menu-font-max: 44px;
-    --title-version-font-max: 14px;
     width: 100%;
     height: 100%;
     position: relative;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
     background-color: rgb(12, 14, 18);
 }
 
-.title-screen__background {
+.title-screen__background,
+.title-screen__display-root,
+.title-screen__blur-backstop,
+.title-screen__submenu-stack {
     position: absolute;
     left: 0;
     top: 0;
     right: 0;
     bottom: 0;
+}
+
+.title-screen__background {
+    background-color: rgba(8, 12, 16, 0.18);
 }
 
 .title-screen__layer,
@@ -63,57 +69,31 @@
     display: none;
 }
 
-.title-screen__content,
-.title-screen__layout-layer {
+.title-screen__display-root {
+    overflow: hidden;
+}
+
+.title-screen__logical-root {
     position: absolute;
     left: 0;
     top: 0;
-    right: 0;
-    bottom: 0;
+    width: 1680px;
+    height: 1080px;
+    transform-origin: 0 0;
 }
 
-.title-screen__content {
-    display: flex;
-    flex-direction: column;
-    padding-top: 0;
-    padding-right: 0;
-    padding-bottom: 0;
-    padding-left: 0;
-    overflow: hidden;
-}
-
-.title-screen__header-region,
-.title-screen__menu-region,
-.title-screen__footer-region {
-    width: 100%;
-    min-height: 0;
-    overflow: hidden;
-}
-
-.title-screen__header-region {
-    height: var(--title-header-height);
-    align-items: center;
-    justify-content: center;
-}
-
-.title-screen__menu-region {
-    height: var(--title-menu-height);
-    align-items: center;
-    justify-content: center;
-}
-
-.title-screen__footer-region {
-    height: var(--title-footer-height);
-    align-items: flex-end;
-    justify-content: flex-end;
+.title-screen__blur-backstop {
+    background-color: rgba(0, 0, 0, 0);
+    opacity: 0;
 }
 
 .title-screen__branding {
-    width: var(--title-branding-width);
-    height: var(--title-branding-height);
-    min-height: 0;
-    align-items: center;
-    justify-content: center;
+    position: absolute;
+    left: 50%;
+    top: 210px;
+    width: 600px;
+    height: 180px;
+    translate: -50% 0;
     overflow: hidden;
 }
 
@@ -133,7 +113,8 @@
     color: rgba(236, 226, 208, 0.96);
     -unity-text-generator: advanced;
     -unity-text-align: middle-center;
-    font-size: var(--title-logo-font-max);
+    -unity-font-style: bold;
+    font-size: 96px;
     -unity-text-auto-size: best-fit 0px 96px;
     letter-spacing: 0px;
     white-space: nowrap;
@@ -145,62 +126,177 @@
     translate: 4px 18px;
 }
 
-.title-screen__branding-text {
-    -unity-font-style: bold;
-}
-
 .title-screen__menu {
-    width: var(--title-menu-width);
-    height: 100%;
-    min-height: 0;
-    flex-grow: 1;
-    align-items: stretch;
-    justify-content: space-evenly;
-    overflow: hidden;
+    position: absolute;
+    left: 522px;
+    top: 609px;
+    width: 269px;
+    height: 450px;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .title-screen__menu-button {
+    position: relative;
     width: 100%;
-    height: 0;
+    height: 50px;
     min-width: 0;
-    min-height: 0;
-    flex-grow: 1;
-    flex-basis: 0;
+    min-height: 50px;
+    align-items: center;
+    justify-content: center;
     background-color: rgba(0, 0, 0, 0);
     background-image: none;
     border-width: 0;
     border-radius: 0;
-    padding-top: 0;
-    padding-right: 0;
-    padding-bottom: 0;
-    padding-left: 0;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .title-screen__menu-label {
     width: 100%;
     height: 100%;
-    align-self: stretch;
-    color: rgba(247, 247, 247, 0.96);
+    color: rgba(247, 246, 240, 0.96);
     -unity-text-generator: advanced;
     -unity-text-align: middle-center;
     -unity-font-style: bold;
-    font-size: var(--title-menu-font-max);
-    -unity-text-auto-size: best-fit 0px 44px;
-    letter-spacing: 0px;
+    font-size: 32px;
     white-space: nowrap;
     overflow: hidden;
 }
 
+.title-screen__menu-reticle {
+    position: absolute;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 0;
+    border-left-width: 0;
+    border-top-color: rgba(214, 189, 97, 0.9);
+    border-right-color: rgba(214, 189, 97, 0.9);
+    opacity: 0;
+}
+
+.title-screen__menu-button--focused .title-screen__menu-reticle {
+    opacity: 1;
+}
+
+.title-screen__menu-reticle--left {
+    left: -28px;
+    translate: 0 -50%;
+    rotate: 225deg;
+}
+
+.title-screen__menu-reticle--right {
+    right: -28px;
+    translate: 0 -50%;
+    rotate: 45deg;
+}
+
+.title-screen__continue-info {
+    position: absolute;
+    left: 145px;
+    top: 5px;
+    width: 448px;
+    height: 200px;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 12px;
+    padding-right: 16px;
+    padding-bottom: 12px;
+    padding-left: 16px;
+    background-color: rgba(10, 12, 16, 0.52);
+    border-width: 1px;
+    border-color: rgba(214, 189, 97, 0.12);
+}
+
+.title-screen__menu-button--focused .title-screen__continue-info {
+    display: flex;
+}
+
+.title-screen__continue-info-title {
+    color: rgba(237, 226, 196, 0.92);
+    -unity-font-style: bold;
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.title-screen__continue-info-body {
+    color: rgba(198, 196, 190, 0.82);
+    font-size: 14px;
+}
+
+.title-screen__profile-button {
+    position: absolute;
+    left: 18px;
+    top: 16px;
+    width: 172px;
+    height: 64px;
+    opacity: 0.45;
+}
+
+.title-screen__profile-icon {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    width: 48px;
+    height: 48px;
+    border-width: 1px;
+    border-color: rgba(214, 189, 97, 0.25);
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.title-screen__profile-title {
+    position: absolute;
+    left: 64px;
+    top: 5px;
+    width: 170px;
+    height: 35px;
+    color: rgba(239, 200, 81, 1);
+    -unity-font-style: bold;
+    font-size: 24px;
+}
+
+.title-screen__profile-description {
+    position: absolute;
+    left: 64px;
+    top: 33px;
+    width: 170px;
+    height: 26px;
+    color: rgba(135, 206, 235, 1);
+    font-size: 18px;
+}
+
+.title-screen__patch-button {
+    position: absolute;
+    right: 24px;
+    top: 16px;
+    width: 64px;
+    height: 64px;
+    align-items: center;
+    justify-content: center;
+    border-width: 1px;
+    border-color: rgba(214, 189, 97, 0.2);
+    background-color: rgba(255, 255, 255, 0.04);
+    opacity: 0.45;
+}
+
+.title-screen__patch-label {
+    color: rgba(247, 246, 240, 0.96);
+    -unity-font-style: bold;
+    font-size: 28px;
+    -unity-text-align: middle-center;
+}
+
 .title-screen__footer {
-    width: 18%;
-    min-width: 0;
-    height: 100%;
-    align-items: flex-end;
+    position: absolute;
+    right: 8px;
+    bottom: 10px;
+    width: 260px;
+    height: 23px;
+    align-items: center;
     justify-content: flex-end;
-    overflow: hidden;
 }
 
 .title-screen__footer-version {
@@ -208,9 +304,11 @@
     color: rgba(118, 114, 108, 0.78);
     -unity-text-generator: advanced;
     -unity-text-align: middle-right;
-    font-size: var(--title-version-font-max);
-    -unity-text-auto-size: best-fit 0px 14px;
-    letter-spacing: 0px;
+    font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
+}
+
+.title-screen__submenu-stack {
+    display: none;
 }

@@ -66,12 +66,12 @@ namespace Game.Core.Managers.View
             }
             else
             {
-                float frameScale = Mathf.Min(
+                float fixedFrameScale = Mathf.Min(
                     viewWidth / (float)targetSize.x,
                     viewHeight / (float)targetSize.y);
 
-                frameWidth = targetSize.x * frameScale;
-                frameHeight = targetSize.y * frameScale;
+                frameWidth = targetSize.x * fixedFrameScale;
+                frameHeight = targetSize.y * fixedFrameScale;
                 left = (viewWidth - frameWidth) * 0.5f;
                 top = (viewHeight - frameHeight) * 0.5f;
             }
@@ -82,7 +82,8 @@ namespace Game.Core.Managers.View
             _viewLayer.style.height = frameHeight;
 
             ApplyAspectBucketClass(aspectRatio);
-            //ApplyResponsiveLayoutToViews(frameScale, frameWidth, frameHeight, targetSize);
+            float responsiveScale = Mathf.Min(frameWidth / targetSize.x, frameHeight / targetSize.y);
+            ApplyResponsiveLayoutToViews(responsiveScale, frameWidth, frameHeight, targetSize);
         }
 
         private Vector2Int ResolveTargetSize(float aspectRatio)
@@ -138,12 +139,12 @@ namespace Game.Core.Managers.View
             _viewLayer.AddToClassList(StandardBucketClass);
         }
 
-        /*private void ApplyResponsiveLayoutToViews(float frameScale, float frameWidth, float frameHeight, Vector2Int targetSize)
+        private void ApplyResponsiveLayoutToViews(float frameScale, float frameWidth, float frameHeight, Vector2Int targetSize)
         {
             foreach (BaseView view in _views)
             {
                 view?.ApplyResponsiveLayout(frameScale, frameWidth, frameHeight, targetSize);
             }
-        }*/
+        }
     }
 }

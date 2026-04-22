@@ -25,8 +25,20 @@
                 <ui:VisualElement class="title-screen__node title-screen__node--mid-right" />
             </ui:VisualElement>
 
-            <ui:VisualElement name="title-content" class="title-screen__content title-screen__layout-layer">
-                <ui:VisualElement name="title-header-region" class="title-screen__header-region">
+            <ui:VisualElement name="title-display-root" class="title-screen__display-root">
+                <ui:VisualElement name="title-logical-root" class="title-screen__logical-root">
+                    <ui:VisualElement name="blur-backstop" class="title-screen__blur-backstop" />
+
+                    <ui:VisualElement name="profile-button" class="title-screen__profile-button">
+                        <ui:VisualElement class="title-screen__profile-icon" />
+                        <ui:Label text="Profile 1" class="title-screen__profile-title" />
+                        <ui:Label text="Select profile" class="title-screen__profile-description" />
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="patch-notes-button" class="title-screen__patch-button">
+                        <ui:Label text="!" class="title-screen__patch-label" />
+                    </ui:VisualElement>
+
                     <ui:VisualElement name="title-branding" class="title-screen__branding">
                         <ui:VisualElement class="title-screen__branding-stack">
                             <ui:Label name="title-text-echo" text="Game Logo" class="title-screen__branding-echo">
@@ -46,11 +58,10 @@
                             </ui:Label>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                </ui:VisualElement>
 
-                <ui:VisualElement name="title-menu-region" class="title-screen__menu-region">
                     <ui:VisualElement name="title-menu" class="title-screen__menu">
                         <ui:Button name="btn-new-game" class="title-screen__menu-button">
+                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--left" picking-mode="Ignore" />
                             <ui:Label name="btn-new-game-label" text="New Game" class="title-screen__menu-label" picking-mode="Ignore">
                                 <Bindings>
                                     <l:LocalizedString property="text"
@@ -61,9 +72,11 @@
                                                      entry="UIToolkitFont" />
                                 </Bindings>
                             </ui:Label>
+                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--right" picking-mode="Ignore" />
                         </ui:Button>
 
                         <ui:Button name="btn-settings" class="title-screen__menu-button">
+                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--left" picking-mode="Ignore" />
                             <ui:Label name="btn-settings-label" text="Settings" class="title-screen__menu-label" picking-mode="Ignore">
                                 <Bindings>
                                     <l:LocalizedString property="text"
@@ -74,9 +87,11 @@
                                                      entry="UIToolkitFont" />
                                 </Bindings>
                             </ui:Label>
+                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--right" picking-mode="Ignore" />
                         </ui:Button>
 
                         <ui:Button name="btn-quit" class="title-screen__menu-button">
+                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--left" picking-mode="Ignore" />
                             <ui:Label name="btn-quit-label" text="Quit" class="title-screen__menu-label" picking-mode="Ignore">
                                 <Bindings>
                                     <l:LocalizedString property="text"
@@ -87,11 +102,15 @@
                                                      entry="UIToolkitFont" />
                                 </Bindings>
                             </ui:Label>
+                            <ui:VisualElement class="title-screen__menu-reticle title-screen__menu-reticle--right" picking-mode="Ignore" />
                         </ui:Button>
                     </ui:VisualElement>
-                </ui:VisualElement>
 
-                <ui:VisualElement name="title-footer-region" class="title-screen__footer-region">
+                    <ui:VisualElement name="continue-run-info" class="title-screen__continue-info">
+                        <ui:Label text="최근 진행 정보" class="title-screen__continue-info-title" />
+                        <ui:Label text="후속 연결 placeholder" class="title-screen__continue-info-body" />
+                    </ui:VisualElement>
+
                     <ui:VisualElement name="title-footer" class="title-screen__footer">
                         <ui:Label name="version-text" text="v0.1.0" class="title-screen__footer-version">
                             <Bindings>
@@ -101,6 +120,8 @@
                             </Bindings>
                         </ui:Label>
                     </ui:VisualElement>
+
+                    <ui:VisualElement name="submenu-stack" class="title-screen__submenu-stack" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
