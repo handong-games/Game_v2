@@ -11,10 +11,9 @@ namespace Views.TitleView
         [Inject]
         private TitleViewController _controller;
 
-        private Label _titleEchoText;
-        private Label _titleText;
+        private VisualElement _titleLogo;
         private VisualElement _titleMenu;
-        private Label _versionText;
+        private VisualElement _titleVersion;
         private Button _newGameButton;
         private Button _settingsButton;
         private Button _quitButton;
@@ -25,7 +24,22 @@ namespace Views.TitleView
             if (Root.childCount == 0)
                 return;
 
-            BindRequiredElements();
+            _titleLogo = Root.Q<VisualElement>("title-logo");
+            _titleMenu = Root.Q<VisualElement>("title-menu");
+            _titleVersion = Root.Q<VisualElement>("title-version");
+            
+            _newGameButton = Root.Q<Button>("btn-new-game");
+            _settingsButton =Root.Q<Button>("btn-settings");
+            _quitButton = Root.Q<Button>("btn-quit");
+
+            _menuButtons.Clear();
+            _menuButtons.Add(_newGameButton);
+            _menuButtons.Add(_settingsButton);
+            _menuButtons.Add(_quitButton);
+            
+            RegisterMenuFocusHandlers(_newGameButton);
+            RegisterMenuFocusHandlers(_settingsButton);
+            RegisterMenuFocusHandlers(_quitButton);
 
             _newGameButton.clicked += _controller.OnNewGame;
             _settingsButton.clicked += _controller.OnSettings;
@@ -34,63 +48,32 @@ namespace Views.TitleView
 
         protected override void OnAttachedToPanel(AttachToPanelEvent evt)
         {
+            _ = PlayIntroAnimation();
         }
 
         protected override void OnDetachedFromPanel(DetachFromPanelEvent evt)
         {
-            CancelIntroIfNeeded();
+
         }
 
         public override void Dispose()
         {
-            CancelIntroIfNeeded();
             _newGameButton.clicked -= _controller.OnNewGame;
             _settingsButton.clicked -= _controller.OnSettings;
             _quitButton.clicked -= _controller.OnQuit;
+            
             UnregisterMenuFocusHandlers(_newGameButton);
             UnregisterMenuFocusHandlers(_settingsButton);
             UnregisterMenuFocusHandlers(_quitButton);
 
-            _titleEchoText = null;
-            _titleText = null;
+            _titleLogo = null;
             _titleMenu = null;
-            _versionText = null;
             _newGameButton = null;
             _settingsButton = null;
             _quitButton = null;
             _menuButtons.Clear();
+            
             base.Dispose();
-        }
-
-        private void BindRequiredElements()
-        {
-            _titleEchoText = RequireElement<Label>("title-text-echo");
-            _titleText = RequireElement<Label>("title-text");
-            _titleMenu = RequireElement<VisualElement>("title-menu");
-            _versionText = RequireElement<Label>("version-text");
-
-            _newGameButton = RequireElement<Button>("btn-new-game");
-            _settingsButton = RequireElement<Button>("btn-settings");
-            _quitButton = RequireElement<Button>("btn-quit");
-
-            _menuButtons.Clear();
-            _menuButtons.Add(_newGameButton);
-            _menuButtons.Add(_settingsButton);
-            _menuButtons.Add(_quitButton);
-
-            RegisterMenuFocusHandlers(_newGameButton);
-            RegisterMenuFocusHandlers(_settingsButton);
-            RegisterMenuFocusHandlers(_quitButton);
-            SetMenuButtonFocused(_newGameButton);
-        }
-
-        private T RequireElement<T>(string name) where T : VisualElement
-        {
-            T element = Root.Q<T>(name);
-            if (element == null)
-                throw new InvalidOperationException($"Required element not found: {name}");
-
-            return element;
         }
 
         private void RegisterMenuFocusHandlers(Button button)
