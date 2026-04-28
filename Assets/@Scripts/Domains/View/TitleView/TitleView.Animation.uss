@@ -1,6 +1,6 @@
 .title-screen__intro {
     transition-property: opacity, translate;
-    transition-duration: 0.7s;
+    transition-duration: var(--motion-duration-long-700ms);
     transition-timing-function: ease-out;
 }
 
@@ -8,7 +8,7 @@
     scale: 1;
     translate: 0 0;
     transition-property: color, opacity, translate, text-shadow, scale, letter-spacing, -unity-text-outline-width, -unity-text-outline-color;
-    transition-duration: 0.24s;
+    transition-duration: var(--motion-duration-long-700ms);
     transition-timing-function: ease;
 }
 

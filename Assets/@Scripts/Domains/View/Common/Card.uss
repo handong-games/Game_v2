@@ -10,7 +10,7 @@
     overflow: hidden;
     border-radius: 0;
     transition-property: scale;
-    transition-duration: 0.12s;
+    transition-duration: var(--motion-duration-fast-120ms);
     transition-timing-function: ease-out;
 }
 
@@ -33,7 +33,9 @@
     translate: -50% -50%;
     opacity: 0.78;
     -unity-background-scale-mode: scale-to-fit;
-    transition: opacity 0.12s ease-out;
+    transition-property: opacity;
+    transition-duration: var(--motion-duration-fast-120ms);
+    transition-timing-function: ease-out;
 }
 
 .card__overlay {
@@ -44,7 +46,9 @@
     height: 100%;
     background-color: rgba(255, 255, 255, 0.03);
     opacity: 0;
-    transition: opacity 0.12s ease-out, background-color 0.12s ease-out;
+    transition-property: opacity, background-color;
+    transition-duration: var(--motion-duration-fast-120ms), var(--motion-duration-fast-120ms);
+    transition-timing-function: ease-out, ease-out;
 }
 
 .card__lock {
@@ -58,5 +62,7 @@
     justify-content: center;
     opacity: 0;
     -unity-background-scale-mode: scale-to-fit;
-    transition: opacity 0.12s ease-out;
+    transition-property: opacity;
+    transition-duration: var(--motion-duration-fast-120ms);
+    transition-timing-function: ease-out;
 }

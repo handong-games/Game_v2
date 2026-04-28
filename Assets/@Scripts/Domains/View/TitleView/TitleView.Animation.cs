@@ -15,7 +15,7 @@ namespace Views.TitleView
             PrepareIntro(_titleVersion);
 
             await Awaitable.NextFrameAsync();
-            
+
             Root.schedule.Execute(() => ShowIntro(_titleLogo)).StartingIn(0);
             Root.schedule.Execute(() => ShowIntro(_titleMenu)).StartingIn(700);
             Root.schedule.Execute(() => ShowIntro(_titleVersion)).StartingIn(1400);

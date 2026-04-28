@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: 4b3b84f338bb6c948acca86de42f912c
   m_currentHash:
     serializedVersion: 2
-    Hash: 00000000000000000000000000000000
+    Hash: 4d32d2a7853c8d0508de6ca806bba041
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 0
   m_CatalogRequestsTimeout: 0
@@ -63,6 +63,7 @@ MonoBehaviour:
   m_GroupAssets:
   - {fileID: 11400000, guid: bd84c4f97a0542a4297367322342f217, type: 2}
   - {fileID: 11400000, guid: ab664cda53ebfcf459e880f8fc3589c2, type: 2}
+  - {fileID: 11400000, guid: a5ced596987a3b64b9132081b9875761, type: 2}
   - {fileID: 11400000, guid: 236f73adeea220943a8fef235d0aeb9b, type: 2}
   - {fileID: 11400000, guid: bc2c9575c51331e49923578c60296292, type: 2}
   - {fileID: 11400000, guid: b150549b59b76f348889c00bf249c86e, type: 2}
@@ -123,6 +124,7 @@ MonoBehaviour:
     - Locale-ja-JP
     - Locale-ko-KR
     - TitleScene
+    - CombatScene
     - Preload
     - ModelTable
   m_SchemaTemplates: []

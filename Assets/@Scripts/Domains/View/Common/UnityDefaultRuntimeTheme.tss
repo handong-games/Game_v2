@@ -1,1 +1,2 @@
 @import url("unity-theme://default");
+@import url("project://database/Assets/@Scripts/Core/Manager/ViewTransition/ViewTransition.uss?fileID=7433441132597879392&guid=0315a48597fc4ac68fb360a3cf65f66c&type=3#ViewTransition");

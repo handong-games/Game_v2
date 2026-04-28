@@ -1,5 +1,5 @@
 using Domains.Run;
-using Domains.Scene.CombatScene;
+using Domains.Scene;
 using Game.Core.Managers.Dependency;
 
 namespace Domains.Combat

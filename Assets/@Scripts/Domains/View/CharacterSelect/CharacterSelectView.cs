@@ -1,5 +1,5 @@
 using Domains.Character;
-using Domains.Scene.CombatScene;
+using Domains.Scene;
 using Game.Core.Managers.Dependency;
 using Game.Core.Managers.Scene;
 using Game.Core.Managers.View;

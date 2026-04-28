@@ -17,7 +17,7 @@
     opacity: 1;
     translate: 0 0;
     transition-property: opacity, translate;
-    transition-duration: 0.25s;
+    transition-duration: var(--motion-duration-normal-250ms);
     transition-timing-function: ease-out;
 }
 
@@ -39,7 +39,7 @@
     background-color: rgba(0, 0, 0, 0);
     
     transition-property: background-color;
-    transition-duration: 1.0s;
+    transition-duration: var(--motion-duration-xlong-1000ms);
     transition-timing-function: ease-out;
 }
 
@@ -68,7 +68,7 @@
     margin-bottom: 3%;
     opacity: 0;
     transition-property: opacity, translate;
-    transition-duration: 0.4s, 0.4s;
+    transition-duration: var(--motion-duration-medium-400ms), var(--motion-duration-medium-400ms);
     transition-timing-function: ease-out, ease-out;
     flex-shrink: 0;
 }
@@ -87,7 +87,7 @@
     -unity-text-outline-width: 1.5px;
     -unity-text-outline-color: rgba(0, 0, 0, 0.96);
     opacity: 1;
-    text-shadow: 0 0 18px rgba(184, 149, 90, 0.18), 0 3px 16px rgba(0, 0, 0, 0.96), 0 0 3px rgba(12, 8, 4, 0.98);
+    text-shadow: 0 3px 16px rgba(0, 0, 0, 0.96);
     -unity-text-align: middle-center;
     white-space: nowrap;
     overflow: hidden;
@@ -116,7 +116,7 @@
     opacity: 0;
     translate: 0 18px;
     transition-property: opacity, translate;
-    transition-duration: 0.28s, 0.28s;
+    transition-duration: var(--motion-duration-medium-400ms), var(--motion-duration-medium-400ms);
     transition-timing-function: ease-out, ease-out;
 }
 
@@ -193,7 +193,7 @@
     opacity: 0;
     translate: 0 10px;
     transition-property: opacity, translate;
-    transition-duration: 0.16s, 0.16s;
+    transition-duration: var(--motion-duration-normal-250ms), var(--motion-duration-normal-250ms);
     transition-timing-function: ease-out, ease-out;
     overflow: visible;
 }
@@ -265,7 +265,7 @@
     margin-top: auto;
     opacity: 0;
     transition-property: opacity;
-    transition-duration: 0.24s;
+    transition-duration: var(--motion-duration-normal-250ms);
     transition-timing-function: ease-out;
     overflow: hidden;
 }
@@ -288,7 +288,7 @@
     border-radius: 8px;
     border-width: 1px;
     transition-property: background-color, border-color, opacity;
-    transition-duration: 0.12s, 0.12s, 0.16s;
+    transition-duration: var(--motion-duration-fast-120ms), var(--motion-duration-fast-120ms), var(--motion-duration-short-160ms);
     transition-timing-function: ease-out, ease-out, ease-out;
 }
 

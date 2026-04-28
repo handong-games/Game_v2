@@ -104,7 +104,7 @@
     -unity-text-outline-width: 1.5px;
     opacity: 1;
     color: rgba(247, 247, 247, 0.96);
-    text-shadow: 0 0 18px rgba(184, 149, 90, 0.18), 0 3px 16px rgba(0, 0, 0, 0.96), 0 0 3px rgba(12, 8, 4, 0.98);
+    text-shadow: 0 3px 16px rgba(0, 0, 0, 0.96);
     -unity-text-outline-color: rgba(0, 0, 0, 0.96);
     white-space: nowrap;
     overflow: hidden;

@@ -32,6 +32,7 @@ namespace Game.System.Core.Manager
             new(typeof(global::Game.Core.Managers.Garphic.GraphicManager), global::Game.Core.Managers.Garphic.GraphicManager.Init, global::Game.Core.Managers.Garphic.GraphicManager.Dispose),
             new(typeof(global::Game.Core.Managers.Locale.LocaleManager), global::Game.Core.Managers.Locale.LocaleManager.Init, global::Game.Core.Managers.Locale.LocaleManager.Dispose),
             new(typeof(global::Game.Core.Managers.Scene.SceneManagerEx), global::Game.Core.Managers.Scene.SceneManagerEx.Init, global::Game.Core.Managers.Scene.SceneManagerEx.Dispose),
+            new(typeof(global::Game.Core.Managers.View.ViewTransitionManager), global::Game.Core.Managers.View.ViewTransitionManager.Init, global::Game.Core.Managers.View.ViewTransitionManager.Dispose),
             new(typeof(global::Game.Core.Managers.View.ViewManager), global::Game.Core.Managers.View.ViewManager.Init, global::Game.Core.Managers.View.ViewManager.Dispose),
         };
 

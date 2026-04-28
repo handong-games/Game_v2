@@ -15,9 +15,11 @@ namespace Game.Core.Managers.View
         private GameObject _managerObject;
         private VisualElement _rootLayer;
         private VisualElement _viewLayer;
+        private VisualElement _overlayLayer;
         private readonly Stack<BaseView> _views = new();
 
         public VisualElement RootLayer => _rootLayer;
+        public VisualElement OverlayLayer => _overlayLayer;
 
         protected override void OnInit()
         {
@@ -53,8 +55,22 @@ namespace Game.Core.Managers.View
             _viewLayer.AddToClassList("app-view-layer");
             _viewLayer.style.position = Position.Absolute;
             _viewLayer.style.overflow = Overflow.Hidden;
+
+            _overlayLayer = new VisualElement
+            {
+                name = "overlay-layer",
+                pickingMode = PickingMode.Ignore
+            };
+            _overlayLayer.AddToClassList("app-overlay-layer");
+            _overlayLayer.style.position = Position.Absolute;
+            _overlayLayer.style.left = 0;
+            _overlayLayer.style.top = 0;
+            _overlayLayer.style.right = 0;
+            _overlayLayer.style.bottom = 0;
+            _overlayLayer.style.backgroundColor = Color.black;
             
             _rootLayer.Add(_viewLayer);
+            _rootLayer.Add(_overlayLayer);
             
             root.Add(_rootLayer);
 

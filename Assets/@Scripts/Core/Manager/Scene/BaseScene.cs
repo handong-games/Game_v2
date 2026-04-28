@@ -17,6 +17,12 @@ namespace Game.Core.Managers.Scene
         }
         
         protected virtual bool RequiresPreloadAssets => true;
+        public async Awaitable BeforeUnload()
+        {
+            await OnBeforeUnload();
+        }
+
+        protected abstract Awaitable OnBeforeUnload();
         protected abstract void OnLoaded();
         protected abstract void OnUnloaded();
 

@@ -1,7 +1,7 @@
 using Domains.CharacterSelect;
 using Game.Core.Managers.Dependency;
 using Game.Core.Managers.View;
-using Domains.Scene.TitleScene;
+using Domains.Scene;
 using Domains.Settings.View;
 using UnityEngine;
 

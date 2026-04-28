@@ -31,12 +31,14 @@ namespace Game.Core.Managers.Scene
         }
         
         // 새로운 씬로드
-        public void LoadScene<T>() where T : BaseScene, new()
+        public async void LoadScene<T>() where T : BaseScene, new()
         {
             if (_isLoading)
                 return;
 
             _isLoading = true;
+
+            await _currentBaseScene.BeforeUnload();
             
             // 새로운 씬 저장 및 로드
             _currentBaseScene = new T();
