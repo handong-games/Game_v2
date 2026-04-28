@@ -11,10 +11,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0bd59cee7fc9ffe4e8e9d76eb82fd3a9, type: 3}
   m_Name: Skill_Mage_Bolt
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.SO_SkillData
-  Id: 204
-  SkillId: mage_bolt
-  SkillName: Bolt
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterSkillModel
+  Name: Bolt
   Description: Fire a focused magic projectile.
   CostHeads: 1
   CostTails: 0

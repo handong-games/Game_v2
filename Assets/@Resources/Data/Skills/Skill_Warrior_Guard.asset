@@ -11,10 +11,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0bd59cee7fc9ffe4e8e9d76eb82fd3a9, type: 3}
   m_Name: Skill_Warrior_Guard
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.SO_SkillData
-  Id: 201
-  SkillId: warrior_guard
-  SkillName: Guard
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterSkillModel
+  Name: Guard
+  SkillType: 0
+  Icon: {fileID: 21300000, guid: fcdf1ec5049e4f27b99054bd0490378a, type: 3}
   Description: Gain a small burst of defense.
   CostHeads: 1
   CostTails: 0

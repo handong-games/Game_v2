@@ -27,6 +27,7 @@ namespace Domains.Scene.TitleScene
                     nameof(TitleView),
                     nameof(CharacterSelectView),
                     nameof(SettingsView),
+                    "CharacterNames",
                 }
             );
 

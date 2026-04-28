@@ -22,23 +22,23 @@ namespace Game.Core.Managers.Garphic
 
         public EDisplayAspect GetAspectPreset()
         {
-            return _saveData.aspect;
+            return _settings.Aspect;
         }
         
         public void SetAspectPreset(EDisplayAspect preset)
         {
-            if (_saveData.aspect == preset)
+            if (_settings.Aspect == preset)
             {
                 return;
             }
 
-            _saveData.aspect = preset;
+            _settings.Aspect = preset;
             ViewAspectChanged?.Invoke(preset);
         }
 
         public string GetAspectPresetText()
         {
-            return GetAspectPresetLabel(_saveData.aspect);
+            return GetAspectPresetLabel(_settings.Aspect);
         }
 
         public string GetAspectPresetLabel(EDisplayAspect preset)

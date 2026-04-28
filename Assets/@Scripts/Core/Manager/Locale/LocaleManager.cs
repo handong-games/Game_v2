@@ -7,7 +7,7 @@ namespace Game.Core.Managers.Locale
 {
     public class LocaleManager : BaseManager<LocaleManager>
     {
-        private LocaleSaveData _saveData;
+        private SettingsState _settings;
         private UnityEngine.Localization.Locale _currentLocale;
         public UnityEngine.Localization.Locale CurrentLocale => _currentLocale;
         
@@ -15,8 +15,8 @@ namespace Game.Core.Managers.Locale
         {
             LocalizationSettings.InitializationOperation.WaitForCompletion();
             
-            _saveData = SettingManager.Instance.SaveData.LocaleSaveData;
-            _currentLocale = LocalizationSettings.AvailableLocales.GetLocale(_saveData.languageCode);
+            _settings = SaveManager.Instance.Settings;
+            _currentLocale = LocalizationSettings.AvailableLocales.GetLocale(_settings.LanguageCode);
             LocalizationSettings.SelectedLocale = _currentLocale;
         }
 
@@ -49,7 +49,7 @@ namespace Game.Core.Managers.Locale
         private void SetLocale(UnityEngine.Localization.Locale newLocale)
         {
             _currentLocale = newLocale;
-            _saveData.languageCode = newLocale.Identifier.Code;
+            _settings.LanguageCode = newLocale.Identifier.Code;
             LocalizationSettings.SelectedLocale = newLocale;
         }
     }

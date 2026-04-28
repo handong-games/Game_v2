@@ -1,62 +1,59 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:l="UnityEngine.Localization" editor-extension-mode="False">
-    <ui:Template name="CardTemplate" src="../Common/Card.uxml" />
-    <Style src="../Common/Card.uss"/>
-    <Style src="CharacterSelectView.uss"/>
+    <ui:Template name="CardTemplate" src="project://database/Assets/@Scripts/Domains/View/Common/Card.uxml?fileID=9197481963319205126&amp;guid=3b25b7467f9c9294ea12873395c92aa3&amp;type=3#Card"/>
+    <ui:Template name="SkillSlotTemplate" src="project://database/Assets/@Scripts/Domains/View/Common/SkillSlot.uxml?fileID=9197481963319205126&amp;guid=d575c97a498c46cea091d4ee11171754&amp;type=3#SkillSlot"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/Common/Card.uss?fileID=7433441132597879392&amp;guid=597047aaf58983b4eb1e6e1f6aaf05d3&amp;type=3#Card"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/Common/SkillSlot.uss?fileID=7433441132597879392&amp;guid=8f25d5bef5b1460e9bea30776411bb68&amp;type=3#SkillSlot"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/CharacterSelect/CharacterSelectView.uss?fileID=7433441132597879392&amp;guid=209eff3511affe34d8cb065070e66bd0&amp;type=3#CharacterSelectView"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/CharacterSelect/CharacterSelectView.Animation.uss?fileID=7433441132597879392&amp;guid=00b61629233bbc84c95373d9dc5f421c&amp;type=3#CharacterSelectView.Animation"/>
     <ui:VisualElement class="screen">
         <ui:VisualElement name="character-select-root" class="character-select">
-            <ui:VisualElement name="pattern-bg" class="character-select__pattern"/>
-            <ui:VisualElement name="dim-bg" class="character-select__dim"/>
-            <ui:VisualElement class="character-select__layer">
-                <ui:VisualElement class="character-select__header">
-                    <ui:Label name="title-text" text="" class="character-select__title">
+            <ui:VisualElement name="background" class="character-select__background"/>
+            <ui:VisualElement name="blocker" class="character-select__blocker"/>
+            <ui:VisualElement name="content-area" class="character-select__content-area">
+                <ui:VisualElement name="header" class="character-select__header">
+                    <ui:Label name="title-text" text="" class="character-select__title-text">
                         <Bindings>
                             <l:LocalizedString property="text" table="CharacterSelectView" entry="character_select_title"/>
                             <l:LocalizedFont property="style.unityFontDefinition" table="FontAssets" entry="UIToolkitFont"/>
                         </Bindings>
                     </ui:Label>
                 </ui:VisualElement>
-                <ui:VisualElement name="card-container" class="character-select__card-list">
-                    <ui:VisualElement name="card-0" class="character-select__card character-select__card--warrior">
-                        <ui:Instance template="CardTemplate" name="card-template-0" />
+                <ui:VisualElement name="card-list" class="character-select__card-list">
+                    <ui:VisualElement name="card-0" class="character-select__card">
+                        <ui:Instance template="CardTemplate" name="card-template-0" class="character-select__card-template"/>
                     </ui:VisualElement>
-                    <ui:VisualElement name="card-1" class="character-select__card character-select__card--mage">
-                        <ui:Instance template="CardTemplate" name="card-template-1" />
+                    <ui:VisualElement name="card-1" class="character-select__card">
+                        <ui:Instance template="CardTemplate" name="card-template-1" class="character-select__card-template"/>
                     </ui:VisualElement>
-                    <ui:VisualElement name="card-2" class="character-select__card character-select__card--rogue">
-                        <ui:Instance template="CardTemplate" name="card-template-2" />
+                    <ui:VisualElement name="card-2" class="character-select__card">
+                        <ui:Instance template="CardTemplate" name="card-template-2" class="character-select__card-template"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
-                <ui:VisualElement name="detail-slot" class="character-select__detail">
+                <ui:VisualElement name="card-detail" class="character-select__detail">
                     <ui:VisualElement name="detail-panel" class="character-select__detail-panel">
                         <ui:Label name="detail-name" text="" class="character-select__detail-name"/>
-                        <ui:VisualElement class="character-select__detail-stats">
-                            <ui:VisualElement name="detail-stat-hp" class="detail-stat">
-                                <ui:VisualElement class="detail-stat__icon detail-stat__icon--hp">
-                                    <ui:Label text="HP" class="detail-stat__icon-text"/>
-                                </ui:VisualElement>
-                                <ui:Label name="detail-hp" text="" class="detail-stat__value"/>
-                            </ui:VisualElement>
-                            <ui:VisualElement name="detail-stat-coin" class="detail-stat">
-                                <ui:VisualElement class="detail-stat__icon detail-stat__icon--coin">
-                                    <ui:Label text="CO" class="detail-stat__icon-text"/>
-                                </ui:VisualElement>
-                                <ui:Label name="detail-coin" text="" class="detail-stat__value"/>
-                            </ui:VisualElement>
+                        <ui:VisualElement name="detail-summary" class="character-select__detail-summary">
+                            <ui:Label name="detail-hp" text="" class="character-select__detail-value"/>
+                            <ui:Label name="detail-coin" text="" class="character-select__detail-value"/>
                         </ui:VisualElement>
-                        <ui:VisualElement name="skill-list" class="character-select__detail-skills"/>
+                        <ui:VisualElement name="skill-list" class="character-select__detail-skills">
+                            <ui:Instance template="SkillSlotTemplate" name="skill-0" class="character-select__skill-slot-template"/>
+                            <ui:Instance template="SkillSlotTemplate" name="skill-1" class="character-select__skill-slot-template"/>
+                            <ui:Instance template="SkillSlotTemplate" name="skill-2" class="character-select__skill-slot-template"/>
+                        </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-                <ui:VisualElement class="character-select__actions">
-                    <ui:Button name="btn-back" class="character-select__action-button character-select__action-button--back">
-                        <ui:VisualElement class="character-select__action-icon character-select__action-icon--back">
-                            <ui:VisualElement class="character-select__action-icon-shaft"/>
-                            <ui:VisualElement class="character-select__action-icon-head"/>
+                <ui:VisualElement name="navigation" class="character-select__navigation">
+                    <ui:Button name="btn-back" class="character-select__navigation-button character-select__navigation-button--back">
+                        <ui:VisualElement class="character-select__navigation-icon character-select__navigation-icon--back">
+                            <ui:VisualElement class="character-select__navigation-icon-shaft"/>
+                            <ui:VisualElement class="character-select__navigation-icon-head"/>
                         </ui:VisualElement>
                     </ui:Button>
-                    <ui:Button name="btn-start" class="character-select__action-button character-select__action-button--start">
-                        <ui:VisualElement class="character-select__action-icon character-select__action-icon--start">
-                            <ui:VisualElement class="character-select__action-icon-shaft"/>
-                            <ui:VisualElement class="character-select__action-icon-head"/>
+                    <ui:Button name="btn-start" class="character-select__navigation-button character-select__navigation-button--start">
+                        <ui:VisualElement class="character-select__navigation-icon character-select__navigation-icon--start">
+                            <ui:VisualElement class="character-select__navigation-icon-shaft"/>
+                            <ui:VisualElement class="character-select__navigation-icon-head"/>
                         </ui:VisualElement>
                     </ui:Button>
                 </ui:VisualElement>

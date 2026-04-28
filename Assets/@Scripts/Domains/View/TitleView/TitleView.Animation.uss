@@ -1,6 +1,6 @@
 .title-screen__intro {
     transition-property: opacity, translate;
-    transition-duration: 700ms;
+    transition-duration: 0.7s;
     transition-timing-function: ease-out;
 }
 

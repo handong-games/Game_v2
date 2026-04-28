@@ -11,10 +11,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0bd59cee7fc9ffe4e8e9d76eb82fd3a9, type: 3}
   m_Name: Skill_Mage_Surge
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.SO_SkillData
-  Id: 205
-  SkillId: mage_surge
-  SkillName: Surge
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterSkillModel
+  Name: Surge
   Description: Amplify the next cast.
   CostHeads: 0
   CostTails: 1

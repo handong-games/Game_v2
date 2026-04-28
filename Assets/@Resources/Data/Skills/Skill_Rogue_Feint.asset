@@ -11,10 +11,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0bd59cee7fc9ffe4e8e9d76eb82fd3a9, type: 3}
   m_Name: Skill_Rogue_Feint
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.SO_SkillData
-  Id: 207
-  SkillId: rogue_feint
-  SkillName: Feint
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterSkillModel
+  Name: Feint
   Description: Set up a safer opening.
   CostHeads: 0
   CostTails: 1

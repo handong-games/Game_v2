@@ -11,10 +11,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0bd59cee7fc9ffe4e8e9d76eb82fd3a9, type: 3}
   m_Name: Skill_Warrior_Rally
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.SO_SkillData
-  Id: 203
-  SkillId: warrior_rally
-  SkillName: Rally
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterSkillModel
+  Name: Rally
+  SkillType: 0
+  Icon: {fileID: 21300000, guid: 76d4929ddf8b4abcbfadc30238f8df1d, type: 3}
   Description: Steady your stance and recover tempo.
   CostHeads: 0
   CostTails: 1

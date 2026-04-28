@@ -16,6 +16,7 @@ namespace Game.Core.Managers.Scene
             SceneManager.sceneUnloaded += SceneUnloaded;
         }
         
+        protected virtual bool RequiresPreloadAssets => true;
         protected abstract void OnLoaded();
         protected abstract void OnUnloaded();
 
@@ -29,8 +30,14 @@ namespace Game.Core.Managers.Scene
         {
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {
-                Debug.LogError($"Failed to load scene assets: {GetType().Name}");
-                return;
+                string message = $"Failed to load scene assets: {GetType().Name}";
+                if (RequiresPreloadAssets)
+                {
+                    Debug.LogError(message);
+                    return;
+                }
+
+                Debug.LogWarning(message);
             }
 
             await Awaitable.NextFrameAsync();

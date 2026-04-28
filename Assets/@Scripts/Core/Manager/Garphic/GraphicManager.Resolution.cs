@@ -14,13 +14,13 @@ namespace Game.Core.Managers.Garphic
                 return;
             }
             
-            if (_saveData.windowedWidth == width && _saveData.windowedHeight == height)
+            if (_settings.WindowedWidth == width && _settings.WindowedHeight == height)
             {
                 return;
             }
 
-            _saveData.windowedWidth = width;
-            _saveData.windowedHeight = height;
+            _settings.WindowedWidth = width;
+            _settings.WindowedHeight = height;
             Screen.SetResolution(width, height, FullScreenMode.Windowed);
         }
         

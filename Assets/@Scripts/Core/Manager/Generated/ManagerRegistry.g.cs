@@ -25,7 +25,8 @@ namespace Game.System.Core.Manager
     {
         public static readonly ManagerDescriptor[] All =
         {
-            new(typeof(global::Game.Core.Managers.Save.SettingManager), global::Game.Core.Managers.Save.SettingManager.Init, global::Game.Core.Managers.Save.SettingManager.Dispose),
+            new(typeof(global::Game.Core.Managers.Save.SaveManager), global::Game.Core.Managers.Save.SaveManager.Init, global::Game.Core.Managers.Save.SaveManager.Dispose),
+            new(typeof(global::Game.Core.Managers.DB.DBManager), global::Game.Core.Managers.DB.DBManager.Init, global::Game.Core.Managers.DB.DBManager.Dispose),
             new(typeof(global::Game.Core.Managers.Dependency.DependencyManager), global::Game.Core.Managers.Dependency.DependencyManager.Init, global::Game.Core.Managers.Dependency.DependencyManager.Dispose),
             new(typeof(global::Game.Core.Managers.Audio.AudioManager), global::Game.Core.Managers.Audio.AudioManager.Init, global::Game.Core.Managers.Audio.AudioManager.Dispose),
             new(typeof(global::Game.Core.Managers.Garphic.GraphicManager), global::Game.Core.Managers.Garphic.GraphicManager.Init, global::Game.Core.Managers.Garphic.GraphicManager.Dispose),

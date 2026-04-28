@@ -3,8 +3,7 @@
     <Style src="project://database/Assets/@Scripts/Domains/View/TitleView/TitleView.Animation.uss?fileID=7433441132597879392&amp;guid=7e27aaaa9c4698147818d6ba5bab0fac&amp;type=3#TitleView.Animation"/>
     <ui:VisualElement class="screen">
         <ui:VisualElement name="title-root" class="title-screen">
-            <ui:VisualElement name="background-layer" picking-mode="Ignore" class="title-screen__background"/>
-
+            <ui:VisualElement name="background" picking-mode="Ignore" class="title-screen__background"/>
             <ui:VisualElement name="title-logo" class="title-screen__logo">
                 <ui:VisualElement class="title-screen__logo-stack">
                     <ui:Label name="title-text" text="Game Logo" class="title-screen__logo-text">
@@ -14,7 +13,6 @@
                     </ui:Label>
                 </ui:VisualElement>
             </ui:VisualElement>
-
             <ui:VisualElement name="title-menu" class="title-screen__menu">
                 <ui:Button name="btn-new-game" class="title-screen__menu-button">
                     <ui:Label name="btn-new-game-label" text="New Game" picking-mode="Ignore" class="title-screen__menu-label">
@@ -41,7 +39,6 @@
                     </ui:Label>
                 </ui:Button>
             </ui:VisualElement>
-
             <ui:VisualElement name="title-version" class="title-screen__footer">
                 <ui:Label name="version-text" text="v0.1.0" class="title-screen__footer-version">
                     <Bindings>

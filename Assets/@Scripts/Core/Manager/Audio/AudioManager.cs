@@ -7,7 +7,7 @@ namespace Game.Core.Managers.Audio
 {
     public sealed class AudioManager : BaseManager<AudioManager>
     {
-        private AudioSaveData _saveData;
+        private SettingsState _settings;
         private GameObject _audioRoot;
         private AudioSource[] _audioSources = new AudioSource[(int)EAudioPlay.Count];
         
@@ -21,10 +21,10 @@ namespace Game.Core.Managers.Audio
             _audioSources[(int)EAudioPlay.BGM] = CreateSource(loop: true);
             _audioSources[(int)EAudioPlay.SFX] = CreateSource(loop: false);
 
-            _saveData = SettingManager.Instance.SaveData.AudioSaveData;
-            SetVolume(EAudioVolume.Master, _saveData.masterVolume);
-            SetVolume(EAudioVolume.BGM, _saveData.bgmVolume);
-            SetVolume(EAudioVolume.SFX, _saveData.sfxVolume);
+            _settings = SaveManager.Instance.Settings;
+            SetVolume(EAudioVolume.Master, _settings.MasterVolume);
+            SetVolume(EAudioVolume.BGM, _settings.BgmVolume);
+            SetVolume(EAudioVolume.SFX, _settings.SfxVolume);
         }
 
         protected override void OnDispose()
@@ -58,24 +58,24 @@ namespace Game.Core.Managers.Audio
         {
             if (volume == EAudioVolume.Master)
             {
-                _saveData.masterVolume = value;
+                _settings.MasterVolume = value;
                 ApplyChannelVolumes();
             }
             else if (volume == EAudioVolume.BGM)
             {
-                _saveData.bgmVolume = value;
+                _settings.BgmVolume = value;
                 ApplyChannelVolumes();
             }
             else if (volume == EAudioVolume.SFX)
             {
-                _saveData.sfxVolume = value;
+                _settings.SfxVolume = value;
                 ApplyChannelVolumes();
             }
         }
 
         public void SetMuteInBackground(bool enabled)
         {
-            _saveData.muteInBackground = enabled;
+            _settings.MuteInBackground = enabled;
             if (!enabled)
             {
                 AudioListener.pause = false;
@@ -88,17 +88,17 @@ namespace Game.Core.Managers.Audio
             
             if (volume == EAudioVolume.Master)
             {
-                volumeValue = _saveData.masterVolume;
+                volumeValue = _settings.MasterVolume;
             }
             
             if (volume == EAudioVolume.BGM)
             {
-                volumeValue = _saveData.bgmVolume;
+                volumeValue = _settings.BgmVolume;
             }
             
             if (volume == EAudioVolume.SFX)
             {
-                volumeValue = _saveData.sfxVolume;
+                volumeValue = _settings.SfxVolume;
             }
 
             return volumeValue;
@@ -106,7 +106,7 @@ namespace Game.Core.Managers.Audio
 
         public bool GetMuteInBackground()
         {
-            return _saveData.muteInBackground;
+            return _settings.MuteInBackground;
         }
 
         public void Stop(EAudioPlay type)
@@ -134,19 +134,19 @@ namespace Game.Core.Managers.Audio
             AudioSource bgmSource = _audioSources[(int)EAudioPlay.BGM];
             if (bgmSource != null)
             {
-                bgmSource.volume = _saveData.masterVolume * _saveData.bgmVolume;
+                bgmSource.volume = _settings.MasterVolume * _settings.BgmVolume;
             }
 
             AudioSource sfxSource = _audioSources[(int)EAudioPlay.SFX];
             if (sfxSource != null)
             {
-                sfxSource.volume = _saveData.masterVolume * _saveData.sfxVolume;
+                sfxSource.volume = _settings.MasterVolume * _settings.SfxVolume;
             }
         }
 
         public void OnApplicationPause(bool pauseStatus)
         {
-            if (!_saveData.muteInBackground)
+            if (!_settings.MuteInBackground)
                 return;
 
             AudioListener.pause = pauseStatus;
@@ -154,7 +154,7 @@ namespace Game.Core.Managers.Audio
 
         public void OnApplicationFocus(bool hasFocus)
         {
-            if (!_saveData.muteInBackground)
+            if (!_settings.MuteInBackground)
                 return;
 
             AudioListener.pause = !hasFocus;

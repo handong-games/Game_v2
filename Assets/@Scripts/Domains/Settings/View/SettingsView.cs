@@ -99,7 +99,7 @@ namespace Domains.Settings.View
 
         private void OnClose()
         {
-            SettingManager.Instance.Save();
+            SaveManager.Instance.SaveSettings();
             ViewManager.Instance.Pop();
         }
 

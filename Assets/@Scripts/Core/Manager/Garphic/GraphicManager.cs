@@ -6,12 +6,12 @@ namespace Game.Core.Managers.Garphic
 {
     public partial class GraphicManager : BaseManager<GraphicManager>
     {
-        private GraphicSaveData _saveData;
+        private SettingsState _settings;
         private GameObject _managerObject;
         
         protected override void OnInit()
         {
-            _saveData = SettingManager.Instance.SaveData.GraphicSaveData;
+            _settings = SaveManager.Instance.Settings;
 
             _managerObject = new GameObject("GraphicManager");
             Object.DontDestroyOnLoad(_managerObject);
@@ -26,7 +26,7 @@ namespace Game.Core.Managers.Garphic
                 _managerObject = null;
             }
 
-            _saveData = null;
+            _settings = null;
         }
     }
 }

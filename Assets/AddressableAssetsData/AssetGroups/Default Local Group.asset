@@ -15,17 +15,17 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: 4b3b84f338bb6c948acca86de42f912c
   m_SerializeEntries:
-  - m_GUID: 50dbaaca83ce87c488ba5839e77e628e
-    m_Address: SO_CharacterDatabase
+  - m_GUID: 8cc49f14f9a04d24b9c87ad4a30b7e1a
+    m_Address: CharacterTable
     m_ReadOnly: 0
     m_SerializedLabels:
-    - TitleScene
+    - ModelTable
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: dca099dfab869fb4e8551355415f9188
-    m_Address: SO_SkillDatabase
+    m_Address: CharacterSkillTable
     m_ReadOnly: 0
     m_SerializedLabels:
-    - TitleScene
+    - ModelTable
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 065ac4adf3738644dbf915d9eb092da4, type: 2}

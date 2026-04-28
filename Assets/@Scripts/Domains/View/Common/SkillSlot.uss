@@ -1,0 +1,51 @@
+.skill-slot {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    overflow: visible;
+}
+
+.skill-slot__frame {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.skill-slot__icon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 64%;
+    height: 64%;
+    translate: -50% -50%;
+    border-radius: 6px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.skill-slot__fallback-name {
+    width: 78%;
+    color: rgba(42, 34, 30, 0.92);
+    -unity-text-generator: advanced;
+    -unity-font-style: bold;
+    font-size: 12px;
+    -unity-text-auto-size: best-fit 7px 12px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    overflow: hidden;
+}
+
+.skill-slot--type-attack .skill-slot__frame,
+.skill-slot--type-defense .skill-slot__frame,
+.skill-slot--type-utility .skill-slot__frame {
+    background-image: url("project://database/Assets/@Resources/Skills/Frames/skill-frame-attack.png?fileID=2800000&guid=1a71ae51cb794058b6b26827789fe12f&type=3#skill-frame-attack");
+}

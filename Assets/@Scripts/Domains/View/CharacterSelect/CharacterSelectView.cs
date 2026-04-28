@@ -1,12 +1,16 @@
+using Domains.Character;
+using Domains.Scene.CombatScene;
 using Game.Core.Managers.Dependency;
+using Game.Core.Managers.Scene;
 using Game.Core.Managers.View;
 using Game.Data;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.UIElements;
 
 namespace Domains.CharacterSelect
 {
-    public class CharacterSelectView : BaseView
+    public partial class CharacterSelectView : BaseView
     {
         private const int CardRevealStartMs = 120;
         private const int CardRevealStepMs = 80;
@@ -15,29 +19,31 @@ namespace Domains.CharacterSelect
         private const int LockedFeedbackDurationMs = 140;
         private const int MaxVisibleSkills = 3;
 
-        private const string DimVisibleClass = "character-select__dim--active";
         private const string TitleVisibleClass = "character-select__header--visible";
         private const string CardsVisibleClass = "character-select__card--visible";
-        private const string ButtonsVisibleClass = "character-select__actions--visible";
+        private const string NavigationVisibleClass = "character-select__navigation--visible";
         private const string DetailVisibleClass = "character-select__detail-panel--visible";
-        private const string StartVisibleClass = "character-select__action-button--start--visible";
+        private const string StartVisibleClass = "character-select__navigation-button--start--visible";
         private const string ClosingClass = "character-select--closing";
         private const string SelectedClass = "character-select__card--selected";
         private const string SubduedClass = "character-select__card--subdued";
         private const string LockedClass = "character-select__card--locked";
         private const string LockedFeedbackLeftClass = "character-select__card--locked-feedback-left";
         private const string LockedFeedbackRightClass = "character-select__card--locked-feedback-right";
+        private const string SkillTypeAttackClass = "skill-slot--type-attack";
+        private const string SkillTypeDefenseClass = "skill-slot--type-defense";
+        private const string SkillTypeUtilityClass = "skill-slot--type-utility";
 
         [Inject]
         private CharacterSelectController _controller;
 
         private VisualElement _screenRoot;
-        private VisualElement _dimBackground;
-        private VisualElement _titleArea;
-        private VisualElement _cardContainer;
+        private VisualElement _blockerBackground;
+        private VisualElement _header;
+        private VisualElement _cardList;
         private VisualElement _detailPanel;
         private VisualElement _skillList;
-        private VisualElement _buttons;
+        private VisualElement _navigation;
         private Button _backButton;
         private Button _startButton;
         private Label _detailName;
@@ -45,44 +51,53 @@ namespace Domains.CharacterSelect
         private Label _detailCoin;
 
         private VisualElement[] _cards;
-        private VisualElement[] _cardIllustrations;
-        private Label[] _cardNames;
+        private VisualElement[] _cardPortraits;
+        private VisualElement[] _skillSlots;
+        private VisualElement[] _skillIcons;
+        private Label[] _skillFallbackNames;
         private EventCallback<PointerDownEvent>[] _cardPointerHandlers;
-        private SO_CharacterData[] _characters;
+        private CharacterState[] _characters;
+        private CharacterState _localizedNameCharacter;
+        private LocalizedString _localizedName;
         private int _selectedIndex;
         private bool _isClosing;
+        private CloseReason _closeReason;
+
+        private enum CloseReason
+        {
+            None,
+            Back,
+            Start,
+        }
 
         protected override void OnBind(VisualElement root)
         {
-            if (Root.childCount == 0)
-                return;
-
             _screenRoot = Root.Q<VisualElement>("character-select-root");
-            _dimBackground = Root.Q<VisualElement>("dim-bg");
-            _titleArea = Root.Q<VisualElement>(className: "character-select__header");
-            _cardContainer = Root.Q<VisualElement>("card-container");
+            _blockerBackground = Root.Q<VisualElement>("blocker");
+            _header = Root.Q<VisualElement>("header");
+            _cardList = Root.Q<VisualElement>("card-list");
             _detailPanel = Root.Q<VisualElement>("detail-panel");
             _detailName = Root.Q<Label>("detail-name");
             _detailHp = Root.Q<Label>("detail-hp");
             _detailCoin = Root.Q<Label>("detail-coin");
             _skillList = Root.Q<VisualElement>("skill-list");
-            _buttons = Root.Q<VisualElement>(className: "character-select__actions");
+            _navigation = Root.Q<VisualElement>("navigation");
             _backButton = Root.Q<Button>("btn-back");
             _startButton = Root.Q<Button>("btn-start");
 
             _isClosing = false;
+            _closeReason = CloseReason.None;
             _selectedIndex = -1;
 
-            if (_screenRoot != null)
-            {
-                _screenRoot.RemoveFromClassList(ClosingClass);
-                _screenRoot.RegisterCallback<TransitionEndEvent>(OnClose);
-            }
+            _screenRoot.RemoveFromClassList(ClosingClass);
+            _screenRoot.RegisterCallback<TransitionEndEvent>(OnClose);
 
             CacheCards();
+            CacheSkillSlots();
             LoadCharacters();
             ApplyCardData();
             ResetSelectionState();
+            _ = PlayIntroAnimation();
             ApplyEntranceStates();
 
             if (_backButton != null)
@@ -114,6 +129,8 @@ namespace Domains.CharacterSelect
                 _startButton.clicked -= OnClickStartButton;
             }
 
+            UnbindLocalizedName();
+
             if (_cards != null && _cardPointerHandlers != null)
             {
                 for (int i = 0; i < _cards.Length; i++)
@@ -126,31 +143,35 @@ namespace Domains.CharacterSelect
             }
 
             _screenRoot = null;
-            _dimBackground = null;
-            _titleArea = null;
-            _cardContainer = null;
+            _blockerBackground = null;
+            _header = null;
+            _cardList = null;
             _detailPanel = null;
             _skillList = null;
-            _buttons = null;
+            _navigation = null;
             _backButton = null;
             _startButton = null;
             _detailName = null;
             _detailHp = null;
             _detailCoin = null;
             _cards = null;
-            _cardIllustrations = null;
-            _cardNames = null;
+            _cardPortraits = null;
+            _skillSlots = null;
+            _skillIcons = null;
+            _skillFallbackNames = null;
             _cardPointerHandlers = null;
             _characters = null;
+            _localizedNameCharacter = null;
+            _localizedName = null;
             _selectedIndex = -1;
             _isClosing = false;
+            _closeReason = CloseReason.None;
         }
 
         private void CacheCards()
         {
             _cards = new VisualElement[3];
-            _cardIllustrations = new VisualElement[3];
-            _cardNames = new Label[3];
+            _cardPortraits = new VisualElement[3];
             _cardPointerHandlers = new EventCallback<PointerDownEvent>[3];
 
             for (int i = 0; i < _cards.Length; i++)
@@ -160,8 +181,7 @@ namespace Domains.CharacterSelect
                 if (_cards[index] == null)
                     continue;
 
-                _cardIllustrations[index] = _cards[index].Q<VisualElement>("card-illustration");
-                _cardNames[index] = _cards[index].Q<Label>("card-name");
+                _cardPortraits[index] = _cards[index].Q<VisualElement>("card-portrait");
 
                 EventCallback<PointerDownEvent> handler = _ => OnCardPointerDown(index);
                 _cardPointerHandlers[index] = handler;
@@ -169,9 +189,26 @@ namespace Domains.CharacterSelect
             }
         }
 
+        private void CacheSkillSlots()
+        {
+            _skillSlots = new VisualElement[MaxVisibleSkills];
+            _skillIcons = new VisualElement[MaxVisibleSkills];
+            _skillFallbackNames = new Label[MaxVisibleSkills];
+
+            for (int i = 0; i < MaxVisibleSkills; i++)
+            {
+                _skillSlots[i] = Root.Q<VisualElement>($"skill-{i}");
+                if (_skillSlots[i] == null)
+                    continue;
+
+                _skillIcons[i] = _skillSlots[i].Q<VisualElement>("skill-slot-icon");
+                _skillFallbackNames[i] = _skillSlots[i].Q<Label>("skill-slot-fallback-name");
+            }
+        }
+
         private void LoadCharacters()
         {
-            _characters = new SO_CharacterData[_cards.Length];
+            _characters = new CharacterState[_cards.Length];
             if (_controller == null)
                 return;
 
@@ -190,23 +227,18 @@ namespace Domains.CharacterSelect
                 if (_cards[i] == null)
                     continue;
 
-                SO_CharacterData character = GetCharacterData(i);
+                CharacterState character = GetCharacterData(i);
                 bool hasCharacter = character != null;
 
                 _cards[i].style.display = hasCharacter ? DisplayStyle.Flex : DisplayStyle.None;
                 if (!hasCharacter)
                     continue;
 
-                if (_cardNames[i] != null)
-                {
-                    _cardNames[i].text = character.CharacterName ?? string.Empty;
-                }
+                _cards[i].EnableInClassList(LockedClass, !character.IsUnlocked);
 
-                _cards[i].EnableInClassList(LockedClass, character.IsLocked);
-
-                if (_cardIllustrations[i] != null && character.Illustration != null)
+                if (_cardPortraits[i] != null && character.Portrait != null)
                 {
-                    _cardIllustrations[i].style.backgroundImage = new StyleBackground(character.Illustration);
+                    _cardPortraits[i].style.backgroundImage = new StyleBackground(Background.FromSprite(character.Portrait));
                 }
             }
         }
@@ -214,7 +246,7 @@ namespace Domains.CharacterSelect
         private void ResetSelectionState()
         {
             _selectedIndex = -1;
-            _controller?.ResetSelection();
+            UnbindLocalizedName();
             _detailPanel?.RemoveFromClassList(DetailVisibleClass);
             _startButton?.RemoveFromClassList(StartVisibleClass);
 
@@ -238,7 +270,7 @@ namespace Domains.CharacterSelect
                 _detailCoin.text = string.Empty;
             }
 
-            _skillList?.Clear();
+            ResetSkillSlots();
 
             for (int i = 0; i < _cards.Length; i++)
             {
@@ -250,15 +282,14 @@ namespace Domains.CharacterSelect
                 _cards[i].RemoveFromClassList(LockedFeedbackLeftClass);
                 _cards[i].RemoveFromClassList(LockedFeedbackRightClass);
 
-                SO_CharacterData character = GetCharacterData(i);
-                _cards[i].EnableInClassList(LockedClass, character != null && character.IsLocked);
+                CharacterState character = GetCharacterData(i);
+                _cards[i].EnableInClassList(LockedClass, character != null && !character.IsUnlocked);
             }
         }
 
         private void ApplyEntranceStates()
         {
-            _dimBackground?.AddToClassList(DimVisibleClass);
-            _titleArea?.AddToClassList(TitleVisibleClass);
+            _header?.AddToClassList(TitleVisibleClass);
 
             for (int i = 0; i < _cards.Length; i++)
             {
@@ -270,7 +301,7 @@ namespace Domains.CharacterSelect
                 card.schedule.Execute(() => card.AddToClassList(CardsVisibleClass)).StartingIn(delay);
             }
 
-            _buttons?.schedule.Execute(() => _buttons.AddToClassList(ButtonsVisibleClass)).StartingIn(ButtonsRevealMs);
+            _navigation?.schedule.Execute(() => _navigation.AddToClassList(NavigationVisibleClass)).StartingIn(ButtonsRevealMs);
         }
 
         private void OnCardPointerDown(int index)
@@ -278,11 +309,11 @@ namespace Domains.CharacterSelect
             if (_isClosing)
                 return;
 
-            SO_CharacterData character = GetCharacterData(index);
+            CharacterState character = GetCharacterData(index);
             if (character == null)
                 return;
 
-            if (character.IsLocked)
+            if (_controller == null || !_controller.CanSelect(character))
             {
                 TriggerLockedFeedback(index);
                 return;
@@ -292,7 +323,6 @@ namespace Domains.CharacterSelect
                 return;
 
             _selectedIndex = index;
-            _controller?.SelectCharacter(character);
 
             _detailPanel?.RemoveFromClassList(DetailVisibleClass);
             _startButton?.RemoveFromClassList(StartVisibleClass);
@@ -305,7 +335,7 @@ namespace Domains.CharacterSelect
 
             Root.schedule.Execute(() =>
             {
-                if (_selectedIndex != index)
+                if (_isClosing || _selectedIndex != index)
                     return;
 
                 BindDetailPanel(character);
@@ -328,8 +358,8 @@ namespace Domains.CharacterSelect
                 if (_selectedIndex < 0)
                     continue;
 
-                SO_CharacterData character = GetCharacterData(i);
-                if (character == null || character.IsLocked)
+                CharacterState character = GetCharacterData(i);
+                if (character == null || !character.IsUnlocked)
                     continue;
 
                 if (i == _selectedIndex)
@@ -343,39 +373,124 @@ namespace Domains.CharacterSelect
             }
         }
 
-        private void BindDetailPanel(SO_CharacterData character)
+        private void BindDetailPanel(CharacterState character)
         {
-            if (character == null)
-                return;
+            BindLocalizedName(character);
+            _detailHp.text = $"HP {character.InitialMaxHp}";
+            _detailCoin.text = $"COIN {character.InitialCoinCount}";
 
-            _detailName.text = character.CharacterName ?? string.Empty;
-            _detailHp.text = character.InitialMaxHp.ToString();
-            _detailCoin.text = character.InitialCoinCount.ToString();
-
-            _skillList.Clear();
+            ResetSkillSlots();
             if (character.DefaultSkills != null)
             {
                 for (int i = 0; i < character.DefaultSkills.Length && i < MaxVisibleSkills; i++)
                 {
-                    SO_SkillData skill = character.DefaultSkills[i];
-                    if (skill == null)
-                        continue;
-
-                    VisualElement tag = new VisualElement();
-                    tag.AddToClassList("skill-tag");
-
-                    Label label = new Label(skill.SkillName ?? string.Empty);
-                    label.AddToClassList("skill-tag__name");
-                    tag.Add(label);
-
-                    VisualElement accent = new VisualElement();
-                    accent.AddToClassList("skill-tag__accent");
-                    tag.Add(accent);
-
-                    _skillList.Add(tag);
+                    BindSkillSlot(i, character.DefaultSkills[i]);
                 }
             }
 
+        }
+
+        private void BindLocalizedName(CharacterState character)
+        {
+            UnbindLocalizedName();
+
+            if (character?.LocalizedName == null || character.LocalizedName.IsEmpty)
+            {
+                SetDetailName(character, null);
+                return;
+            }
+
+            _localizedNameCharacter = character;
+            _localizedName = character.LocalizedName;
+            SetDetailName(character, _localizedName.GetLocalizedString());
+            _localizedName.StringChanged += OnLocalizedNameChanged;
+        }
+
+        private void UnbindLocalizedName()
+        {
+            if (_localizedName != null)
+            {
+                _localizedName.StringChanged -= OnLocalizedNameChanged;
+            }
+
+            _localizedNameCharacter = null;
+            _localizedName = null;
+        }
+
+        private void OnLocalizedNameChanged(string value)
+        {
+            SetDetailName(_localizedNameCharacter, value);
+        }
+
+        private void SetDetailName(CharacterState character, string localizedValue)
+        {
+            if (_detailName == null)
+                return;
+
+            _detailName.text = !string.IsNullOrWhiteSpace(localizedValue)
+                ? localizedValue
+                : character?.Name ?? string.Empty;
+        }
+
+        private void ResetSkillSlots()
+        {
+            for (int i = 0; i < MaxVisibleSkills; i++)
+            {
+                BindSkillSlot(i, null);
+            }
+        }
+
+        private void BindSkillSlot(int index, CharacterSkillModel skill)
+        {
+            if (_skillSlots == null || index < 0 || index >= _skillSlots.Length || _skillSlots[index] == null)
+                return;
+
+            VisualElement slot = _skillSlots[index];
+            slot.style.display = DisplayStyle.None;
+            slot.RemoveFromClassList(SkillTypeAttackClass);
+            slot.RemoveFromClassList(SkillTypeDefenseClass);
+            slot.RemoveFromClassList(SkillTypeUtilityClass);
+
+            if (_skillIcons[index] != null)
+            {
+                _skillIcons[index].style.display = DisplayStyle.None;
+                _skillIcons[index].style.backgroundImage = StyleKeyword.Null;
+            }
+
+            if (_skillFallbackNames[index] != null)
+            {
+                _skillFallbackNames[index].style.display = DisplayStyle.None;
+                _skillFallbackNames[index].text = string.Empty;
+            }
+
+            if (skill == null)
+                return;
+
+            slot.style.display = DisplayStyle.Flex;
+            slot.AddToClassList(GetSkillTypeClass(skill.SkillType));
+
+            if (skill.Icon != null && _skillIcons[index] != null)
+            {
+                _skillIcons[index].style.display = DisplayStyle.Flex;
+                _skillIcons[index].style.backgroundImage = new StyleBackground(Background.FromSprite(skill.Icon));
+                return;
+            }
+
+            if (_skillFallbackNames[index] != null)
+            {
+                _skillFallbackNames[index].style.display = DisplayStyle.Flex;
+                _skillFallbackNames[index].text = skill.Name ?? string.Empty;
+            }
+        }
+
+        private static string GetSkillTypeClass(SkillType skillType)
+        {
+            return skillType switch
+            {
+                SkillType.Defense => SkillTypeDefenseClass,
+                SkillType.Utility => SkillTypeUtilityClass,
+                _ => SkillTypeAttackClass,
+            };
         }
 
         private void TriggerLockedFeedback(int index)
@@ -399,8 +514,7 @@ namespace Domains.CharacterSelect
                 return;
 
             _isClosing = true;
-            _buttons?.SetEnabled(false);
-            _screenRoot?.AddToClassList(ClosingClass);
+            Close(CloseReason.Back);
         }
 
         private void OnClickStartButton()
@@ -408,7 +522,8 @@ namespace Domains.CharacterSelect
             if (_selectedIndex < 0)
                 return;
 
-            _controller?.StartSelectedCharacter();
+            CharacterState character = GetCharacterData(_selectedIndex);
+            _controller.StartGame(character);
         }
 
         private void OnClose(TransitionEndEvent evt)
@@ -416,11 +531,31 @@ namespace Domains.CharacterSelect
             if (!_isClosing || evt.target != _screenRoot)
                 return;
 
+            CloseReason closeReason = _closeReason;
             _isClosing = false;
-            ViewManager.Instance.Pop();
+            _closeReason = CloseReason.None;
+
+            switch (closeReason)
+            {
+                case CloseReason.Back:
+                    ViewManager.Instance.Pop();
+                    break;
+                case CloseReason.Start:
+                    SceneManagerEx.Instance.LoadScene<CombatScene>();
+                    break;
+            }
         }
 
-        private SO_CharacterData GetCharacterData(int index)
+        private void Close(CloseReason closeReason)
+        {
+            _isClosing = true;
+            _closeReason = closeReason;
+            _navigation?.SetEnabled(false);
+            _cardList?.SetEnabled(false);
+            _screenRoot?.AddToClassList(ClosingClass);
+        }
+
+        private CharacterState GetCharacterData(int index)
         {
             if (_characters == null || index < 0 || index >= _characters.Length)
                 return null;
