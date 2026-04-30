@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bd59cee7fc9ffe4e8e9d76eb82fd3a9, type: 3}
   m_Name: Skill_Rogue_Smoke
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterSkillModel
-  Name: Smoke
-  Description: Slip away and reset tempo.
-  CostHeads: 1
-  CostTails: 0
-  Effects:
-  - EffectId: placeholder
-    Amount: 3
-  SpecialEffects: []
-  MaxPerTurn: 0
-  MaxPerCombat: 0
+  _name: Smoke
+  _description: Slip away and reset tempo.
+  _costHeads: 1
+  _costTails: 0
+  _effects:
+  - _effectId: placeholder
+    _amount: 3
+  _specialEffects: []
+  _maxPerTurn: 0
+  _maxPerEncounter: 0

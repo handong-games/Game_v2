@@ -8,17 +8,23 @@ namespace Game.Core.Managers.View
         private readonly VisualElement _visualElement;
         private readonly string[] _transitionClasses;
         private readonly string _transitionClass;
+        private readonly bool _enabled;
         private readonly AwaitableCompletionSource _completionSource = new();
         private readonly EventCallback<TransitionEndEvent> _onTransitionEnd;
         private readonly EventCallback<TransitionCancelEvent> _onTransitionCancel;
         private bool _completed;
         private bool _disposed;
 
-        public ActiveTransition(VisualElement visualElement, string[] transitionClasses, string transitionClass)
+        public ActiveTransition(
+            VisualElement visualElement,
+            string[] transitionClasses,
+            string transitionClass,
+            bool enabled)
         {
             _visualElement = visualElement;
             _transitionClasses = transitionClasses;
             _transitionClass = transitionClass;
+            _enabled = enabled;
 
             _onTransitionEnd = evt =>
             {
@@ -44,12 +50,22 @@ namespace Game.Core.Managers.View
         {
             await Awaitable.NextFrameAsync();
 
-            for (int i = 0; i < _transitionClasses.Length; i++)
+            if (_transitionClasses != null)
             {
-                _visualElement.RemoveFromClassList(_transitionClasses[i]);
+                for (int i = 0; i < _transitionClasses.Length; i++)
+                {
+                    _visualElement.RemoveFromClassList(_transitionClasses[i]);
+                }
             }
 
-            _visualElement.AddToClassList(_transitionClass);
+            if (_enabled)
+            {
+                _visualElement.AddToClassList(_transitionClass);
+            }
+            else
+            {
+                _visualElement.RemoveFromClassList(_transitionClass);
+            }
 
             await _completionSource.Awaitable;
         }

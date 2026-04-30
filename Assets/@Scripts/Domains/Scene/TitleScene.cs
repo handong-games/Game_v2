@@ -62,6 +62,7 @@ namespace Domains.Scene
             LocalizationSettings.StringDatabase.ReleaseTable(nameof(SettingsView));
 
             /* Audio */
+            AudioManager.Instance.Stop(EAudioPlay.BGM);
         }
     }
 }

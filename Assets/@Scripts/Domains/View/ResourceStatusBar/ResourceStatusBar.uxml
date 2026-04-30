@@ -1,0 +1,24 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="resource-status-bar" class="resource-status-bar">
+        <ui:VisualElement name="resource-status-bar-background" class="resource-status-bar__background"/>
+
+        <ui:VisualElement name="resource-status-bar-region" class="resource-status-bar__region">
+            <ui:Label name="resource-status-bar-region-name" text="전투 지역" class="resource-status-bar__region-name"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="resource-status-bar-resources" class="resource-status-bar__resources">
+            <ui:VisualElement name="resource-status-bar-hp" class="resource-status-bar__resource resource-status-bar__resource--hp">
+                <ui:Label text="HP" class="resource-status-bar__resource-icon"/>
+                <ui:Label name="resource-status-bar-hp-value" text="0 / 0" class="resource-status-bar__resource-value"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="resource-status-bar-coin" class="resource-status-bar__resource resource-status-bar__resource--coin">
+                <ui:Label text="C" class="resource-status-bar__resource-icon"/>
+                <ui:Label name="resource-status-bar-coin-value" text="0" class="resource-status-bar__resource-value"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="resource-status-bar-soul" class="resource-status-bar__resource resource-status-bar__resource--soul">
+                <ui:Label text="S" class="resource-status-bar__resource-icon"/>
+                <ui:Label name="resource-status-bar-soul-value" text="0" class="resource-status-bar__resource-value"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

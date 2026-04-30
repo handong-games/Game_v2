@@ -1,6 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <Style src="project://database/Assets/@Scripts/Domains/View/Combat/CombatView.uss?fileID=7433441132597879392&amp;guid=45a72d6395514e4986d12dec76e1ec7f&amp;type=3#CombatView"/>
-    <ui:VisualElement class="screen">
-        <ui:VisualElement name="combat-root" class="combat-view"/>
-    </ui:VisualElement>
-</ui:UXML>

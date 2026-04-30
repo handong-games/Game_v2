@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bd59cee7fc9ffe4e8e9d76eb82fd3a9, type: 3}
   m_Name: Skill_Mage_Prism
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterSkillModel
-  Name: Prism
-  Description: Split power into multiple shards.
-  CostHeads: 1
-  CostTails: 1
-  Effects:
-  - EffectId: placeholder
-    Amount: 4
-  SpecialEffects: []
-  MaxPerTurn: 0
-  MaxPerCombat: 0
+  _name: Prism
+  _description: Split power into multiple shards.
+  _costHeads: 1
+  _costTails: 1
+  _effects:
+  - _effectId: placeholder
+    _amount: 4
+  _specialEffects: []
+  _maxPerTurn: 0
+  _maxPerEncounter: 0

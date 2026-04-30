@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="progress-bar" class="progress-bar">
+        <ui:Label name="progress-bar-label" text="1 / 8 단계" class="progress-bar__label"/>
+        <ui:VisualElement name="progress-bar-track" class="progress-bar__track">
+            <ui:VisualElement name="progress-bar-track-fill" class="progress-bar__track-fill"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

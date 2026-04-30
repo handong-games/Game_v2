@@ -1,4 +1,3 @@
-using Domains.Character;
 using Domains.Scene;
 using Game.Core.Managers.Dependency;
 using Game.Core.Managers.Scene;
@@ -56,8 +55,8 @@ namespace Domains.CharacterSelect
         private VisualElement[] _skillIcons;
         private Label[] _skillFallbackNames;
         private EventCallback<PointerDownEvent>[] _cardPointerHandlers;
-        private CharacterState[] _characters;
-        private CharacterState _localizedNameCharacter;
+        private CharacterModel[] _characters;
+        private CharacterModel _localizedNameCharacter;
         private LocalizedString _localizedName;
         private int _selectedIndex;
         private bool _isClosing;
@@ -208,7 +207,7 @@ namespace Domains.CharacterSelect
 
         private void LoadCharacters()
         {
-            _characters = new CharacterState[_cards.Length];
+            _characters = new CharacterModel[_cards.Length];
             if (_controller == null)
                 return;
 
@@ -227,14 +226,14 @@ namespace Domains.CharacterSelect
                 if (_cards[i] == null)
                     continue;
 
-                CharacterState character = GetCharacterData(i);
+                CharacterModel character = GetCharacterData(i);
                 bool hasCharacter = character != null;
 
                 _cards[i].style.display = hasCharacter ? DisplayStyle.Flex : DisplayStyle.None;
                 if (!hasCharacter)
                     continue;
 
-                _cards[i].EnableInClassList(LockedClass, !character.IsUnlocked);
+                _cards[i].EnableInClassList(LockedClass, _controller != null && !_controller.CanSelect(character.Id));
 
                 if (_cardPortraits[i] != null && character.Portrait != null)
                 {
@@ -282,8 +281,8 @@ namespace Domains.CharacterSelect
                 _cards[i].RemoveFromClassList(LockedFeedbackLeftClass);
                 _cards[i].RemoveFromClassList(LockedFeedbackRightClass);
 
-                CharacterState character = GetCharacterData(i);
-                _cards[i].EnableInClassList(LockedClass, character != null && !character.IsUnlocked);
+                CharacterModel character = GetCharacterData(i);
+                _cards[i].EnableInClassList(LockedClass, character != null && _controller != null && !_controller.CanSelect(character.Id));
             }
         }
 
@@ -309,11 +308,11 @@ namespace Domains.CharacterSelect
             if (_isClosing)
                 return;
 
-            CharacterState character = GetCharacterData(index);
+            CharacterModel character = GetCharacterData(index);
             if (character == null)
                 return;
 
-            if (_controller == null || !_controller.CanSelect(character))
+            if (_controller == null || !_controller.CanSelect(character.Id))
             {
                 TriggerLockedFeedback(index);
                 return;
@@ -358,8 +357,8 @@ namespace Domains.CharacterSelect
                 if (_selectedIndex < 0)
                     continue;
 
-                CharacterState character = GetCharacterData(i);
-                if (character == null || !character.IsUnlocked)
+                CharacterModel character = GetCharacterData(i);
+                if (character == null || _controller == null || !_controller.CanSelect(character.Id))
                     continue;
 
                 if (i == _selectedIndex)
@@ -373,16 +372,16 @@ namespace Domains.CharacterSelect
             }
         }
 
-        private void BindDetailPanel(CharacterState character)
+        private void BindDetailPanel(CharacterModel character)
         {
             BindLocalizedName(character);
-            _detailHp.text = $"HP {character.InitialMaxHp}";
-            _detailCoin.text = $"COIN {character.InitialCoinCount}";
+            _detailHp.text = $"HP {character.MaxHp}";
+            _detailCoin.text = $"COIN {character.CoinCount}";
 
             ResetSkillSlots();
             if (character.DefaultSkills != null)
             {
-                for (int i = 0; i < character.DefaultSkills.Length && i < MaxVisibleSkills; i++)
+                for (int i = 0; i < character.DefaultSkills.Count && i < MaxVisibleSkills; i++)
                 {
                     BindSkillSlot(i, character.DefaultSkills[i]);
                 }
@@ -390,7 +389,7 @@ namespace Domains.CharacterSelect
 
         }
 
-        private void BindLocalizedName(CharacterState character)
+        private void BindLocalizedName(CharacterModel character)
         {
             UnbindLocalizedName();
 
@@ -422,7 +421,7 @@ namespace Domains.CharacterSelect
             SetDetailName(_localizedNameCharacter, value);
         }
 
-        private void SetDetailName(CharacterState character, string localizedValue)
+        private void SetDetailName(CharacterModel character, string localizedValue)
         {
             if (_detailName == null)
                 return;
@@ -522,8 +521,11 @@ namespace Domains.CharacterSelect
             if (_selectedIndex < 0)
                 return;
 
-            CharacterState character = GetCharacterData(_selectedIndex);
-            _controller.StartGame(character);
+            CharacterModel character = GetCharacterData(_selectedIndex);
+            if (character == null)
+                return;
+
+            _controller.StartNewAdventure(character.Id);
         }
 
         private void OnClose(TransitionEndEvent evt)
@@ -541,7 +543,7 @@ namespace Domains.CharacterSelect
                     ViewManager.Instance.Pop();
                     break;
                 case CloseReason.Start:
-                    SceneManagerEx.Instance.LoadScene<CombatScene>();
+                    SceneManagerEx.Instance.LoadScene<AdventureScene>();
                     break;
             }
         }
@@ -555,7 +557,7 @@ namespace Domains.CharacterSelect
             _screenRoot?.AddToClassList(ClosingClass);
         }
 
-        private CharacterState GetCharacterData(int index)
+        private CharacterModel GetCharacterData(int index)
         {
             if (_characters == null || index < 0 || index >= _characters.Length)
                 return null;

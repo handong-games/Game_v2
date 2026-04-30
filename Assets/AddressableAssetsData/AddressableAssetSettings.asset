@@ -124,7 +124,7 @@ MonoBehaviour:
     - Locale-ja-JP
     - Locale-ko-KR
     - TitleScene
-    - CombatScene
+    - AdventureScene
     - Preload
     - ModelTable
   m_SchemaTemplates: []

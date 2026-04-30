@@ -12,9 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3d0a4543b45ccf468d8410fbd9a9c43, type: 3}
   m_Name: Character_Rogue
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterModel
-  CharacterId: rogue
-  Name: Rogue
-  LocalizedName:
+  _name: Rogue
+  _localizedName:
     m_TableReference:
       m_TableCollectionName: CharacterNames
     m_TableEntryReference:
@@ -23,8 +22,7 @@ MonoBehaviour:
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []
-  Portrait: {fileID: 0}
-  IsLocked: 1
-  InitialCoinCount: 150
-  InitialMaxHp: 50
-  DefaultSkills: []
+  _portrait: {fileID: 0}
+  _coinCount: 150
+  _maxHp: 50
+  _defaultSkills: []

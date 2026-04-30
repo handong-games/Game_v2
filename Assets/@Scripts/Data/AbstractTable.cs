@@ -18,7 +18,7 @@ namespace Game.Data
                 if (_rows[i] == null)
                     continue;
 
-                _rows[i].SetKey((TKey)Enum.ToObject(typeof(TKey), i));
+                _rows[i].SetId((TKey)Enum.ToObject(typeof(TKey), i));
             }
         }
 
@@ -27,7 +27,7 @@ namespace Game.Data
             return _rows[index];
         }
 
-        public IReadOnlyList<TModel> GetAll()
+        public List<TModel> GetAll()
         {
             return _rows;
         }

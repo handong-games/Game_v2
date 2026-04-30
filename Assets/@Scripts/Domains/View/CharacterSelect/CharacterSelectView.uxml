@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:l="UnityEngine.Localization" editor-extension-mode="False">
     <ui:Template name="CardTemplate" src="project://database/Assets/@Scripts/Domains/View/Common/Card.uxml?fileID=9197481963319205126&amp;guid=3b25b7467f9c9294ea12873395c92aa3&amp;type=3#Card"/>
     <ui:Template name="SkillSlotTemplate" src="project://database/Assets/@Scripts/Domains/View/Common/SkillSlot.uxml?fileID=9197481963319205126&amp;guid=d575c97a498c46cea091d4ee11171754&amp;type=3#SkillSlot"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/Common/Screen.uss?fileID=7433441132597879392&amp;guid=c1e5869491c34e1980a912a5e6dce02e&amp;type=3#Screen"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Common/Card.uss?fileID=7433441132597879392&amp;guid=597047aaf58983b4eb1e6e1f6aaf05d3&amp;type=3#Card"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Common/SkillSlot.uss?fileID=7433441132597879392&amp;guid=8f25d5bef5b1460e9bea30776411bb68&amp;type=3#SkillSlot"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/CharacterSelect/CharacterSelectView.uss?fileID=7433441132597879392&amp;guid=209eff3511affe34d8cb065070e66bd0&amp;type=3#CharacterSelectView"/>

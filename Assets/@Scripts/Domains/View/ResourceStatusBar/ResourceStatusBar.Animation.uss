@@ -1,0 +1,52 @@
+.resource-status-bar {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.resource-status-bar--hidden {
+    opacity: 0;
+    translate: -42px 0;
+}
+
+.resource-status-bar--enter {
+    opacity: 1;
+    translate: 0 0;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-long-700ms);
+    transition-timing-function: ease-out;
+}
+
+.resource-status-bar__region {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.resource-status-bar__region--hidden {
+    opacity: 0;
+}
+
+.resource-status-bar__region--exit {
+    opacity: 0;
+    translate: 26px 0;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-long-700ms);
+    transition-timing-function: ease-out;
+}
+
+.resource-status-bar__resources {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.resource-status-bar__resources--hidden {
+    opacity: 0;
+    translate: -24px 0;
+}
+
+.resource-status-bar__resources--enter {
+    opacity: 1;
+    translate: 0 0;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-normal-250ms);
+    transition-timing-function: ease-out;
+}

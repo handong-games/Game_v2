@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3d0a4543b45ccf468d8410fbd9a9c43, type: 3}
   m_Name: Character_Warrior
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterModel
-  Name: Warrior
-  LocalizedName:
+  _name: Warrior
+  _localizedName:
     m_TableReference:
       m_TableCollectionName: CharacterNames
     m_TableEntryReference:
@@ -22,10 +22,10 @@ MonoBehaviour:
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []
-  Portrait: {fileID: 2370349967519446989, guid: bc002d5895ecaa640a6dc7ae5d7a2291, type: 3}
-  InitialCoinCount: 3
-  InitialMaxHp: 70
-  DefaultSkills:
+  _portrait: {fileID: -466615050291791420, guid: 79ca560bf20b50444a111f73f50a553c, type: 3}
+  _coinCount: 3
+  _maxHp: 70
+  _defaultSkills:
   - {fileID: 11400000, guid: dd3ccb0d895173d408aa2e034e6914c1, type: 2}
   - {fileID: 11400000, guid: 2ea1e056dbc9e524db82ce4c441f5db5, type: 2}
   - {fileID: 11400000, guid: 379fe8fa9be86894e9416cb4503099e5, type: 2}

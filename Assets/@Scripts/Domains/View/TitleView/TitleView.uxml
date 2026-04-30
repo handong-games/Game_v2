@@ -1,4 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:l="UnityEngine.Localization" editor-extension-mode="False">
+    <Style src="project://database/Assets/@Scripts/Domains/View/Common/Screen.uss?fileID=7433441132597879392&amp;guid=c1e5869491c34e1980a912a5e6dce02e&amp;type=3#Screen"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/TitleView/TitleView.uss?fileID=7433441132597879392&amp;guid=a5a243f1a01a4237aa5d7a13f1639346&amp;type=3#TitleView"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/TitleView/TitleView.Animation.uss?fileID=7433441132597879392&amp;guid=7e27aaaa9c4698147818d6ba5bab0fac&amp;type=3#TitleView.Animation"/>
     <ui:VisualElement class="screen">

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.SceneManagement;
 
 namespace Game.Core.Managers.Scene
 {
@@ -10,23 +9,11 @@ namespace Game.Core.Managers.Scene
     {
         private AsyncOperationHandle<IList<UnityEngine.Object>> _preloadHandle;
 
-        protected BaseScene()
-        {
-            SceneManager.sceneLoaded += SceneLoaded;
-            SceneManager.sceneUnloaded += SceneUnloaded;
-        }
-        
-        protected virtual bool RequiresPreloadAssets => true;
-        public async Awaitable BeforeUnload()
-        {
-            await OnBeforeUnload();
-        }
-
         protected abstract Awaitable OnBeforeUnload();
         protected abstract void OnLoaded();
         protected abstract void OnUnloaded();
 
-        private void SceneLoaded(UnityEngine.SceneManagement.Scene scene, LoadSceneMode mode)
+        public void Loaded()
         {
             _preloadHandle = Addressables.LoadAssetsAsync<UnityEngine.Object>(GetType().Name, null);
             _preloadHandle.Completed += OnLoadCompleted;
@@ -37,12 +24,6 @@ namespace Game.Core.Managers.Scene
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {
                 string message = $"Failed to load scene assets: {GetType().Name}";
-                if (RequiresPreloadAssets)
-                {
-                    Debug.LogError(message);
-                    return;
-                }
-
                 Debug.LogWarning(message);
             }
 
@@ -50,11 +31,13 @@ namespace Game.Core.Managers.Scene
             OnLoaded();
         }
         
-        private void SceneUnloaded(UnityEngine.SceneManagement.Scene scene)
+        public async Awaitable BeforeUnload()
         {
-            SceneManager.sceneLoaded -= SceneLoaded;
-            SceneManager.sceneUnloaded -= SceneUnloaded;
-
+            await OnBeforeUnload();
+        }
+        
+        public void Unloaded()
+        {
             if (_preloadHandle.IsValid())
             {
                 _preloadHandle.Completed -= OnLoadCompleted;

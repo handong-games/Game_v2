@@ -7,9 +7,9 @@ namespace Game.Generated
 {
     public enum ECharacter
     {
-        Warrior = 0,
-        Mage = 1,
-        Rogue = 2,
-        Count = 3,
+        Warrior,
+        Mage,
+        Rogue,
+        Count,
     }
 }

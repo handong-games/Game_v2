@@ -1,0 +1,103 @@
+.resource-status-bar,
+.resource-status-bar__background,
+.resource-status-bar__region,
+.resource-status-bar__resources,
+.resource-status-bar__resource,
+.resource-status-bar__resource-icon,
+.resource-status-bar__resource-value,
+.resource-status-bar__region-name {
+    margin: 0;
+    padding: 0;
+}
+
+.resource-status-bar {
+    width: 360px;
+    height: 72px;
+    min-height: 72px;
+    position: relative;
+}
+
+.resource-status-bar__background {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("project://database/Assets/@Resources/UI/ResourceStatusBar/resource-status-bar-background.svg?fileID=2800000&guid=310c57e2777a4cf9ab95663bd1286f2c&type=3#resource-status-bar-background");
+}
+
+.resource-status-bar__region {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    justify-content: center;
+}
+
+.resource-status-bar__region-name {
+    position: absolute;
+    left: 154px;
+    top: 50%;
+    translate: -50% -50%;
+    color: rgb(32, 32, 32);
+    font-size: 30px;
+    -unity-font-style: bold;
+    letter-spacing: -1px;
+    white-space: nowrap;
+}
+
+.resource-status-bar__resources {
+    position: absolute;
+    left: 152px;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding-left: 12px;
+    padding-right: 14px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.resource-status-bar__resource {
+    flex-direction: row;
+    align-items: center;
+}
+
+.resource-status-bar__resource-icon {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    margin-right: 7px;
+    border-width: 2px;
+    border-color: rgba(248, 246, 241, 0.78);
+    border-radius: 999px;
+    color: rgba(248, 246, 241, 0.92);
+    font-size: 9px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.resource-status-bar__resource-value {
+    color: rgba(248, 246, 241, 0.96);
+    font-size: 18px;
+    -unity-font-style: bold;
+    letter-spacing: 0;
+    white-space: nowrap;
+}
+
+.resource-status-bar__resource--hp .resource-status-bar__resource-icon {
+    border-color: rgba(230, 82, 82, 0.88);
+    color: rgba(255, 146, 146, 0.96);
+}
+
+.resource-status-bar__resource--coin .resource-status-bar__resource-icon {
+    border-color: rgba(236, 206, 137, 0.88);
+    color: rgba(236, 206, 137, 0.98);
+}
+
+.resource-status-bar__resource--soul .resource-status-bar__resource-icon {
+    border-color: rgba(98, 190, 255, 0.88);
+    color: rgba(98, 190, 255, 0.98);
+}

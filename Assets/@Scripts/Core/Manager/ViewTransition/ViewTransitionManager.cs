@@ -27,6 +27,29 @@ namespace Game.Core.Managers.View
 
         public async Awaitable Play(VisualElement visualElement, EViewTransitionType transitionType)
         {
+            await Play(
+                visualElement,
+                _transitionClasses[(int)transitionType],
+                true,
+                _transitionClasses);
+        }
+
+        public async Awaitable Play(VisualElement visualElement, string transitionClass)
+        {
+            await Play(visualElement, transitionClass, true);
+        }
+
+        public async Awaitable Play(VisualElement visualElement, string transitionClass, bool enabled)
+        {
+            await Play(visualElement, transitionClass, enabled, null);
+        }
+
+        private async Awaitable Play(
+            VisualElement visualElement,
+            string transitionClass,
+            bool enabled,
+            string[] transitionClasses)
+        {
             if (_activeTransitions.TryGetValue(visualElement, out ActiveTransition activeTransition))
             {
                 _activeTransitions.Remove(visualElement);
@@ -36,8 +59,9 @@ namespace Game.Core.Managers.View
 
             ActiveTransition newActiveTransition = new ActiveTransition(
                 visualElement,
-                _transitionClasses,
-                _transitionClasses[(int)transitionType]);
+                transitionClasses,
+                transitionClass,
+                enabled);
             _activeTransitions[visualElement] = newActiveTransition;
 
             await newActiveTransition.Play();
