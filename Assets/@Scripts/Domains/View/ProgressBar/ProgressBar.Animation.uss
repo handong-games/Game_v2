@@ -1,0 +1,33 @@
+.progress-bar {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.progress-bar--hidden {
+    opacity: 0;
+    translate: 0 -18px;
+}
+
+.progress-bar--enter {
+    opacity: 1;
+    translate: 0 0;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-medium-400ms);
+    transition-timing-function: ease-out;
+}
+
+.progress-bar__track-fill {
+    scale: 1 1;
+    transform-origin: left center;
+}
+
+.progress-bar__track-fill--hidden {
+    scale: 0 1;
+}
+
+.progress-bar__track-fill--enter {
+    scale: 1 1;
+    transition-property: scale;
+    transition-duration: var(--motion-duration-normal-250ms);
+    transition-timing-function: ease-out;
+}

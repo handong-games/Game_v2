@@ -37,3 +37,5 @@ desktop.ini
 
 # Local analysis artifacts
 /artifacts/sts2_ildasm.txt
+/outputs/
+/TempScaleSyntax.cs

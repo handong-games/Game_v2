@@ -8,13 +8,21 @@ namespace Game.Core.Managers.Scene
     public class SceneManagerEx : BaseManager<SceneManagerEx>
     {
         private bool _isLoading;
-        private BaseScene _currentBaseScene;
+        private BaseScene _currentScene;
+        private BaseScene _prevScene;
 
-        protected override void OnInit() {}
+        protected override void OnInit()
+        {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
+        }
 
         protected override void OnDispose()
         {
-            _currentBaseScene = null;
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.sceneUnloaded -= OnSceneUnloaded;
+            _currentScene = null;
+            _prevScene = null;
         }
         
         // 첫번째 씬 로드
@@ -27,7 +35,8 @@ namespace Game.Core.Managers.Scene
                 .SelectMany(a => a.GetTypes())
                 .FirstOrDefault(t => t.Name == SceneManager.GetActiveScene().name && typeof(BaseScene).IsAssignableFrom(t));
             
-            Instance._currentBaseScene = (BaseScene)Activator.CreateInstance(sceneType);
+            Instance._currentScene = (BaseScene)Activator.CreateInstance(sceneType);
+            Instance._currentScene.Loaded();
         }
         
         // 새로운 씬로드
@@ -38,15 +47,35 @@ namespace Game.Core.Managers.Scene
 
             _isLoading = true;
 
-            await _currentBaseScene.BeforeUnload();
+            await _currentScene.BeforeUnload();
+            _prevScene = _currentScene;
             
             // 새로운 씬 저장 및 로드
-            _currentBaseScene = new T();
+            _currentScene = new T();
             
             // 새로운 씬 이동
             SceneManager.LoadScene(typeof(T).Name);
+        }
 
+        private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, LoadSceneMode mode)
+        {
+            if (scene.name != _currentScene.GetType().Name)
+                return;
+
+            _currentScene.Loaded();
             _isLoading = false;
+        }
+
+        private void OnSceneUnloaded(UnityEngine.SceneManagement.Scene scene)
+        {
+            if (_prevScene == null)
+                return;
+
+            if (scene.name != _prevScene.GetType().Name)
+                return;
+
+            _prevScene.Unloaded();
+            _prevScene = null;
         }
     }
 }

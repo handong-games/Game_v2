@@ -176,7 +176,10 @@ namespace Game.Core.Managers.View
                 }
             }
 
-            _viewLayer?.Clear();
+            _viewLayer.Clear();
+            /* Todo : 리팩토링 필요 */
+            _overlayLayer.ClearClassList();
+            _overlayLayer.AddToClassList("app-overlay-layer");
         }
 
         public BaseView Peek()

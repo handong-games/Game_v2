@@ -1,0 +1,17 @@
+.card-deck {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.card-deck--hidden {
+    opacity: 0;
+    translate: 96px 0;
+}
+
+.card-deck--enter {
+    opacity: 1;
+    translate: 0 0;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-medium-400ms);
+    transition-timing-function: ease-out;
+}

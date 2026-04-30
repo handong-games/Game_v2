@@ -17,19 +17,23 @@ namespace Game.Core.Managers.DB
 
         public CharacterTable Character { get; private set; }
         public CharacterSkillTable CharacterSkill { get; private set; }
+        public RegionTable Region { get; private set; }
 
         protected override void OnInit()
         {
             _tableHandle = Addressables.LoadAssetsAsync<Object>(ModelTableLabel, null);
             IList<Object> assets = _tableHandle.WaitForCompletion();
+            
             Character = assets.OfType<CharacterTable>().First();
             CharacterSkill = assets.OfType<CharacterSkillTable>().First();
+            Region = assets.OfType<RegionTable>().First();
         }
 
         protected override void OnDispose()
         {
             Character = null;
             CharacterSkill = null;
+            Region = null;
 
             if (_tableHandle.IsValid())
             {

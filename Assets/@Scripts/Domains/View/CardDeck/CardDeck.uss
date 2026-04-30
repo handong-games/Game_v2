@@ -1,0 +1,8 @@
+.card-deck {
+    width: 60px;
+    height: 82px;
+    background-color: rgba(18, 18, 18, 0.88);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.24);
+    border-radius: 4px;
+}

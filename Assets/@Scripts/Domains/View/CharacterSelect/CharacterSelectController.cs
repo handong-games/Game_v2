@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
-using Domains.Character;
-using Domains.Run;
+using Domains.Adventure;
 using Domains.Scene;
+using Game.Core.Managers.DB;
 using Game.Core.Managers.Dependency;
 using Game.Core.Managers.Scene;
-using UnityEngine.SceneManagement;
+using Game.Core.Managers.Save;
+using Game.Data;
+using Game.Generated;
 
 namespace Domains.CharacterSelect
 {
@@ -13,37 +15,29 @@ namespace Domains.CharacterSelect
     public sealed class CharacterSelectController : IDisposable
     {
         [Inject]
-        private CharacterService _characterService;
+        private AdventureService _adventureService;
 
-        [Inject]
-        private RunService _runService;
-
-        public IReadOnlyList<CharacterState> GetAllCharacters()
+        public IReadOnlyList<CharacterModel> GetAllCharacters()
         {
-            return _characterService.Characters;
+            return DBManager.Instance.Character.GetAll();
         }
 
-        public bool CanSelect(CharacterState character)
+        public bool CanSelect(ECharacter character)
         {
-            return IsSelectable(character);
+            return SaveManager.Instance.Progress.IsUnlocked(character);
         }
 
-        public void StartGame(CharacterState character)
+        public void StartNewAdventure(ECharacter character)
         {
-            if (!IsSelectable(character))
+            if (!CanSelect(character))
                 return;
             
-            _runService.StartNewRun(character);
-            SceneManagerEx.Instance.LoadScene<CombatScene>();
+            _adventureService.StartNew(character);
+            SceneManagerEx.Instance.LoadScene<AdventureScene>();
         }
 
         public void Dispose()
         {
-        }
-
-        private bool IsSelectable(CharacterState character)
-        {
-            return character != null && character.IsUnlocked;
         }
     }
 }
