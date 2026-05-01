@@ -24,7 +24,8 @@ namespace Domains.CharacterSelect
 
         public bool CanSelect(ECharacter character)
         {
-            return SaveManager.Instance.Progress.IsUnlocked(character);
+            ProgressState progress = DependencyManager.Instance.Resolve<ProgressState>();
+            return progress.IsUnlocked(character);
         }
 
         public void StartNewAdventure(ECharacter character)

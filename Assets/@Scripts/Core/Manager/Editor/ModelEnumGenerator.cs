@@ -163,7 +163,8 @@ namespace Game.Core.Manager.Editor
             string[] prefixes =
             {
                 "Character_",
-                "Skill_"
+                "Skill_",
+                "SaveFile_"
             };
 
             for (int i = 0; i < prefixes.Length; i++)

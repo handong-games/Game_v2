@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2057e369fb3b4e7d9df9a2f98409c108, type: 3}
+  m_Name: SaveCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.SaveCatalogModel
+  _files:
+  - _fileName: save_setting.json
+    _sections:
+    - _sectionName: AudioSettings
+      _stateScript: {fileID: 11500000, guid: c7607dce06c4401c882c92dfd94259b8, type: 3}
+    - _sectionName: GraphicSettings
+      _stateScript: {fileID: 11500000, guid: 560fb94d5e9947eba873414ef4e03a34, type: 3}
+    - _sectionName: LocalizationSettings
+      _stateScript: {fileID: 11500000, guid: 619ecbb7cdec424793d13745167f4545, type: 3}
+  - _fileName: save_adventure.json
+    _sections:
+    - _sectionName: Progress
+      _stateScript: {fileID: 11500000, guid: 24b48c7c56c05354cab7c259c7cc77f0, type: 3}

@@ -1,13 +1,15 @@
 using Domains.Settings;
+using Game.Core.Managers.Dependency;
 using Game.Core.Managers.Save;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Game.Core.Managers.Audio
 {
+    [ManagerDependency(typeof(SaveManager))]
     public sealed class AudioManager : BaseManager<AudioManager>
     {
-        private SettingsState _settings;
+        private AudioSettingsState _settings;
         private GameObject _audioRoot;
         private AudioSource[] _audioSources = new AudioSource[(int)EAudioPlay.Count];
         
@@ -20,8 +22,11 @@ namespace Game.Core.Managers.Audio
 
             _audioSources[(int)EAudioPlay.BGM] = CreateSource(loop: true);
             _audioSources[(int)EAudioPlay.SFX] = CreateSource(loop: false);
+        }
 
-            _settings = SaveManager.Instance.Settings;
+        protected override void OnPostInit()
+        {
+            _settings = DependencyManager.Instance.Resolve<AudioSettingsState>();
             SetVolume(EAudioVolume.Master, _settings.MasterVolume);
             SetVolume(EAudioVolume.BGM, _settings.BgmVolume);
             SetVolume(EAudioVolume.SFX, _settings.SfxVolume);

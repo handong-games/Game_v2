@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using Game.Core.Managers.Dependency;
 using Game.Generated;
 
 namespace Game.Core.Managers.Save
 {
-    public sealed class ProgressState : IState<ProgressSave>
+    [Dependency]
+    public sealed class ProgressState : ISave<ProgressSave>
     {
         public HashSet<ECharacter> CharacterUnlockIds { get; } = new()
         {
@@ -32,10 +34,9 @@ namespace Game.Core.Managers.Save
             CharacterUnlockIds.Add(character);
         }
 
-        public static ProgressState FromSave(ProgressSave save)
+        public void LoadFrom(ProgressSave save)
         {
-            ProgressState state = new ProgressState();
-            state.CharacterUnlockIds.Clear();
+            CharacterUnlockIds.Clear();
 
             if (save.CharacterUnlockIds != null)
             {
@@ -43,16 +44,14 @@ namespace Game.Core.Managers.Save
                 {
                     if (Enum.TryParse(save.CharacterUnlockIds[i], out ECharacter character))
                     {
-                        state.CharacterUnlockIds.Add(character);
+                        CharacterUnlockIds.Add(character);
                     }
                 }
             }
             else
             {
-                state.CharacterUnlockIds.Add(ECharacter.Warrior);
+                CharacterUnlockIds.Add(ECharacter.Warrior);
             }
-
-            return state;
         }
 
         public ProgressSave ToSave()

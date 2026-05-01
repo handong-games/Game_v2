@@ -12,7 +12,6 @@ namespace Game.Core.Managers.Dependency
         private readonly Dictionary<Type, object> _globalInstances = new();
         private readonly Dictionary<string, Dictionary<Type, object>> _sceneInstances = new();
         private readonly Dictionary<Type, DependencyDescriptor> _descriptors = new();
-        private readonly List<Type> _globalTypes = new();
         private readonly Dictionary<string, List<Type>> _sceneTypes = new();
 
         protected override void OnInit()
@@ -21,8 +20,6 @@ namespace Game.Core.Managers.Dependency
 
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.sceneUnloaded += OnSceneUnloaded;
-
-            _ = PrewarmGlobalsAsync();
         }
 
         protected override void OnDispose()
@@ -122,7 +119,6 @@ namespace Game.Core.Managers.Dependency
         private void CacheDependencyMetadata()
         {
             _descriptors.Clear();
-            _globalTypes.Clear();
             _sceneTypes.Clear();
 
             for (int i = 0; i < DependencyRegistry.All.Length; i++)
@@ -132,7 +128,6 @@ namespace Game.Core.Managers.Dependency
 
                 if (descriptor.IsGlobal)
                 {
-                    _globalTypes.Add(descriptor.Type);
                     continue;
                 }
 
@@ -146,15 +141,6 @@ namespace Game.Core.Managers.Dependency
                 }
 
                 types.Add(descriptor.Type);
-            }
-        }
-
-        private async Awaitable PrewarmGlobalsAsync()
-        {
-            for (int i = 0; i < _globalTypes.Count; i++)
-            {
-                Resolve(_globalTypes[i]);
-                await Awaitable.NextFrameAsync();
             }
         }
 

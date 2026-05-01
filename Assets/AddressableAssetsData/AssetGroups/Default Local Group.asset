@@ -27,6 +27,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - ModelTable
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7d12b64cb7754b70b4cb9021493acd81
+    m_Address: RegionTable
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ModelTable
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 065ac4adf3738644dbf915d9eb092da4, type: 2}
   m_SchemaSet:

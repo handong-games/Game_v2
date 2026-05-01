@@ -8,6 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace Game.Core.Managers.View
 {
+    [ManagerDependency(typeof(GraphicManager))]
     public partial class ViewManager : BaseManager<ViewManager>
     {
         private UIDocument _document;
@@ -25,7 +26,6 @@ namespace Game.Core.Managers.View
         {
             /* Event */
             SceneManager.sceneUnloaded += OnSceneUnloaded;
-            GraphicManager.ViewAspectChanged += OnViewAspectChanged;
 
             /* ViewManagerBehavior */
             _managerObject = new GameObject("@ViewManager");
@@ -73,7 +73,11 @@ namespace Game.Core.Managers.View
             _rootLayer.Add(_overlayLayer);
             
             root.Add(_rootLayer);
+        }
 
+        protected override void OnPostInit()
+        {
+            GraphicManager.ViewAspectChanged += OnViewAspectChanged;
             OnViewAspectChanged(GraphicManager.Instance.GetAspectPreset());
         }
 

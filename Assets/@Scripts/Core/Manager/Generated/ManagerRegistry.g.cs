@@ -9,15 +9,19 @@ namespace Game.System.Core.Manager
 {
     public readonly struct ManagerDescriptor
     {
-        public ManagerDescriptor(Type type, Action init, Action dispose)
+        public ManagerDescriptor(Type type, Action create, Action init, Action postInit, Action dispose)
         {
             Type = type;
+            Create = create;
             Init = init;
+            PostInit = postInit;
             Dispose = dispose;
         }
 
         public Type Type { get; }
+        public Action Create { get; }
         public Action Init { get; }
+        public Action PostInit { get; }
         public Action Dispose { get; }
     }
 
@@ -25,22 +29,32 @@ namespace Game.System.Core.Manager
     {
         public static readonly ManagerDescriptor[] All =
         {
-            new(typeof(global::Game.Core.Managers.Save.SaveManager), global::Game.Core.Managers.Save.SaveManager.Init, global::Game.Core.Managers.Save.SaveManager.Dispose),
-            new(typeof(global::Game.Core.Managers.DB.DBManager), global::Game.Core.Managers.DB.DBManager.Init, global::Game.Core.Managers.DB.DBManager.Dispose),
-            new(typeof(global::Game.Core.Managers.Dependency.DependencyManager), global::Game.Core.Managers.Dependency.DependencyManager.Init, global::Game.Core.Managers.Dependency.DependencyManager.Dispose),
-            new(typeof(global::Game.Core.Managers.Audio.AudioManager), global::Game.Core.Managers.Audio.AudioManager.Init, global::Game.Core.Managers.Audio.AudioManager.Dispose),
-            new(typeof(global::Game.Core.Managers.Garphic.GraphicManager), global::Game.Core.Managers.Garphic.GraphicManager.Init, global::Game.Core.Managers.Garphic.GraphicManager.Dispose),
-            new(typeof(global::Game.Core.Managers.Locale.LocaleManager), global::Game.Core.Managers.Locale.LocaleManager.Init, global::Game.Core.Managers.Locale.LocaleManager.Dispose),
-            new(typeof(global::Game.Core.Managers.Scene.SceneManagerEx), global::Game.Core.Managers.Scene.SceneManagerEx.Init, global::Game.Core.Managers.Scene.SceneManagerEx.Dispose),
-            new(typeof(global::Game.Core.Managers.View.ViewTransitionManager), global::Game.Core.Managers.View.ViewTransitionManager.Init, global::Game.Core.Managers.View.ViewTransitionManager.Dispose),
-            new(typeof(global::Game.Core.Managers.View.ViewManager), global::Game.Core.Managers.View.ViewManager.Init, global::Game.Core.Managers.View.ViewManager.Dispose),
+            new(typeof(global::Game.Core.Managers.DB.DBManager), global::Game.Core.Managers.DB.DBManager.Create, global::Game.Core.Managers.DB.DBManager.Init, global::Game.Core.Managers.DB.DBManager.PostInit, global::Game.Core.Managers.DB.DBManager.Dispose),
+            new(typeof(global::Game.Core.Managers.Dependency.DependencyManager), global::Game.Core.Managers.Dependency.DependencyManager.Create, global::Game.Core.Managers.Dependency.DependencyManager.Init, global::Game.Core.Managers.Dependency.DependencyManager.PostInit, global::Game.Core.Managers.Dependency.DependencyManager.Dispose),
+            new(typeof(global::Game.Core.Managers.Save.SaveManager), global::Game.Core.Managers.Save.SaveManager.Create, global::Game.Core.Managers.Save.SaveManager.Init, global::Game.Core.Managers.Save.SaveManager.PostInit, global::Game.Core.Managers.Save.SaveManager.Dispose),
+            new(typeof(global::Game.Core.Managers.Audio.AudioManager), global::Game.Core.Managers.Audio.AudioManager.Create, global::Game.Core.Managers.Audio.AudioManager.Init, global::Game.Core.Managers.Audio.AudioManager.PostInit, global::Game.Core.Managers.Audio.AudioManager.Dispose),
+            new(typeof(global::Game.Core.Managers.Garphic.GraphicManager), global::Game.Core.Managers.Garphic.GraphicManager.Create, global::Game.Core.Managers.Garphic.GraphicManager.Init, global::Game.Core.Managers.Garphic.GraphicManager.PostInit, global::Game.Core.Managers.Garphic.GraphicManager.Dispose),
+            new(typeof(global::Game.Core.Managers.Locale.LocaleManager), global::Game.Core.Managers.Locale.LocaleManager.Create, global::Game.Core.Managers.Locale.LocaleManager.Init, global::Game.Core.Managers.Locale.LocaleManager.PostInit, global::Game.Core.Managers.Locale.LocaleManager.Dispose),
+            new(typeof(global::Game.Core.Managers.Scene.SceneManagerEx), global::Game.Core.Managers.Scene.SceneManagerEx.Create, global::Game.Core.Managers.Scene.SceneManagerEx.Init, global::Game.Core.Managers.Scene.SceneManagerEx.PostInit, global::Game.Core.Managers.Scene.SceneManagerEx.Dispose),
+            new(typeof(global::Game.Core.Managers.View.ViewTransitionManager), global::Game.Core.Managers.View.ViewTransitionManager.Create, global::Game.Core.Managers.View.ViewTransitionManager.Init, global::Game.Core.Managers.View.ViewTransitionManager.PostInit, global::Game.Core.Managers.View.ViewTransitionManager.Dispose),
+            new(typeof(global::Game.Core.Managers.View.ViewManager), global::Game.Core.Managers.View.ViewManager.Create, global::Game.Core.Managers.View.ViewManager.Init, global::Game.Core.Managers.View.ViewManager.PostInit, global::Game.Core.Managers.View.ViewManager.Dispose),
         };
 
         public static void AllInit()
         {
             for (int i = 0; i < All.Length; i++)
             {
+                All[i].Create();
+            }
+
+            for (int i = 0; i < All.Length; i++)
+            {
                 All[i].Init();
+            }
+
+            for (int i = 0; i < All.Length; i++)
+            {
+                All[i].PostInit();
             }
         }
 
