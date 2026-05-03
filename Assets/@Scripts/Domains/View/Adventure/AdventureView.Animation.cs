@@ -47,6 +47,7 @@ namespace Domains.Adventure
             await PlayResourceStatusBarIntroAnimation();
             await PlayProgressBarIntroAnimation();
             await PlayCardDeckIntroAnimation();
+            await PlayPlaceholderCardsAsync();
         }
 
         private void PrepareBannerIntro()

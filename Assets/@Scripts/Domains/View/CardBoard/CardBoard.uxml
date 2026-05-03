@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="card-board" class="card-board">
+        <ui:VisualElement name="card-board-player-area" class="card-board__area card-board__area--player"/>
+        <ui:VisualElement name="card-board-center-area" class="card-board__center-area">
+            <ui:VisualElement name="card-board-coin-pouch" class="card-board__coin-pouch"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="card-board-encounter-area" class="card-board__area card-board__area--encounter"/>
+    </ui:VisualElement>
+</ui:UXML>
+

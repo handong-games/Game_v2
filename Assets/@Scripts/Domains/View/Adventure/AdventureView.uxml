@@ -3,9 +3,8 @@
     <ui:Template name="ResourceStatusBarTemplate" src="project://database/Assets/@Scripts/Domains/View/ResourceStatusBar/ResourceStatusBar.uxml?fileID=9197481963319205126&amp;guid=be7a315bf8a44e7d8966baeff38c31b3&amp;type=3#ResourceStatusBar"/>
     <ui:Template name="ProgressBarTemplate" src="project://database/Assets/@Scripts/Domains/View/ProgressBar/ProgressBar.uxml?fileID=9197481963319205126&amp;guid=fa6a0f0b6e974b08aa4ebfa1136e1de1&amp;type=3#ProgressBar"/>
     <ui:Template name="CardDeckTemplate" src="project://database/Assets/@Scripts/Domains/View/CardDeck/CardDeck.uxml?fileID=9197481963319205126&amp;guid=377a9a4d28254a5d94609ece538dfa3f&amp;type=3#CardDeck"/>
-    <ui:Template name="CardTemplate" src="project://database/Assets/@Scripts/Domains/View/Common/Card.uxml?fileID=9197481963319205126&amp;guid=3b25b7467f9c9294ea12873395c92aa3&amp;type=3#Card"/>
+    <ui:Template name="CardBoardTemplate" src="project://database/Assets/@Scripts/Domains/View/CardBoard/CardBoard.uxml?fileID=9197481963319205126&amp;guid=8da1476a6afe491e9650783d55349f6f&amp;type=3#CardBoard"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Common/Screen.uss?fileID=7433441132597879392&amp;guid=c1e5869491c34e1980a912a5e6dce02e&amp;type=3#Screen"/>
-    <Style src="project://database/Assets/@Scripts/Domains/View/Common/Card.uss?fileID=7433441132597879392&amp;guid=597047aaf58983b4eb1e6e1f6aaf05d3&amp;type=3#Card"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Banner/Banner.uss?fileID=7433441132597879392&amp;guid=9c9847f7408b42788627f5372312d7e2&amp;type=3#Banner"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Banner/Banner.Animation.uss?fileID=7433441132597879392&amp;guid=5f57239d858541549f2531258f493f30&amp;type=3#Banner.Animation"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/ResourceStatusBar/ResourceStatusBar.uss?fileID=7433441132597879392&amp;guid=64e4dae4172448baaf238b12e8661da1&amp;type=3#ResourceStatusBar"/>
@@ -14,16 +13,11 @@
     <Style src="project://database/Assets/@Scripts/Domains/View/ProgressBar/ProgressBar.Animation.uss?fileID=7433441132597879392&amp;guid=27ada5bf2c9d408d95ecdc7557d7ef1d&amp;type=3#ProgressBar.Animation"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/CardDeck/CardDeck.uss?fileID=7433441132597879392&amp;guid=312503ad47374629b78575adca133c93&amp;type=3#CardDeck"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/CardDeck/CardDeck.Animation.uss?fileID=7433441132597879392&amp;guid=4c817012348347e0bf7bd30ad7ac1f69&amp;type=3#CardDeck.Animation"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/CardBoard/CardBoard.uss?fileID=7433441132597879392&amp;guid=b76d1d68cfe3495b878f37d5e62fa04a&amp;type=3#CardBoard"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Adventure/AdventureView.uss?fileID=7433441132597879392&amp;guid=45a72d6395514e4986d12dec76e1ec7f&amp;type=3#AdventureView"/>
     <ui:VisualElement class="screen">
         <ui:VisualElement name="adventure-root" class="adventure-view">
-            <ui:VisualElement name="adventure-card-board" class="adventure-view__card-board">
-                <ui:VisualElement name="adventure-player-card-slot-group" class="adventure-view__card-slot-group adventure-view__card-slot-group--player"/>
-                <ui:VisualElement name="adventure-center-object-slot" class="adventure-view__center-object-slot">
-                    <ui:VisualElement name="adventure-coin-pouch" class="adventure-view__coin-pouch"/>
-                </ui:VisualElement>
-                <ui:VisualElement name="adventure-encounter-card-slot-group" class="adventure-view__card-slot-group adventure-view__card-slot-group--encounter"/>
-            </ui:VisualElement>
+            <ui:Instance template="CardBoardTemplate" name="adventure-card-board-template" class="adventure-view__card-board"/>
             <ui:VisualElement name="adventure-banner-area" class="adventure-view__banner-area">
                 <ui:Instance template="BannerTemplate" name="adventure-banner-template" class="adventure-view__banner"/>
             </ui:VisualElement>
