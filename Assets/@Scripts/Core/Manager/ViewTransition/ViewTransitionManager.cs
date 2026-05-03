@@ -44,6 +44,24 @@ namespace Game.Core.Managers.View
             await Play(visualElement, transitionClass, enabled, null);
         }
 
+        public async Awaitable Play(ViewTransitionTimeline timeline)
+        {
+            if (timeline == null ||
+                timeline.Steps.Count == 0)
+            {
+                return;
+            }
+
+            ViewTransitionTimelinePlayback playback = new(timeline.Steps.Count);
+
+            for (int i = 0; i < timeline.Steps.Count; i++)
+            {
+                _ = PlayTimelineStep(timeline, timeline.Steps[i], playback);
+            }
+
+            await playback.Awaitable;
+        }
+
         private async Awaitable Play(
             VisualElement visualElement,
             string transitionClass,
@@ -73,6 +91,64 @@ namespace Game.Core.Managers.View
             }
 
             newActiveTransition.Dispose();
+        }
+
+        private async Awaitable PlayTimelineStep(
+            ViewTransitionTimeline timeline,
+            ViewTransitionTimelineStep step,
+            ViewTransitionTimelinePlayback playback)
+        {
+            try
+            {
+                if (step.StartMs > 0)
+                {
+                    float delaySeconds = step.StartMs * timeline.TimeScale / 1000f;
+                    await Awaitable.WaitForSecondsAsync(delaySeconds);
+                }
+
+                switch (step.Type)
+                {
+                    case EViewTransitionTimelineStepType.Transition:
+                        await Play(
+                            step.VisualElement,
+                            step.TransitionClass,
+                            step.Enabled);
+                        break;
+                    case EViewTransitionTimelineStepType.Action:
+                        if (step.Action != null)
+                        {
+                            await step.Action();
+                        }
+                        break;
+                }
+            }
+            finally
+            {
+                playback.CompleteStep();
+            }
+        }
+    }
+
+    internal sealed class ViewTransitionTimelinePlayback
+    {
+        private readonly AwaitableCompletionSource _completionSource = new();
+        private int _remainingStepCount;
+
+        public ViewTransitionTimelinePlayback(int stepCount)
+        {
+            _remainingStepCount = stepCount;
+        }
+
+        public Awaitable Awaitable => _completionSource.Awaitable;
+
+        public void CompleteStep()
+        {
+            _remainingStepCount--;
+
+            if (_remainingStepCount <= 0)
+            {
+                _completionSource.SetResult();
+            }
         }
     }
 }

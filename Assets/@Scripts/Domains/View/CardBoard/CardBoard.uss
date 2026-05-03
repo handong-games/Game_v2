@@ -52,6 +52,6 @@
     scale: 1 1;
     translate: 0 0;
     transition-property: opacity, scale, translate;
-    transition-duration: var(--motion-duration-medium-400ms);
+    transition-duration: var(--motion-duration-long-700ms);
     transition-timing-function: ease-out;
 }

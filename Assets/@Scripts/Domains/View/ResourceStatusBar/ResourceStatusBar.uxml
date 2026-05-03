@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <ui:VisualElement name="resource-status-bar" class="resource-status-bar">
+    <ui:VisualElement name="resource-status-bar" class="resource-status-bar resource-status-bar--region">
         <ui:VisualElement name="resource-status-bar-background" class="resource-status-bar__background"/>
 
         <ui:VisualElement name="resource-status-bar-region" class="resource-status-bar__region">
