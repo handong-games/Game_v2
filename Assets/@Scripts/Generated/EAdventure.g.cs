@@ -5,8 +5,9 @@
 
 namespace Game.Generated
 {
-    public enum EStage
+    public enum EAdventure
     {
-        Count = 0,
+        Default = 0,
+        Count = 1,
     }
 }

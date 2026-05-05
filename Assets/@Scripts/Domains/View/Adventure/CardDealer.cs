@@ -1,15 +1,10 @@
 using System.Collections.Generic;
+using Game.Data;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Domains.Adventure
 {
-    public enum ECardBoardSide
-    {
-        Player,
-        Encounter,
-    }
-
     public sealed class CardDealer
     {
         private const int MaxCardCount = 3;
@@ -33,8 +28,9 @@ namespace Domains.Adventure
             _encounterArea = _cardBoard?.Q<VisualElement>("card-board-encounter-area");
         }
 
-        public async Awaitable DealPlaceholderAsync(ECardBoardSide side, int totalCount)
+        private async Awaitable DealPlaceholderAsync(CardState cardState, int totalCount)
         {
+            ECardBoardSide side = cardState.Side;
             VisualElement area = GetArea(side);
             List<VisualElement> cards = GetCards(side);
 
@@ -48,7 +44,7 @@ namespace Domains.Adventure
                 return;
 
             VisualElement slot = CreateSlot(index, clampedTotalCount);
-            VisualElement card = CreatePlaceholderCard(side, index);
+            VisualElement card = CreatePlaceholderCard(cardState, index);
 
             slot.Add(card);
             area.Add(slot);
@@ -63,6 +59,22 @@ namespace Domains.Adventure
             card.pickingMode = PickingMode.Position;
         }
 
+        public async Awaitable DealAsync(IReadOnlyList<CardState> cards)
+        {
+            int leftCount = CountCards(cards, ECardBoardSide.Left);
+            int rightCount = CountCards(cards, ECardBoardSide.Right);
+
+            for (int i = 0; i < cards.Count; i++)
+            {
+                CardState card = cards[i];
+                int totalCount = card.Side == ECardBoardSide.Left
+                    ? leftCount
+                    : rightCount;
+
+                await DealPlaceholderAsync(card, totalCount);
+            }
+        }
+
         public void Clear()
         {
             _playerArea?.Clear();
@@ -73,14 +85,14 @@ namespace Domains.Adventure
 
         private VisualElement GetArea(ECardBoardSide side)
         {
-            return side == ECardBoardSide.Player
+            return side == ECardBoardSide.Left
                 ? _playerArea
                 : _encounterArea;
         }
 
         private List<VisualElement> GetCards(ECardBoardSide side)
         {
-            return side == ECardBoardSide.Player
+            return side == ECardBoardSide.Left
                 ? _playerCards
                 : _encounterCards;
         }
@@ -104,11 +116,11 @@ namespace Domains.Adventure
             return slot;
         }
 
-        private static VisualElement CreatePlaceholderCard(ECardBoardSide side, int index)
+        private static VisualElement CreatePlaceholderCard(CardState cardState, int index)
         {
-            string sideName = side == ECardBoardSide.Player
-                ? "player"
-                : "encounter";
+            string sideName = cardState.Side == ECardBoardSide.Left
+                ? "left"
+                : "right";
 
             VisualElement card = new()
             {
@@ -117,8 +129,62 @@ namespace Domains.Adventure
             };
 
             card.AddToClassList("card-board__placeholder-card");
+            card.AddToClassList($"card-board__placeholder-card--{cardState.Kind.ToString().ToLowerInvariant()}");
+
+            card.Add(CreatePlaceholderLabel(
+                "card-board-placeholder-kind",
+                cardState.Kind.ToString(),
+                "card-board__placeholder-kind"));
+
+            card.Add(CreatePlaceholderLabel(
+                "card-board-placeholder-name",
+                GetModelName(cardState.Model),
+                "card-board__placeholder-name"));
+
+            card.Add(CreatePlaceholderLabel(
+                "card-board-placeholder-face",
+                cardState.Face.ToString(),
+                "card-board__placeholder-face"));
 
             return card;
+        }
+
+        private static Label CreatePlaceholderLabel(string name, string text, string className)
+        {
+            Label label = new(text)
+            {
+                name = name,
+            };
+
+            label.AddToClassList(className);
+            return label;
+        }
+
+        private static string GetModelName(ICardModel model)
+        {
+            return model switch
+            {
+                CharacterModel character => character.Name,
+                MonsterModel monster => monster.Name,
+                EventModel stageEvent => stageEvent.Name,
+                ShopModel shop => shop.Name,
+                _ => model.GetType().Name,
+            };
+        }
+
+        private static int CountCards(IReadOnlyList<CardState> cards, ECardBoardSide side)
+        {
+            int count = 0;
+
+            for (int i = 0; i < cards.Count; i++)
+            {
+                if (cards[i].Side == side)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private void PrepareCardFromDeck(VisualElement card)

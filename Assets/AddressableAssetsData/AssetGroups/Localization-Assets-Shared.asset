@@ -30,6 +30,11 @@ MonoBehaviour:
     m_ReadOnly: 1
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ab2e6695c6b149579d2fcf29a11f3d73
+    m_Address: Assets/@Resources/Localization/MonsterNames/MonsterNames Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a18b3a7f10824024eb538086ff6d89b1
     m_Address: Assets/@Resources/Localization/SettingsView/SettingsView Shared Data.asset
     m_ReadOnly: 1

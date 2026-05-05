@@ -5,8 +5,9 @@
 
 namespace Game.Generated
 {
-    public enum ERegion
+    public enum ECardDeck
     {
-        Count = 0,
+        Default = 0,
+        Count = 1,
     }
 }

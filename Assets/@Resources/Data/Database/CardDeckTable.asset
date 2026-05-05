@@ -9,7 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9c2749db18d34e7da2adff1f2e77a6bb, type: 3}
-  m_Name: RegionTable
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.RegionTable
-  _rows: []
+  m_Script: {fileID: 11500000, guid: 8fb319a19d3241aab0a483336e00c23e, type: 3}
+  m_Name: CardDeckTable
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CardDeckTable
+  _rows:
+  - {fileID: 11400000, guid: 8410e6f85aca41dda278d4659cb6626f, type: 2}

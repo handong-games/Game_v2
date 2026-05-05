@@ -1,6 +1,5 @@
 using Game.Core.Managers.Dependency;
 using Game.Core.Managers.View;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Domains.Adventure
@@ -18,6 +17,7 @@ namespace Domains.Adventure
         private VisualElement _progressBar;
         private VisualElement _progressBarTrackFill;
         private VisualElement _cardDeck;
+        private VisualElement _coinPouch;
         private CardDealer _cardDealer;
 
         protected override void OnBind(VisualElement root)
@@ -30,32 +30,20 @@ namespace Domains.Adventure
             _progressBar = Root.Q<VisualElement>("progress-bar");
             _progressBarTrackFill = Root.Q<VisualElement>("progress-bar-track-fill");
             _cardDeck = Root.Q<VisualElement>("card-deck");
+            _coinPouch = Root.Q<VisualElement>("card-board-coin-pouch");
 
             _cardDealer = new CardDealer();
             _cardDealer.Bind(_cardDeck, _cardBoard);
-        }
-        
-        protected override void OnAttachedToPanel(AttachToPanelEvent evt)
-        {
-            _ = PlayIntroAnimation();
+
+            PrepareCoinPouchHidden();
+            RegisterEvents();
         }
 
         public override void Dispose()
         {
+            UnregisterEvents();
             _cardDealer?.Clear();
             base.Dispose();
-        }
-
-        private async Awaitable PlayPlaceholderCardsAsync()
-        {
-            if (_cardDealer == null)
-                return;
-
-            await _cardDealer.DealPlaceholderAsync(ECardBoardSide.Player, 1);
-
-            await _cardDealer.DealPlaceholderAsync(ECardBoardSide.Encounter, 3);
-            await _cardDealer.DealPlaceholderAsync(ECardBoardSide.Encounter, 3);
-            await _cardDealer.DealPlaceholderAsync(ECardBoardSide.Encounter, 3);
         }
     }
 }

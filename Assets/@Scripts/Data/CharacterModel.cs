@@ -6,7 +6,7 @@ using UnityEngine.Localization;
 namespace Game.Data
 {
     [CreateAssetMenu(menuName = "Game/Data/Character")]
-    public sealed class CharacterModel : AbstractModel<ECharacter>
+    public sealed class CharacterModel : AbstractModel<ECharacter>, ICardModel
     {
         [SerializeField]
         private LocalizedString _localizedName;

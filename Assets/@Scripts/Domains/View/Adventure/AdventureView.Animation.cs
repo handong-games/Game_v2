@@ -1,4 +1,5 @@
 using UnityEngine;
+using Domains.Event;
 using Game.Core.Managers.View;
 using UnityEngine.UIElements;
 
@@ -9,6 +10,8 @@ namespace Domains.Adventure
         private const string BannerHiddenClass = "banner--hidden";
         private const string BannerEnterClass = "banner--enter";
         private const string BannerExitClass = "banner--exit";
+        private const string BannerRegionClass = "banner--region";
+        private const string BannerTurnClass = "banner--turn";
 
         private const string ResourceStatusBarHiddenClass = "resource-status-bar--hidden";
         private const string ResourceStatusBarEnterClass = "resource-status-bar--enter";
@@ -25,6 +28,9 @@ namespace Domains.Adventure
         private const string CardDeckHiddenClass = "card-deck--hidden";
         private const string CardDeckEnterClass = "card-deck--enter";
 
+        private const string CoinPouchHiddenClass = "card-board__coin-pouch--hidden";
+        private const string CoinPouchEnterClass = "card-board__coin-pouch--enter";
+
         private async Awaitable PlayIntroAnimation()
         {
             PrepareBannerIntro();
@@ -38,11 +44,21 @@ namespace Domains.Adventure
                 .Play(1700, _resourceStatusBar, ResourceStatusBarEnterClass)
                 .Play(2050, _progressBar, ProgressBarEnterClass)
                 .Play(2300, _progressBarTrackFill, ProgressBarTrackFillEnterClass)
-                .Play(2600, _cardDeck, CardDeckEnterClass)
-                .Run(3100, () => _cardDealer.DealPlaceholderAsync(ECardBoardSide.Player, 1))
-                .Run(3700, () => _cardDealer.DealPlaceholderAsync(ECardBoardSide.Encounter, 3))
-                .Run(4160, () => _cardDealer.DealPlaceholderAsync(ECardBoardSide.Encounter, 3))
-                .Run(4620, () => _cardDealer.DealPlaceholderAsync(ECardBoardSide.Encounter, 3));
+                .Play(2600, _cardDeck, CardDeckEnterClass);
+
+            await ViewTransitionManager.Instance.Play(timeline);
+
+            AdventureEvents.IntroCompleted?.Invoke();
+        }
+
+        private async Awaitable PlayTurnBannerAnimation()
+        {
+            PrepareTurnBanner();
+            PrepareCoinPouchHidden();
+
+            ViewTransitionTimeline timeline = new ViewTransitionTimeline()
+                .Play(0, _adventureBanner, BannerEnterClass)
+                .Play(120, _coinPouch, CoinPouchEnterClass);
 
             await ViewTransitionManager.Instance.Play(timeline);
         }
@@ -52,6 +68,20 @@ namespace Domains.Adventure
             if (_adventureBanner == null)
                 return;
 
+            _adventureBanner.RemoveFromClassList(BannerTurnClass);
+            _adventureBanner.AddToClassList(BannerRegionClass);
+            _adventureBanner.RemoveFromClassList(BannerEnterClass);
+            _adventureBanner.RemoveFromClassList(BannerExitClass);
+            _adventureBanner.AddToClassList(BannerHiddenClass);
+        }
+
+        private void PrepareTurnBanner()
+        {
+            if (_adventureBanner == null)
+                return;
+
+            _adventureBanner.RemoveFromClassList(BannerRegionClass);
+            _adventureBanner.AddToClassList(BannerTurnClass);
             _adventureBanner.RemoveFromClassList(BannerEnterClass);
             _adventureBanner.RemoveFromClassList(BannerExitClass);
             _adventureBanner.AddToClassList(BannerHiddenClass);
@@ -90,6 +120,15 @@ namespace Domains.Adventure
 
             _cardDeck.RemoveFromClassList(CardDeckEnterClass);
             _cardDeck.AddToClassList(CardDeckHiddenClass);
+        }
+
+        private void PrepareCoinPouchHidden()
+        {
+            if (_coinPouch == null)
+                return;
+
+            _coinPouch.RemoveFromClassList(CoinPouchEnterClass);
+            _coinPouch.AddToClassList(CoinPouchHiddenClass);
         }
     }
 }

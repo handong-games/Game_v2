@@ -17,6 +17,9 @@ namespace Domains.CharacterSelect
         [Inject]
         private AdventureService _adventureService;
 
+        [Inject]
+        private CardDeckService _cardDeckService;
+
         public IReadOnlyList<CharacterModel> GetAllCharacters()
         {
             return DBManager.Instance.Character.GetAll();
@@ -33,7 +36,8 @@ namespace Domains.CharacterSelect
             if (!CanSelect(character))
                 return;
             
-            _adventureService.StartNew(character);
+            AdventureSession adventure = _adventureService.StartNew(character);
+            _cardDeckService.Initialize(adventure.CardDeckId, adventure.SelectedCharacterId);
             SceneManagerEx.Instance.LoadScene<AdventureScene>();
         }
 

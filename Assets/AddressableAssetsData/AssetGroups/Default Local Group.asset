@@ -27,8 +27,14 @@ MonoBehaviour:
     m_SerializedLabels:
     - ModelTable
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7d12b64cb7754b70b4cb9021493acd81
-    m_Address: RegionTable
+  - m_GUID: e08a7d4cc49c49119a6cde5ba185d26b
+    m_Address: AdventureTable
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ModelTable
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f96d21b1298446c5b09d032c2a7985ef
+    m_Address: CardDeckTable
     m_ReadOnly: 0
     m_SerializedLabels:
     - ModelTable

@@ -10,7 +10,7 @@ namespace Domains.Adventure
         private readonly List<EMonster> _remainingMonsterIds;
         private readonly List<EEvent> _remainingEventIds;
 
-        public StageState(StageModel model)
+        public StageState(CardDeckModel model)
         {
             Model = model;
             StageNumber = 1;
@@ -27,9 +27,9 @@ namespace Domains.Adventure
             BossId = model.Boss.Id;
         }
 
-        public StageModel Model { get; }
+        public CardDeckModel Model { get; }
 
-        public EStage Id => Model.Id;
+        public ECardDeck CardDeckId => Model.Id;
         public int StageNumber { get; private set; }
 
         public IReadOnlyList<EMonster> RemainingMonsterIds => _remainingMonsterIds;

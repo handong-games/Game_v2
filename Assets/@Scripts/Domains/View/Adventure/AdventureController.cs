@@ -8,5 +8,10 @@ namespace Domains.Adventure
     {
         [Inject]
         private AdventureService _adventureService;
+
+        public void StartFirstStage()
+        {
+            _adventureService.StartFirstStage();
+        }
     }
 }

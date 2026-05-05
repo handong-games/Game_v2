@@ -17,7 +17,8 @@ namespace Game.Core.Managers.DB
 
         public CharacterTable Character { get; private set; }
         public CharacterSkillTable CharacterSkill { get; private set; }
-        public RegionTable Region { get; private set; }
+        public AdventureTable Adventure { get; private set; }
+        public CardDeckTable CardDeck { get; private set; }
 
         protected override void OnInit()
         {
@@ -26,14 +27,16 @@ namespace Game.Core.Managers.DB
             
             Character = assets.OfType<CharacterTable>().First();
             CharacterSkill = assets.OfType<CharacterSkillTable>().First();
-            Region = assets.OfType<RegionTable>().First();
+            Adventure = assets.OfType<AdventureTable>().First();
+            CardDeck = assets.OfType<CardDeckTable>().First();
         }
 
         protected override void OnDispose()
         {
             Character = null;
             CharacterSkill = null;
-            Region = null;
+            Adventure = null;
+            CardDeck = null;
 
             if (_tableHandle.IsValid())
             {
