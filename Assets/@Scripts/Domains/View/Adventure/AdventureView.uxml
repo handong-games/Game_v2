@@ -14,12 +14,14 @@
     <Style src="project://database/Assets/@Scripts/Domains/View/CardDeck/CardDeck.uss?fileID=7433441132597879392&amp;guid=312503ad47374629b78575adca133c93&amp;type=3#CardDeck"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/CardDeck/CardDeck.Animation.uss?fileID=7433441132597879392&amp;guid=4c817012348347e0bf7bd30ad7ac1f69&amp;type=3#CardDeck.Animation"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/CardBoard/CardBoard.uss?fileID=7433441132597879392&amp;guid=b76d1d68cfe3495b878f37d5e62fa04a&amp;type=3#CardBoard"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/Pouch/Pouch.uss?fileID=7433441132597879392&amp;guid=4e5b74ee42694ec7a779dd98585f194a&amp;type=3#Pouch"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/Pouch/Pouch.Animation.uss?fileID=7433441132597879392&amp;guid=2d8ae236d9c94c9ca9035d27741cc436&amp;type=3#Pouch.Animation"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Adventure/AdventureView.uss?fileID=7433441132597879392&amp;guid=45a72d6395514e4986d12dec76e1ec7f&amp;type=3#AdventureView"/>
     <ui:VisualElement class="screen">
         <ui:VisualElement name="adventure-root" class="adventure-view">
             <ui:Instance template="CardBoardTemplate" name="adventure-card-board-template" class="adventure-view__card-board"/>
-            <ui:VisualElement name="adventure-banner-area" class="adventure-view__banner-area">
-                <ui:Instance template="BannerTemplate" name="adventure-banner-template" class="adventure-view__banner"/>
+            <ui:VisualElement name="adventure-banner-area" class="adventure-view__banner-area" picking-mode="Ignore">
+                <ui:Instance template="BannerTemplate" name="adventure-banner-template" class="adventure-view__banner" picking-mode="Ignore"/>
             </ui:VisualElement>
             <ui:VisualElement name="adventure-hud-top-layer" class="adventure-view__hud-top-layer">
                 <ui:Instance template="ResourceStatusBarTemplate" name="adventure-resource-status-bar-template" class="adventure-view__resource-status-bar" style="top: auto; left: auto;"/>

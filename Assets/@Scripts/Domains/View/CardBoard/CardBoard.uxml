@@ -1,10 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Template name="PouchTemplate" src="project://database/Assets/@Scripts/Domains/View/Pouch/Pouch.uxml?fileID=9197481963319205126&amp;guid=4b70d47d3ae8478c9b2739209f8075ce&amp;type=3#Pouch"/>
     <ui:VisualElement name="card-board" class="card-board">
         <ui:VisualElement name="card-board-player-area" class="card-board__area card-board__area--player"/>
         <ui:VisualElement name="card-board-center-area" class="card-board__center-area">
-            <ui:VisualElement name="card-board-coin-pouch" class="card-board__coin-pouch"/>
+            <ui:Instance template="PouchTemplate" name="card-board-pouch-template"/>
         </ui:VisualElement>
         <ui:VisualElement name="card-board-encounter-area" class="card-board__area card-board__area--encounter"/>
     </ui:VisualElement>
 </ui:UXML>
-

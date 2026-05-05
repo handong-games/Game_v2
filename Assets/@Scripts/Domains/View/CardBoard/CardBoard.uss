@@ -22,28 +22,6 @@
     align-items: center;
 }
 
-.card-board__coin-pouch {
-    width: 120px;
-    height: 148px;
-    opacity: 1;
-    scale: 1 1;
-    background-image: url("project://database/Assets/@Resources/UI/Adventure/coin-pouch.png?fileID=2800000&guid=48c37def673c41f19ae366a2f144d5fc&type=3#coin-pouch");
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-.card-board__coin-pouch--hidden {
-    opacity: 0;
-    scale: 0.84 0.84;
-}
-
-.card-board__coin-pouch--enter {
-    opacity: 1;
-    scale: 1 1;
-    transition-property: opacity, scale;
-    transition-duration: var(--motion-duration-medium-400ms);
-    transition-timing-function: ease-out;
-}
-
 .card-board__slot {
     position: absolute;
     width: 0;

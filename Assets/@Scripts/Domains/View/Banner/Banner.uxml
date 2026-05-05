@@ -1,11 +1,11 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <ui:VisualElement name="banner" class="banner banner--region">
-        <ui:VisualElement name="banner-region" class="banner__region">
-            <ui:Label name="banner-region-kicker" text="지역" class="banner__kicker"/>
-            <ui:Label name="banner-region-name" text="전투 지역" class="banner__region-name"/>
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
+    <widgets:Banner name="banner" class="banner banner--region" picking-mode="Ignore">
+        <ui:VisualElement name="banner-region" class="banner__region" picking-mode="Ignore">
+            <ui:Label name="banner-region-kicker" text="지역" class="banner__kicker" picking-mode="Ignore"/>
+            <ui:Label name="banner-region-name" text="전투 지역" class="banner__region-name" picking-mode="Ignore"/>
         </ui:VisualElement>
-        <ui:VisualElement name="banner-turn" class="banner__turn">
-            <ui:Label name="banner-turn-text" text="1 턴" class="banner__turn-text"/>
+        <ui:VisualElement name="banner-turn" class="banner__turn" picking-mode="Ignore">
+            <ui:Label name="banner-turn-text" text="1 턴" class="banner__turn-text" picking-mode="Ignore"/>
         </ui:VisualElement>
-    </ui:VisualElement>
+    </widgets:Banner>
 </ui:UXML>

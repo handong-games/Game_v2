@@ -24,7 +24,17 @@
     translate: 0 0;
 }
 
+.banner--turn.banner--enter {
+    opacity: 1;
+    translate: 0 0;
+}
+
 .banner--exit {
+    opacity: 0;
+    translate: 0 -32px;
+}
+
+.banner--turn.banner--exit {
     opacity: 0;
     translate: 0 -32px;
 }

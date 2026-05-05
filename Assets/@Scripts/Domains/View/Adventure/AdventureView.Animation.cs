@@ -7,12 +7,6 @@ namespace Domains.Adventure
 {
     public sealed partial class AdventureView
     {
-        private const string BannerHiddenClass = "banner--hidden";
-        private const string BannerEnterClass = "banner--enter";
-        private const string BannerExitClass = "banner--exit";
-        private const string BannerRegionClass = "banner--region";
-        private const string BannerTurnClass = "banner--turn";
-
         private const string ResourceStatusBarHiddenClass = "resource-status-bar--hidden";
         private const string ResourceStatusBarEnterClass = "resource-status-bar--enter";
         private const string ResourceStatusBarRegionHiddenClass = "resource-status-bar__region--hidden";
@@ -28,19 +22,16 @@ namespace Domains.Adventure
         private const string CardDeckHiddenClass = "card-deck--hidden";
         private const string CardDeckEnterClass = "card-deck--enter";
 
-        private const string CoinPouchHiddenClass = "card-board__coin-pouch--hidden";
-        private const string CoinPouchEnterClass = "card-board__coin-pouch--enter";
+        private const int TurnBannerExitStartMs = 1200;
 
         private async Awaitable PlayIntroAnimation()
         {
-            PrepareBannerIntro();
             PrepareResourceStatusBarIntro();
             PrepareProgressBarIntro();
             PrepareCardDeckIntro();
 
             ViewTransitionTimeline timeline = new ViewTransitionTimeline()
-                .Play(0, _adventureBanner, BannerEnterClass)
-                .Play(1200, _adventureBanner, BannerExitClass)
+                .Run(0, () => _banner.PresentRegion("지역", "전투 지역"))
                 .Play(1700, _resourceStatusBar, ResourceStatusBarEnterClass)
                 .Play(2050, _progressBar, ProgressBarEnterClass)
                 .Play(2300, _progressBarTrackFill, ProgressBarTrackFillEnterClass)
@@ -53,38 +44,13 @@ namespace Domains.Adventure
 
         private async Awaitable PlayTurnBannerAnimation()
         {
-            PrepareTurnBanner();
-            PrepareCoinPouchHidden();
+            ViewTransitionTimeline timeline = new ViewTransitionTimeline();
 
-            ViewTransitionTimeline timeline = new ViewTransitionTimeline()
-                .Play(0, _adventureBanner, BannerEnterClass)
-                .Play(120, _coinPouch, CoinPouchEnterClass);
+            timeline
+                .Run(0, () => _banner.PresentTurn("1 턴"))
+                .Run(TurnBannerExitStartMs, _pouch.Show);
 
             await ViewTransitionManager.Instance.Play(timeline);
-        }
-
-        private void PrepareBannerIntro()
-        {
-            if (_adventureBanner == null)
-                return;
-
-            _adventureBanner.RemoveFromClassList(BannerTurnClass);
-            _adventureBanner.AddToClassList(BannerRegionClass);
-            _adventureBanner.RemoveFromClassList(BannerEnterClass);
-            _adventureBanner.RemoveFromClassList(BannerExitClass);
-            _adventureBanner.AddToClassList(BannerHiddenClass);
-        }
-
-        private void PrepareTurnBanner()
-        {
-            if (_adventureBanner == null)
-                return;
-
-            _adventureBanner.RemoveFromClassList(BannerRegionClass);
-            _adventureBanner.AddToClassList(BannerTurnClass);
-            _adventureBanner.RemoveFromClassList(BannerEnterClass);
-            _adventureBanner.RemoveFromClassList(BannerExitClass);
-            _adventureBanner.AddToClassList(BannerHiddenClass);
         }
 
         private void PrepareResourceStatusBarIntro()
@@ -120,15 +86,6 @@ namespace Domains.Adventure
 
             _cardDeck.RemoveFromClassList(CardDeckEnterClass);
             _cardDeck.AddToClassList(CardDeckHiddenClass);
-        }
-
-        private void PrepareCoinPouchHidden()
-        {
-            if (_coinPouch == null)
-                return;
-
-            _coinPouch.RemoveFromClassList(CoinPouchEnterClass);
-            _coinPouch.AddToClassList(CoinPouchHiddenClass);
         }
     }
 }

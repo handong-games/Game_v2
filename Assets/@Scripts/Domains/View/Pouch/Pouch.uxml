@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
+    <widgets:Pouch name="pouch" class="pouch">
+        <ui:VisualElement name="pouch-image" class="pouch__image"/>
+    </widgets:Pouch>
+</ui:UXML>

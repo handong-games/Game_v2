@@ -1,0 +1,38 @@
+.pouch__image--hidden {
+    opacity: 0;
+    scale: 0.84 0.84;
+    translate: 0 0;
+}
+
+.pouch__image--enter {
+    opacity: 1;
+    scale: 1 1;
+    translate: 0 0;
+    transition-property: opacity, scale, translate;
+    transition-duration: var(--motion-duration-medium-400ms);
+    transition-timing-function: ease-out;
+}
+
+.pouch__image--exit {
+    opacity: 0;
+    scale: 1 1;
+    translate: 0 -18px;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-normal-250ms);
+    transition-timing-function: ease-out;
+}
+
+.pouch--float-up,
+.pouch--float-down {
+    transition-property: translate;
+    transition-duration: var(--motion-duration-long-700ms);
+    transition-timing-function: ease-in-out-sine;
+}
+
+.pouch--float-up {
+    translate: 0 -8px;
+}
+
+.pouch--float-down {
+    translate: 0 8px;
+}
