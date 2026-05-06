@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">UIDocument with Added UXML Section</title>
+  <desc id="desc">A minimal developer-facing visual result showing an existing full-screen layer with an added UXML section over it.</desc>
+
+  <defs>
+    <style>
+      .bg { fill: #f6f7fb; }
+      .document { fill: #ffffff; stroke: #334155; stroke-width: 2.5; }
+      .existing { fill: #eff6ff; stroke: #2563eb; stroke-width: 2.5; }
+      .overlay { fill: #ffffff; stroke: #2563eb; stroke-width: 2.5; }
+      .shadow { fill: #0f172a; opacity: 0.14; }
+      .dim { fill: #0f172a; opacity: 0.10; }
+      .text { fill: #111827; font-family: Arial, sans-serif; font-size: 22px; font-weight: 700; }
+      .existing-label { fill: #1e3a8a; font-family: Arial, sans-serif; font-size: 20px; font-weight: 700; }
+      .overlay-label { fill: #1e3a8a; font-family: Arial, sans-serif; font-size: 20px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="960" height="540" />
+
+  <text class="text" x="48" y="52">UIDocument</text>
+
+  <rect class="document" x="48" y="72" width="864" height="420" rx="10" />
+
+  <rect class="existing" x="48" y="72" width="864" height="420" rx="10" />
+
+  <rect class="dim" x="48" y="72" width="864" height="420" rx="10" />
+  <text class="existing-label" x="84" y="110">Existing Screen</text>
+  <rect class="shadow" x="292" y="170" width="376" height="154" rx="10" />
+  <rect class="overlay" x="280" y="158" width="376" height="154" rx="10" />
+  <text class="overlay-label" x="372" y="244">Added Screen</text>
+</svg>

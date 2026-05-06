@@ -18,7 +18,7 @@ MonoBehaviour:
       m_TableCollectionName: MonsterNames
     m_TableEntryReference:
       m_KeyId: 930000001
-      m_Key: monster_name_test_slime
+      m_Key: 
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []

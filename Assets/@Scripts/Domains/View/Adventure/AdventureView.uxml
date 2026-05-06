@@ -4,6 +4,8 @@
     <ui:Template name="ProgressBarTemplate" src="project://database/Assets/@Scripts/Domains/View/ProgressBar/ProgressBar.uxml?fileID=9197481963319205126&amp;guid=fa6a0f0b6e974b08aa4ebfa1136e1de1&amp;type=3#ProgressBar"/>
     <ui:Template name="CardDeckTemplate" src="project://database/Assets/@Scripts/Domains/View/CardDeck/CardDeck.uxml?fileID=9197481963319205126&amp;guid=377a9a4d28254a5d94609ece538dfa3f&amp;type=3#CardDeck"/>
     <ui:Template name="CardBoardTemplate" src="project://database/Assets/@Scripts/Domains/View/CardBoard/CardBoard.uxml?fileID=9197481963319205126&amp;guid=8da1476a6afe491e9650783d55349f6f&amp;type=3#CardBoard"/>
+    <ui:Template name="CoinStatusWidgetTemplate" src="project://database/Assets/@Scripts/Domains/View/CoinStatusWidget/CoinStatusWidget.uxml?fileID=9197481963319205126&amp;guid=1d48c95ba5db45879493a675ebdce51a&amp;type=3#CoinStatusWidget"/>
+    <ui:Template name="SkillSlotWidgetTemplate" src="project://database/Assets/@Scripts/Domains/View/SkillSlotWidget/SkillSlotWidget.uxml?fileID=9197481963319205126&amp;guid=6815b43aa9904e97a263128250d5f66c&amp;type=3#SkillSlotWidget"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Common/Screen.uss?fileID=7433441132597879392&amp;guid=c1e5869491c34e1980a912a5e6dce02e&amp;type=3#Screen"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Banner/Banner.uss?fileID=7433441132597879392&amp;guid=9c9847f7408b42788627f5372312d7e2&amp;type=3#Banner"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Banner/Banner.Animation.uss?fileID=7433441132597879392&amp;guid=5f57239d858541549f2531258f493f30&amp;type=3#Banner.Animation"/>
@@ -16,12 +18,21 @@
     <Style src="project://database/Assets/@Scripts/Domains/View/CardBoard/CardBoard.uss?fileID=7433441132597879392&amp;guid=b76d1d68cfe3495b878f37d5e62fa04a&amp;type=3#CardBoard"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Pouch/Pouch.uss?fileID=7433441132597879392&amp;guid=4e5b74ee42694ec7a779dd98585f194a&amp;type=3#Pouch"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Pouch/Pouch.Animation.uss?fileID=7433441132597879392&amp;guid=2d8ae236d9c94c9ca9035d27741cc436&amp;type=3#Pouch.Animation"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/CoinStatusWidget/CoinStatusWidget.uss?fileID=7433441132597879392&amp;guid=78c192dee38f4ebf9ca965188a9e5e33&amp;type=3#CoinStatusWidget"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/CoinEffectPlayer/CoinEffectPlayer.uss?fileID=7433441132597879392&amp;guid=3bc277c5a0f54edb85686b9743543ece&amp;type=3#CoinEffectPlayer"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Adventure/AdventureView.uss?fileID=7433441132597879392&amp;guid=45a72d6395514e4986d12dec76e1ec7f&amp;type=3#AdventureView"/>
     <ui:VisualElement class="screen">
         <ui:VisualElement name="adventure-root" class="adventure-view">
             <ui:Instance template="CardBoardTemplate" name="adventure-card-board-template" class="adventure-view__card-board"/>
+            <ui:VisualElement name="adventure-effect-layer" class="adventure-view__effect-layer" picking-mode="Ignore"/>
             <ui:VisualElement name="adventure-banner-area" class="adventure-view__banner-area" picking-mode="Ignore">
                 <ui:Instance template="BannerTemplate" name="adventure-banner-template" class="adventure-view__banner" picking-mode="Ignore"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="adventure-bottom-hud-area" class="adventure-view__bottom-hud-area" picking-mode="Ignore">
+                <ui:VisualElement name="adventure-coin-status-area" class="adventure-view__coin-status-area" picking-mode="Ignore">
+                    <ui:Instance template="CoinStatusWidgetTemplate" name="adventure-coin-status-widget-template" class="adventure-view__coin-status-widget" picking-mode="Ignore"/>
+                </ui:VisualElement>
+                <ui:Instance template="SkillSlotWidgetTemplate" name="adventure-skill-slot-widget-template" class="adventure-view__skill-slot-widget" picking-mode="Ignore"/>
             </ui:VisualElement>
             <ui:VisualElement name="adventure-hud-top-layer" class="adventure-view__hud-top-layer">
                 <ui:Instance template="ResourceStatusBarTemplate" name="adventure-resource-status-bar-template" class="adventure-view__resource-status-bar" style="top: auto; left: auto;"/>

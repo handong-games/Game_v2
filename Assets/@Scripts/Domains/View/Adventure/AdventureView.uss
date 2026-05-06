@@ -25,6 +25,14 @@
     align-items: stretch;
 }
 
+.adventure-view__effect-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
 .adventure-view__hud-top-layer {
     position: absolute;
     left: 0;
@@ -56,4 +64,28 @@
 .adventure-view__card-deck {
     position: relative;
     margin-left: 32px;
+}
+
+.adventure-view__bottom-hud-area {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 36px;
+    height: 192px;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.adventure-view__coin-status-area {
+    width: 100%;
+    height: 48px;
+    justify-content: center;
+    align-items: center;
+}
+
+.adventure-view__skill-slot-widget {
+    width: 100%;
+    height: 128px;
+    margin-top: 16px;
 }

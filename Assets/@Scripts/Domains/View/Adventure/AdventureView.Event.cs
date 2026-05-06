@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Domains.Event;
+using Domains.Player;
 
 namespace Domains.Adventure
 {
@@ -10,6 +11,7 @@ namespace Domains.Adventure
             AdventureEvents.AdventureStarted += OnAdventureStarted;
             AdventureEvents.CardsDrawn += OnCardsDrawn;
             AdventureEvents.TurnBannerRequested += OnTurnBannerRequested;
+            _pouch.Clicked += OnPouchClicked;
         }
 
         private void UnregisterEvents()
@@ -17,6 +19,7 @@ namespace Domains.Adventure
             AdventureEvents.AdventureStarted -= OnAdventureStarted;
             AdventureEvents.CardsDrawn -= OnCardsDrawn;
             AdventureEvents.TurnBannerRequested -= OnTurnBannerRequested;
+            _pouch.Clicked -= OnPouchClicked;
         }
 
         private void OnAdventureStarted()
@@ -37,6 +40,22 @@ namespace Domains.Adventure
         private async void OnTurnBannerRequested()
         {
             await PlayTurnBannerAnimation();
+        }
+
+        private async void OnPouchClicked()
+        {
+            CoinFlipDto coinFlip = _controller.OnPouchClicked();
+            _coinStatusWidget.Reset();
+
+            await _coinStatusWidget.Show();
+            await _coinEffectPlayer.Play(
+                coinFlip,
+                _pouch,
+                _coinStatusWidget.GetTarget(ECoinFace.Heads),
+                _coinStatusWidget.GetTarget(ECoinFace.Tails),
+                _coinStatusWidget.Add);
+
+            await _skillSlotWidget.Show();
         }
     }
 }

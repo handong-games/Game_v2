@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Responsive layout adapts to screen size</title>
+  <desc id="desc">A minimal developer-facing visual showing the same UI arranged differently on narrow and wide screens.</desc>
+
+  <defs>
+    <style>
+      .bg { fill: #f6f7fb; }
+      .title { fill: #111827; font-family: Arial, sans-serif; font-size: 22px; font-weight: 700; }
+      .frame { fill: #ffffff; stroke: #334155; stroke-width: 2.5; }
+      .screen { fill: #eff6ff; stroke: #2563eb; stroke-width: 2; }
+      .panel { fill: #ffffff; stroke: #93c5fd; stroke-width: 1.5; }
+      .header { fill: #bfdbfe; stroke: #2563eb; stroke-width: 1.5; }
+      .content { fill: #c7d2fe; stroke: #4f46e5; stroke-width: 1.5; }
+      .button { fill: #ddd6fe; stroke: #7c3aed; stroke-width: 1.5; }
+      .screenLabel { fill: #1e3a8a; font-family: Arial, sans-serif; font-size: 16px; font-weight: 700; }
+      .elementLabel { fill: #0f172a; font-family: Arial, sans-serif; font-size: 12px; font-weight: 700; }
+      .caption { fill: #2563eb; font-family: Arial, sans-serif; font-size: 16px; font-weight: 700; }
+      .arrow { stroke: #2563eb; stroke-width: 2.5; fill: none; marker-end: url(#arrowHead); }
+    </style>
+    <marker id="arrowHead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb" />
+    </marker>
+  </defs>
+
+  <rect class="bg" width="960" height="540" />
+  <text class="title" x="48" y="52">Layout adapts to screen size</text>
+
+  <rect class="frame" x="64" y="96" width="392" height="356" rx="10" />
+  <text class="screenLabel" x="100" y="136">narrow screen</text>
+  <rect class="screen" x="100" y="156" width="126" height="236" rx="10" />
+  <rect class="panel" x="118" y="176" width="90" height="180" rx="10" />
+  <rect class="header" x="132" y="194" width="62" height="24" rx="6" />
+  <text class="elementLabel" x="146" y="210">Header</text>
+  <rect class="content" x="132" y="234" width="62" height="52" rx="6" />
+  <text class="elementLabel" x="145" y="263">Content</text>
+  <rect class="button" x="132" y="302" width="62" height="24" rx="6" />
+  <text class="elementLabel" x="149" y="318">Button</text>
+
+  <path class="arrow" d="M244 274 L304 274" />
+
+  <text class="screenLabel" x="322" y="136">wide screen</text>
+  <rect class="screen" x="304" y="196" width="118" height="156" rx="10" />
+  <rect class="panel" x="320" y="224" width="86" height="92" rx="10" />
+  <rect class="header" x="332" y="240" width="62" height="18" rx="6" />
+  <text class="elementLabel" x="346" y="253">Header</text>
+  <rect class="content" x="332" y="270" width="26" height="26" rx="6" />
+  <text class="elementLabel" x="334" y="286">C</text>
+  <rect class="button" x="368" y="270" width="26" height="26" rx="6" />
+  <text class="elementLabel" x="370" y="286">B</text>
+
+  <text class="caption" x="100" y="422">same UI, different layout flow</text>
+</svg>

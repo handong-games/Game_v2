@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">반응형 문제: 좁은 화면에서 요소가 겹침</title>
+  <desc id="desc">좁은 화면에서 UI 요소가 서로 겹치는 문제를 보여주는 개발자용 시각 자료.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f6f7fb; }
+      .title { fill: #111827; font-family: Arial, sans-serif; font-size: 24px; font-weight: 700; }
+      .frame { fill: #ffffff; stroke: #334155; stroke-width: 2.5; }
+      .screen { fill: #eff6ff; stroke: #2563eb; stroke-width: 2; }
+      .label { fill: #1e3a8a; font-family: Arial, sans-serif; font-size: 16px; font-weight: 700; }
+      .panel { fill: #ffffff; stroke: #93c5fd; stroke-width: 1.5; }
+      .boxA { fill: #bfdbfe; stroke: #2563eb; stroke-width: 1.5; }
+      .boxB { fill: #c7d2fe; stroke: #4f46e5; stroke-width: 1.5; }
+      .boxC { fill: #ddd6fe; stroke: #7c3aed; stroke-width: 1.5; }
+      .text { fill: #0f172a; font-family: Arial, sans-serif; font-size: 13px; font-weight: 700; }
+      .bad { fill: #dc2626; font-family: Arial, sans-serif; font-size: 16px; font-weight: 700; }
+      .caption { fill: #475569; font-family: Arial, sans-serif; font-size: 15px; font-weight: 600; }
+    </style>
+  </defs>
+  <rect class="bg" width="960" height="540" />
+  <text class="title" x="48" y="54">문제 1. 좁은 화면에서 요소가 겹침</text>
+
+  <rect class="frame" x="64" y="96" width="384" height="360" rx="12" />
+  <text class="label" x="92" y="130">의도한 상태</text>
+  <rect class="screen" x="100" y="154" width="312" height="248" rx="12" />
+  <rect class="panel" x="126" y="182" width="260" height="44" rx="8" />
+  <text class="text" x="150" y="209">헤더</text>
+  <rect class="boxA" x="126" y="248" width="118" height="118" rx="10" />
+  <rect class="boxB" x="268" y="248" width="118" height="118" rx="10" />
+  <text class="text" x="170" y="314">카드 A</text>
+  <text class="text" x="312" y="314">카드 B</text>
+  <text class="caption" x="100" y="432">두 카드가 겹치지 않고 배치된다.</text>
+
+  <rect class="frame" x="512" y="96" width="384" height="360" rx="12" />
+  <text class="label" x="540" y="130">좁은 화면에서 깨진 상태</text>
+  <rect class="screen" x="634" y="154" width="140" height="248" rx="12" />
+  <rect class="panel" x="650" y="182" width="108" height="44" rx="8" />
+  <text class="text" x="678" y="209">헤더</text>
+  <rect class="boxA" x="650" y="248" width="74" height="118" rx="10" />
+  <rect class="boxB" x="702" y="248" width="74" height="118" rx="10" />
+  <text class="text" x="666" y="314">A</text>
+  <text class="text" x="730" y="314">B</text>
+  <text class="bad" x="566" y="284">겹침</text>
+  <text class="bad" x="566" y="312">터치 영역 손실</text>
+  <text class="caption" x="540" y="432">고정 폭 카드는 화면이 줄어들면 서로 겹친다.</text>
+</svg>

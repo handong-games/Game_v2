@@ -36,7 +36,6 @@ namespace Game.Core.Managers.Scene
                 .FirstOrDefault(t => t.Name == SceneManager.GetActiveScene().name && typeof(BaseScene).IsAssignableFrom(t));
             
             Instance._currentScene = (BaseScene)Activator.CreateInstance(sceneType);
-            Instance._currentScene.Loaded();
         }
         
         // 새로운 씬로드
@@ -59,6 +58,9 @@ namespace Game.Core.Managers.Scene
 
         private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, LoadSceneMode mode)
         {
+            if (_currentScene == null)
+                return;
+
             if (scene.name != _currentScene.GetType().Name)
                 return;
 

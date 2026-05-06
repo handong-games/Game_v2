@@ -6,6 +6,8 @@
     --motion-duration-medium-400ms: 400ms;
     --motion-duration-long-700ms: 700ms;
     --motion-duration-xlong-1000ms: 1000ms;
+    --ui-transition-offset-y: 18px;
+    --ui-transition-offset-y-small-18px: 18px;
 }
 
 .app-overlay-layer {
@@ -31,4 +33,24 @@
 
 .view-transition--fade-out {
     opacity: 1;
+}
+
+.ui-transition--hidden {
+    opacity: 0;
+}
+
+.ui-hidden {
+    display: none;
+}
+
+.ui-transition--from-bottom {
+    translate: 0 var(--ui-transition-offset-y);
+}
+
+.ui-transition--enter {
+    opacity: 1;
+    translate: 0 0;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-medium-400ms);
+    transition-timing-function: ease-out;
 }

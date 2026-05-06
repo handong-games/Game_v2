@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Domains.Event;
 using Game.Core.Managers.DB;
 using Game.Core.Managers.Dependency;
+using Game.Core.Utility;
 using Game.Data;
 using Game.Generated;
 
@@ -21,7 +22,12 @@ namespace Domains.Adventure
             DBManager.Instance.Character.Get(character);
 
             AdventureModel adventure = DBManager.Instance.Adventure.Get(EAdventure.Default);
-            CurrentAdventure = new AdventureSession(character, adventure.Id, adventure.CardDeckId);
+            CurrentAdventure = new AdventureSession(
+                character,
+                adventure.Id,
+                adventure.CardDeckId,
+                RandomUtility.CreateSeed());
+
             return CurrentAdventure;
         }
 

@@ -39,6 +39,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - AdventureScene
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d575c97a498c46cea091d4ee11171754
+    m_Address: SkillSlot
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AdventureScene
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 065ac4adf3738644dbf915d9eb092da4, type: 2}
   m_SchemaSet:

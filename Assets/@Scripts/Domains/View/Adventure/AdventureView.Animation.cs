@@ -1,7 +1,6 @@
 using UnityEngine;
 using Domains.Event;
 using Game.Core.Managers.View;
-using UnityEngine.UIElements;
 
 namespace Domains.Adventure
 {
@@ -9,10 +8,6 @@ namespace Domains.Adventure
     {
         private const string ResourceStatusBarHiddenClass = "resource-status-bar--hidden";
         private const string ResourceStatusBarEnterClass = "resource-status-bar--enter";
-        private const string ResourceStatusBarRegionHiddenClass = "resource-status-bar__region--hidden";
-        private const string ResourceStatusBarRegionExitClass = "resource-status-bar__region--exit";
-        private const string ResourceStatusBarResourcesHiddenClass = "resource-status-bar__resources--hidden";
-        private const string ResourceStatusBarResourcesEnterClass = "resource-status-bar__resources--enter";
 
         private const string ProgressBarHiddenClass = "progress-bar--hidden";
         private const string ProgressBarEnterClass = "progress-bar--enter";

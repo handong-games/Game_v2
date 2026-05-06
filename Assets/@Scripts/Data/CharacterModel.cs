@@ -21,12 +21,20 @@ namespace Game.Data
         private int _maxHp;
 
         [SerializeField]
+        private int _defaultSkillSlotCount = 4;
+
+        [SerializeField]
+        private int _maxSkillSlotCount = 8;
+
+        [SerializeField]
         private CharacterSkillModel[] _defaultSkills;
 
         public LocalizedString LocalizedName => _localizedName;
         public Sprite Portrait => _portrait;
         public int CoinCount => _coinCount;
         public int MaxHp => _maxHp;
+        public int DefaultSkillSlotCount => _defaultSkillSlotCount;
+        public int MaxSkillSlotCount => _maxSkillSlotCount;
         public IReadOnlyList<CharacterSkillModel> DefaultSkills => _defaultSkills;
     }
 }

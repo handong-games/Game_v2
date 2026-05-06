@@ -49,3 +49,9 @@
 .skill-slot--type-utility .skill-slot__frame {
     background-image: url("project://database/Assets/@Resources/Skills/Frames/skill-frame-attack.png?fileID=2800000&guid=1a71ae51cb794058b6b26827789fe12f&type=3#skill-frame-attack");
 }
+
+.skill-slot--empty .skill-slot__frame {
+    background-color: rgba(18, 18, 18, 0.72);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.22);
+}

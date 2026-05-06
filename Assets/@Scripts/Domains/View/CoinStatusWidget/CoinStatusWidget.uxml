@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
+    <widgets:CoinStatusWidget name="coin-status-widget" class="coin-status-widget ui-transition--hidden ui-transition--from-bottom" picking-mode="Ignore">
+        <ui:VisualElement name="coin-status-heads-group" class="coin-status-widget__group">
+            <ui:VisualElement name="coin-status-heads-icon" class="coin-status-widget__icon coin-status-widget__icon--heads">
+                <ui:VisualElement class="coin-status-widget__icon-core coin-status-widget__icon-core--heads"/>
+            </ui:VisualElement>
+            <ui:Label name="coin-status-heads" text="0" class="coin-status-widget__value"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="coin-status-divider" class="coin-status-widget__divider"/>
+        <ui:VisualElement name="coin-status-tails-group" class="coin-status-widget__group">
+            <ui:VisualElement name="coin-status-tails-icon" class="coin-status-widget__icon coin-status-widget__icon--tails">
+                <ui:VisualElement class="coin-status-widget__icon-core coin-status-widget__icon-core--tails"/>
+            </ui:VisualElement>
+            <ui:Label name="coin-status-tails" text="0" class="coin-status-widget__value"/>
+        </ui:VisualElement>
+    </widgets:CoinStatusWidget>
+</ui:UXML>

@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using Game.Core.Managers.DB;
 using Game.Core.Managers.Dependency;
+using Game.Core.Utility;
 using Game.Data;
 using Game.Generated;
+using UnityRandom = Unity.Mathematics.Random;
 
 namespace Domains.Adventure
 {
@@ -13,15 +15,17 @@ namespace Domains.Adventure
         private readonly List<CardState> _deck = new();
         private readonly List<CardState> _drawnCards = new();
 
+        private UnityRandom _random;
         private CardState _playerCard;
 
         public CardDeckModel CurrentCardDeck { get; private set; }
         public ECharacter CharacterId { get; private set; }
 
-        public void Initialize(ECardDeck cardDeckId, ECharacter characterId)
+        public void Initialize(ECardDeck cardDeckId, ECharacter characterId, uint seed)
         {
             CurrentCardDeck = DBManager.Instance.CardDeck.Get(cardDeckId);
             CharacterId = characterId;
+            _random = new UnityRandom(RandomUtility.CombineSeed(seed, "CardDeck"));
             _deck.Clear();
             _drawnCards.Clear();
             _playerCard = null;
@@ -60,8 +64,19 @@ namespace Domains.Adventure
             AddEventCards();
             AddMonsterCards();
 
+            ShuffleDeck();
+
             _deck.Add(CreateFirstMonsterCard());
             _deck.Add(GetOrCreatePlayerCard());
+        }
+
+        private void ShuffleDeck()
+        {
+            for (int i = _deck.Count - 1; i > 0; i--)
+            {
+                int j = _random.NextInt(0, i + 1);
+                (_deck[i], _deck[j]) = (_deck[j], _deck[i]);
+            }
         }
 
         private CardState GetOrCreatePlayerCard()

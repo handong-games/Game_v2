@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">UI Toolkit text alignment result</title>
+  <desc id="desc">A minimal developer-facing visual result showing the nine -unity-text-align positions on an existing screen.</desc>
+
+  <defs>
+    <style>
+      .bg { fill: #f6f7fb; }
+      .document { fill: #ffffff; stroke: #334155; stroke-width: 2.5; }
+      .screen { fill: #eff6ff; stroke: #2563eb; stroke-width: 2.5; }
+      .panel { fill: #ffffff; stroke: #93c5fd; stroke-width: 2; }
+      .guide { stroke: #cbd5e1; stroke-width: 1.5; stroke-dasharray: 6 6; }
+      .title { fill: #111827; font-family: Arial, sans-serif; font-size: 22px; font-weight: 700; }
+      .screen-label { fill: #1e3a8a; font-family: Arial, sans-serif; font-size: 20px; font-weight: 700; }
+      .value { fill: #475569; font-family: Arial, sans-serif; font-size: 13px; font-weight: 600; }
+      .sample { fill: #0f172a; font-family: Arial, sans-serif; font-size: 18px; font-weight: 700; }
+      .caption { fill: #2563eb; font-family: Arial, sans-serif; font-size: 16px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="960" height="540" />
+
+  <text class="title" x="48" y="52">UIDocument</text>
+
+  <rect class="document" x="48" y="72" width="864" height="420" rx="10" />
+  <rect class="screen" x="48" y="72" width="864" height="420" rx="10" />
+
+  <text class="screen-label" x="84" y="110">Existing Screen</text>
+
+  <rect class="panel" x="160" y="172" width="640" height="230" rx="12" />
+
+  <line class="guide" x1="373" y1="172" x2="373" y2="402" />
+  <line class="guide" x1="586" y1="172" x2="586" y2="402" />
+  <line class="guide" x1="160" y1="249" x2="800" y2="249" />
+  <line class="guide" x1="160" y1="326" x2="800" y2="326" />
+
+  <text class="value" x="180" y="194">upper-left</text>
+  <text class="sample" x="182" y="220">Label</text>
+
+  <text class="value" x="430" y="194" text-anchor="middle">upper-center</text>
+  <text class="sample" x="480" y="220" text-anchor="middle">Label</text>
+
+  <text class="value" x="780" y="194" text-anchor="end">upper-right</text>
+  <text class="sample" x="778" y="220" text-anchor="end">Label</text>
+
+  <text class="value" x="180" y="271">middle-left</text>
+  <text class="sample" x="182" y="288" dominant-baseline="middle">Label</text>
+
+  <text class="value" x="480" y="271" text-anchor="middle">middle-center</text>
+  <text class="sample" x="480" y="288" text-anchor="middle" dominant-baseline="middle">Label</text>
+
+  <text class="value" x="780" y="271" text-anchor="end">middle-right</text>
+  <text class="sample" x="778" y="288" text-anchor="end" dominant-baseline="middle">Label</text>
+
+  <text class="value" x="180" y="348">lower-left</text>
+  <text class="sample" x="182" y="388">Label</text>
+
+  <text class="value" x="480" y="348" text-anchor="middle">lower-center</text>
+  <text class="sample" x="480" y="388" text-anchor="middle">Label</text>
+
+  <text class="value" x="780" y="348" text-anchor="end">lower-right</text>
+  <text class="sample" x="778" y="388" text-anchor="end">Label</text>
+
+  <text class="caption" x="160" y="446">comparison of -unity-text-align positions</text>
+</svg>

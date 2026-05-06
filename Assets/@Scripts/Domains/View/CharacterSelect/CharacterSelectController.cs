@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Domains.Adventure;
+using Domains.Player;
 using Domains.Scene;
 using Game.Core.Managers.DB;
 using Game.Core.Managers.Dependency;
@@ -20,6 +21,9 @@ namespace Domains.CharacterSelect
         [Inject]
         private CardDeckService _cardDeckService;
 
+        [Inject]
+        private PlayerService _playerService;
+
         public IReadOnlyList<CharacterModel> GetAllCharacters()
         {
             return DBManager.Instance.Character.GetAll();
@@ -35,9 +39,16 @@ namespace Domains.CharacterSelect
         {
             if (!CanSelect(character))
                 return;
-            
+
             AdventureSession adventure = _adventureService.StartNew(character);
-            _cardDeckService.Initialize(adventure.CardDeckId, adventure.SelectedCharacterId);
+            CharacterModel characterModel = DBManager.Instance.Character.Get(character);
+
+            _playerService.Initialize(characterModel, adventure.Seed);
+            _cardDeckService.Initialize(
+                adventure.CardDeckId,
+                adventure.SelectedCharacterId,
+                adventure.Seed);
+
             SceneManagerEx.Instance.LoadScene<AdventureScene>();
         }
 

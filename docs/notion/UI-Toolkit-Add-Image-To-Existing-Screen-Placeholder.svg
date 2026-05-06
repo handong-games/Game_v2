@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">UIDocument with added image</title>
+  <desc id="desc">A minimal developer-facing visual result showing an added image on an existing screen.</desc>
+
+  <defs>
+    <style>
+      .bg { fill: #f6f7fb; }
+      .document { fill: #ffffff; stroke: #334155; stroke-width: 2.5; }
+      .screen { fill: #eff6ff; stroke: #2563eb; stroke-width: 2.5; }
+      .text { fill: #111827; font-family: Arial, sans-serif; font-size: 22px; font-weight: 700; }
+      .label { fill: #1e3a8a; font-family: Arial, sans-serif; font-size: 20px; font-weight: 700; }
+      .image-frame { fill: #ffffff; stroke: #2563eb; stroke-width: 2.5; }
+      .image-line { stroke: #60a5fa; stroke-width: 3; fill: none; }
+      .image-dot { fill: #60a5fa; }
+      .image-text { fill: #1e3a8a; font-family: Arial, sans-serif; font-size: 24px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="960" height="540" />
+
+  <text class="text" x="48" y="52">UIDocument</text>
+
+  <rect class="document" x="48" y="72" width="864" height="420" rx="10" />
+  <rect class="screen" x="48" y="72" width="864" height="420" rx="10" />
+
+  <text class="label" x="84" y="110">Existing Screen</text>
+
+  <rect class="image-frame" x="332" y="176" width="296" height="212" rx="10" />
+  <circle class="image-dot" cx="396" cy="226" r="16" />
+  <path class="image-line" d="M356 340 L442 258 L500 306 L560 244 L604 296" />
+  <text class="image-text" x="416" y="420">Added Image</text>
+</svg>

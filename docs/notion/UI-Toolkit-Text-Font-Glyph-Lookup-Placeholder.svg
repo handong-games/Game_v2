@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Font glyph lookup example</title>
+  <desc id="desc">A minimal developer-facing diagram showing how the character A is matched to a glyph inside a font file and rendered on screen.</desc>
+
+  <defs>
+    <style>
+      .bg { fill: #f6f7fb; }
+      .frame { fill: #ffffff; stroke: #334155; stroke-width: 2.5; }
+      .screen { fill: #eff6ff; stroke: #2563eb; stroke-width: 2.5; }
+      .card { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; }
+      .fontbook { fill: #ffffff; stroke: #2563eb; stroke-width: 2; }
+      .slot { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 1.2; }
+      .highlight { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; }
+      .title { fill: #111827; font-family: Arial, sans-serif; font-size: 22px; font-weight: 700; }
+      .label { fill: #1e3a8a; font-family: Arial, sans-serif; font-size: 16px; font-weight: 700; }
+      .body { fill: #334155; font-family: Arial, sans-serif; font-size: 14px; font-weight: 600; }
+      .code { fill: #111827; font-family: Consolas, monospace; font-size: 22px; font-weight: 700; }
+      .glyph { fill: #111827; font-family: Georgia, serif; font-size: 30px; font-weight: 700; }
+      .arrow { fill: none; stroke: #2563eb; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .caption { fill: #2563eb; font-family: Arial, sans-serif; font-size: 16px; font-weight: 700; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb" />
+    </marker>
+  </defs>
+
+  <rect class="bg" width="960" height="540" />
+
+  <text class="title" x="48" y="52">UIDocument</text>
+
+  <rect class="frame" x="48" y="72" width="864" height="420" rx="10" />
+  <rect class="screen" x="48" y="72" width="864" height="420" rx="10" />
+
+  <text class="label" x="84" y="110">Glyph Lookup Example</text>
+
+  <rect class="card" x="100" y="190" width="150" height="110" rx="12" />
+  <text class="label" x="122" y="218">Character</text>
+  <text class="code" x="168" y="262">"A"</text>
+  <text class="body" x="122" y="286">text data</text>
+
+  <rect class="fontbook" x="330" y="150" width="260" height="190" rx="12" />
+  <text class="label" x="352" y="178">TTF / OTF</text>
+  <text class="body" x="352" y="200">glyph lookup table</text>
+
+  <rect class="slot" x="352" y="220" width="216" height="28" rx="6" />
+  <text class="body" x="368" y="239">"8"  -> glyph</text>
+
+  <rect class="slot" x="352" y="256" width="216" height="28" rx="6" />
+  <text class="body" x="368" y="275">"B"  -> glyph</text>
+
+  <rect class="highlight" x="352" y="292" width="216" height="30" rx="6" />
+  <text class="body" x="368" y="312">"A"  -> glyph</text>
+
+  <rect class="card" x="670" y="190" width="160" height="110" rx="12" />
+  <text class="label" x="692" y="218">Rendered</text>
+  <text class="glyph" x="742" y="264">A</text>
+  <text class="body" x="692" y="286">glyph on screen</text>
+
+  <line class="arrow" x1="250" y1="245" x2="330" y2="245" marker-end="url(#arrowhead)" />
+  <line class="arrow" x1="590" y1="307" x2="670" y2="245" marker-end="url(#arrowhead)" />
+
+  <text class="caption" x="246" y="392">character -&gt; find matching glyph -&gt; render</text>
+</svg>

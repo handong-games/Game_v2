@@ -1,0 +1,71 @@
+.coin-status-widget {
+    --ui-transition-offset-y: var(--ui-transition-offset-y-small-18px);
+    width: 176px;
+    height: 48px;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding-left: 12px;
+    padding-right: 12px;
+    background-color: rgba(16, 14, 19, 0.88);
+    border-width: 1px;
+    border-color: rgba(229, 199, 124, 0.34);
+    border-radius: 6px;
+}
+
+.coin-status-widget__group {
+    width: 72px;
+    height: 100%;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.coin-status-widget__icon {
+    width: 24px;
+    height: 24px;
+    justify-content: center;
+    align-items: center;
+    margin-right: 8px;
+    border-width: 2px;
+    border-radius: 12px;
+}
+
+.coin-status-widget__icon--heads {
+    background-color: rgb(224, 183, 86);
+    border-color: rgb(255, 233, 166);
+}
+
+.coin-status-widget__icon--tails {
+    background-color: rgb(118, 105, 147);
+    border-color: rgb(185, 171, 224);
+}
+
+.coin-status-widget__icon-core {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+}
+
+.coin-status-widget__icon-core--heads {
+    background-color: rgba(80, 49, 18, 0.62);
+}
+
+.coin-status-widget__icon-core--tails {
+    background-color: rgba(235, 226, 255, 0.72);
+}
+
+.coin-status-widget__value {
+    min-width: 22px;
+    -unity-text-align: middle-left;
+    font-size: 18px;
+    color: rgb(244, 231, 198);
+}
+
+.coin-status-widget__divider {
+    width: 1px;
+    height: 24px;
+    margin-left: 8px;
+    margin-right: 8px;
+    background-color: rgba(255, 255, 255, 0.18);
+}

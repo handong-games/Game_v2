@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
+    <Style src="project://database/Assets/@Scripts/Domains/View/Common/SkillSlot.uss?fileID=7433441132597879392&amp;guid=8f25d5bef5b1460e9bea30776411bb68&amp;type=3#SkillSlot"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/SkillSlotWidget/SkillSlotWidget.uss?fileID=7433441132597879392&amp;guid=039fd3eb84c843318eec327c094d35f6&amp;type=3#SkillSlotWidget"/>
+    <widgets:SkillSlotWidget name="skill-slot-widget" class="skill-slot-widget ui-transition--hidden ui-transition--from-bottom" picking-mode="Ignore" focusable="false"/>
+</ui:UXML>

@@ -30,6 +30,7 @@ namespace Game.Core.Managers.Dependency.Generated
             new(typeof(global::Domains.Adventure.AdventureService), true, null),
             new(typeof(global::Domains.Adventure.CardDeckService), true, null),
             new(typeof(global::Domains.CharacterSelect.CharacterSelectController), false, "TitleScene"),
+            new(typeof(global::Domains.Player.PlayerService), true, null),
             new(typeof(global::Game.Core.Managers.Save.AudioSettingsState), true, null),
             new(typeof(global::Game.Core.Managers.Save.GraphicSettingsState), true, null),
             new(typeof(global::Game.Core.Managers.Save.LocalizationSettingsState), true, null),
