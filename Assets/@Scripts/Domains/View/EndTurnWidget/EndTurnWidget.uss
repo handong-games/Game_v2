@@ -1,0 +1,41 @@
+.end-turn-widget {
+    --ui-transition-offset-y: var(--ui-transition-offset-y-small-18px);
+    width: 148px;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    background-color: rgba(18, 18, 18, 0.88);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.18);
+    border-radius: 2px;
+}
+
+.end-turn-widget__label {
+    margin-bottom: 6px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.68);
+    letter-spacing: 1.4px;
+    -unity-text-align: middle-center;
+}
+
+.end-turn-widget__button {
+    width: 100%;
+    height: 42px;
+    background-color: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.96);
+    border-color: rgba(255, 255, 255, 0.78);
+    border-width: 1px;
+    border-radius: 2px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.end-turn-widget__button:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.end-turn-widget__button:disabled {
+    opacity: 0.34;
+}

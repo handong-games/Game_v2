@@ -27,6 +27,8 @@ namespace Domains.View.Widgets
         private VisualTreeAsset _slotTemplate;
         private bool _isShown;
 
+        public IReadOnlyList<VisualElement> Slots => _slots;
+
         public void Bind(IReadOnlyList<CharacterSkillModel> skills)
         {
             int count = skills?.Count ?? 0;
@@ -73,6 +75,7 @@ namespace Domains.View.Widgets
         {
             TemplateContainer slot = _slotTemplate.CloneTree();
             slot.AddToClassList(SlotClass);
+            slot.pickingMode = PickingMode.Position;
             Add(slot);
 
             _slots.Add(slot);

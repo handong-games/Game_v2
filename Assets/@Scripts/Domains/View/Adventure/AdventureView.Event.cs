@@ -12,6 +12,7 @@ namespace Domains.Adventure
             AdventureEvents.CardsDrawn += OnCardsDrawn;
             AdventureEvents.TurnBannerRequested += OnTurnBannerRequested;
             _pouch.Clicked += OnPouchClicked;
+            _endTurnWidget.Clicked += OnEndTurnClicked;
         }
 
         private void UnregisterEvents()
@@ -20,6 +21,7 @@ namespace Domains.Adventure
             AdventureEvents.CardsDrawn -= OnCardsDrawn;
             AdventureEvents.TurnBannerRequested -= OnTurnBannerRequested;
             _pouch.Clicked -= OnPouchClicked;
+            _endTurnWidget.Clicked -= OnEndTurnClicked;
         }
 
         private void OnAdventureStarted()
@@ -56,6 +58,13 @@ namespace Domains.Adventure
                 _coinStatusWidget.Add);
 
             await _skillSlotWidget.Show();
+            await _endTurnWidget.Show();
+        }
+
+        private void OnEndTurnClicked()
+        {
+            _controller.OnEndTurnClicked();
+            _endTurnWidget.Hide();
         }
     }
 }

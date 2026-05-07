@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">화면 조건 개요</title>
+  <desc id="desc">반응형 레이아웃에 영향을 주는 화면 조건을 공간, 비율, 픽셀, 제약으로 나눈 개요도.</desc>
+
+  <defs>
+    <style>
+      .bg { fill: #f6f7fb; }
+      .title { fill: #111827; font-family: Arial, sans-serif; font-size: 24px; font-weight: 700; }
+      .root { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; }
+      .groupA { fill: #e0f2fe; stroke: #0284c7; stroke-width: 1.8; }
+      .groupB { fill: #ede9fe; stroke: #7c3aed; stroke-width: 1.8; }
+      .groupC { fill: #dcfce7; stroke: #16a34a; stroke-width: 1.8; }
+      .groupD { fill: #fee2e2; stroke: #dc2626; stroke-width: 1.8; }
+      .item { fill: #ffffff; stroke: #94a3b8; stroke-width: 1.2; }
+      .rootText { fill: #0f172a; font-family: Arial, sans-serif; font-size: 18px; font-weight: 700; }
+      .groupText { fill: #0f172a; font-family: Arial, sans-serif; font-size: 16px; font-weight: 700; }
+      .itemText { fill: #334155; font-family: Arial, sans-serif; font-size: 13px; font-weight: 700; }
+      .caption { fill: #475569; font-family: Arial, sans-serif; font-size: 15px; font-weight: 600; }
+      .lineA { stroke: #0284c7; stroke-width: 2; }
+      .lineB { stroke: #7c3aed; stroke-width: 2; }
+      .lineC { stroke: #16a34a; stroke-width: 2; }
+      .lineD { stroke: #dc2626; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="960" height="540" />
+  <text class="title" x="48" y="54">화면 조건 개요</text>
+
+  <rect class="root" x="390" y="86" width="180" height="56" rx="12" />
+  <text class="rootText" x="436" y="120">화면 조건</text>
+
+  <line class="lineA" x1="480" y1="142" x2="230" y2="190" />
+  <line class="lineB" x1="480" y1="142" x2="480" y2="190" />
+  <line class="lineC" x1="480" y1="142" x2="730" y2="190" />
+  <line class="lineD" x1="480" y1="142" x2="480" y2="342" />
+
+  <rect class="groupA" x="110" y="190" width="240" height="64" rx="12" />
+  <text class="groupText" x="212" y="228">공간</text>
+  <rect class="item" x="104" y="286" width="116" height="44" rx="10" />
+  <text class="itemText" x="138" y="313">가로 폭</text>
+  <rect class="item" x="240" y="286" width="116" height="44" rx="10" />
+  <text class="itemText" x="274" y="313">세로 높이</text>
+  <line class="lineA" x1="230" y1="254" x2="162" y2="286" />
+  <line class="lineA" x1="230" y1="254" x2="298" y2="286" />
+
+  <rect class="groupB" x="360" y="190" width="240" height="64" rx="12" />
+  <text class="groupText" x="442" y="228">비율</text>
+  <rect class="item" x="422" y="286" width="116" height="44" rx="10" />
+  <text class="itemText" x="456" y="313">종횡비</text>
+  <line class="lineB" x1="480" y1="254" x2="480" y2="286" />
+
+  <rect class="groupC" x="610" y="190" width="240" height="64" rx="12" />
+  <text class="groupText" x="712" y="228">픽셀</text>
+  <rect class="item" x="604" y="286" width="116" height="44" rx="10" />
+  <text class="itemText" x="638" y="313">해상도</text>
+  <rect class="item" x="740" y="286" width="116" height="44" rx="10" />
+  <text class="itemText" x="761" y="313">픽셀 밀도</text>
+  <line class="lineC" x1="730" y1="254" x2="662" y2="286" />
+  <line class="lineC" x1="730" y1="254" x2="798" y2="286" />
+
+  <rect class="groupD" x="360" y="342" width="240" height="64" rx="12" />
+  <text class="groupText" x="442" y="380">제약</text>
+  <rect class="item" x="286" y="438" width="116" height="44" rx="10" />
+  <text class="itemText" x="316" y="465">Safe Area</text>
+  <rect class="item" x="558" y="438" width="156" height="44" rx="10" />
+  <text class="itemText" x="598" y="465">UI 스케일 기준</text>
+  <line class="lineD" x1="480" y1="406" x2="344" y2="438" />
+  <line class="lineD" x1="480" y1="406" x2="636" y2="438" />
+
+  <text class="caption" x="48" y="514">반응형 레이아웃은 이 화면 조건 변화에 맞춰 구조와 스케일을 조정한다.</text>
+</svg>

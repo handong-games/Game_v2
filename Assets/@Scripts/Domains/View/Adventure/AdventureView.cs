@@ -20,6 +20,8 @@ namespace Domains.Adventure
         private Pouch _pouch;
         private CoinStatusWidget _coinStatusWidget;
         private SkillSlotWidget _skillSlotWidget;
+        private EndTurnWidget _endTurnWidget;
+        private ArrowWidget _arrowWidget;
         private CardDealer _cardDealer;
         private CoinEffectPlayer _coinEffectPlayer;
 
@@ -35,6 +37,8 @@ namespace Domains.Adventure
             _pouch = Root.Q<Pouch>("pouch");
             _coinStatusWidget = Root.Q<CoinStatusWidget>("coin-status-widget");
             _skillSlotWidget = Root.Q<SkillSlotWidget>("skill-slot-widget");
+            _endTurnWidget = Root.Q<EndTurnWidget>("end-turn-widget");
+            _arrowWidget = Root.Q<ArrowWidget>("arrow-widget");
             _skillSlotWidget.Bind(_controller.GetSkillSlots());
 
             _cardDealer = new CardDealer();
@@ -43,11 +47,13 @@ namespace Domains.Adventure
             _coinEffectPlayer = new CoinEffectPlayer();
             _coinEffectPlayer.Bind(_effectLayer);
 
+            RegisterTargetingEvents();
             RegisterEvents();
         }
 
         public override void Dispose()
         {
+            UnregisterTargetingEvents();
             UnregisterEvents();
             _cardDealer?.Clear();
             _coinEffectPlayer?.Clear();

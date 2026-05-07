@@ -25,6 +25,10 @@ namespace Domains.Adventure
             return _playerService.OpenPouch();
         }
 
+        public void OnEndTurnClicked()
+        {
+        }
+
         public IReadOnlyList<CharacterSkillModel> GetSkillSlots()
         {
             return _playerService.CurrentPlayer.SkillSlots;

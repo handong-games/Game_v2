@@ -45,6 +45,7 @@ namespace Domains.Adventure
 
             VisualElement slot = CreateSlot(index, clampedTotalCount);
             VisualElement card = CreatePlaceholderCard(cardState, index);
+            PrepareCardBeforeLayout(card);
 
             slot.Add(card);
             area.Add(slot);
@@ -147,6 +148,12 @@ namespace Domains.Adventure
                 "card-board__placeholder-face"));
 
             return card;
+        }
+
+        private static void PrepareCardBeforeLayout(VisualElement card)
+        {
+            card.style.opacity = 0f;
+            card.style.scale = new Scale(new Vector2(StartScale, StartScale));
         }
 
         private static Label CreatePlaceholderLabel(string name, string text, string className)

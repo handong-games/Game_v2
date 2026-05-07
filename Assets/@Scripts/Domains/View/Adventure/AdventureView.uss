@@ -89,3 +89,9 @@
     height: 128px;
     margin-top: 16px;
 }
+
+.adventure-view__end-turn-widget {
+    position: absolute;
+    right: 48px;
+    bottom: 44px;
+}

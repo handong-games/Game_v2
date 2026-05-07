@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
+    <widgets:EndTurnWidget name="end-turn-widget" class="end-turn-widget ui-transition--hidden ui-transition--from-bottom" picking-mode="Ignore" focusable="false">
+        <ui:Label name="end-turn-label" text="END TURN" class="end-turn-widget__label" picking-mode="Ignore"/>
+        <ui:Button name="end-turn-button" text="CONFIRM" class="end-turn-widget__button"/>
+    </widgets:EndTurnWidget>
+</ui:UXML>
