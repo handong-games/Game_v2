@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Game.Data;
 using Game.Core.Managers.View;
+using Game.Data;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
@@ -19,7 +19,6 @@ namespace Domains.View.Widgets
         private const string SkillTypeAttackClass = "skill-slot--type-attack";
         private const string SkillTypeDefenseClass = "skill-slot--type-defense";
         private const string SkillTypeUtilityClass = "skill-slot--type-utility";
-
         private readonly List<VisualElement> _slots = new();
         private readonly List<VisualElement> _icons = new();
         private readonly List<Label> _fallbackNames = new();
@@ -29,16 +28,29 @@ namespace Domains.View.Widgets
 
         public IReadOnlyList<VisualElement> Slots => _slots;
 
-        public void Bind(IReadOnlyList<CharacterSkillModel> skills)
+        public void Bind(IReadOnlyList<SkillSlotViewModel> skillSlots)
         {
-            int count = skills?.Count ?? 0;
+            int count = skillSlots?.Count ?? 0;
             EnsureSlotCount(count);
 
             for (int i = 0; i < _slots.Count; i++)
             {
                 bool visible = i < count;
-                CharacterSkillModel skill = visible ? skills[i] : null;
-                BindSlot(i, skill, visible);
+                SkillSlotViewModel skillSlot = visible ? skillSlots[i] : default;
+                BindSlot(i, skillSlot, visible);
+            }
+        }
+
+        public void BindV2(IReadOnlyList<SkillSlotViewModelV2> skillSlots)
+        {
+            int count = skillSlots?.Count ?? 0;
+            EnsureSlotCount(count);
+
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                bool visible = i < count;
+                SkillSlotViewModelV2 skillSlot = visible ? skillSlots[i] : default;
+                BindSlotV2(i, skillSlot, visible);
             }
         }
 
@@ -83,9 +95,10 @@ namespace Domains.View.Widgets
             _fallbackNames.Add(slot.Q<Label>("skill-slot-fallback-name"));
         }
 
-        private void BindSlot(int index, CharacterSkillModel skill, bool visible)
+        private void BindSlot(int index, SkillSlotViewModel skillSlot, bool visible)
         {
             VisualElement slot = _slots[index];
+            slot.userData = visible ? (object)skillSlot.SlotIndex : null;
             slot.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
             slot.RemoveFromClassList(SlotEmptyClass);
             slot.RemoveFromClassList(SkillTypeAttackClass);
@@ -109,25 +122,68 @@ namespace Domains.View.Widgets
             if (!visible)
                 return;
 
-            if (skill == null)
+            if (skillSlot.IsEmpty)
             {
                 slot.AddToClassList(SlotEmptyClass);
                 return;
             }
 
-            slot.AddToClassList(GetSkillTypeClass(skill.SkillType));
+            slot.AddToClassList(GetSkillTypeClass(skillSlot.SkillType));
 
-            if (skill.Icon != null && icon != null)
+            if (skillSlot.Icon != null && icon != null)
             {
                 icon.style.display = DisplayStyle.Flex;
-                icon.style.backgroundImage = new StyleBackground(Background.FromSprite(skill.Icon));
+                icon.style.backgroundImage = new StyleBackground(Background.FromSprite(skillSlot.Icon));
                 return;
             }
 
             if (fallbackName != null)
             {
                 fallbackName.style.display = DisplayStyle.Flex;
-                fallbackName.text = skill.Name ?? string.Empty;
+                fallbackName.text = skillSlot.Name ?? string.Empty;
+            }
+        }
+
+        private void BindSlotV2(int index, SkillSlotViewModelV2 skillSlot, bool visible)
+        {
+            VisualElement slot = _slots[index];
+            slot.userData = null;
+            slot.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+            slot.RemoveFromClassList(SlotEmptyClass);
+            slot.RemoveFromClassList(SkillTypeAttackClass);
+            slot.RemoveFromClassList(SkillTypeDefenseClass);
+            slot.RemoveFromClassList(SkillTypeUtilityClass);
+
+            VisualElement icon = _icons[index];
+            if (icon != null)
+            {
+                icon.style.display = DisplayStyle.None;
+                icon.style.backgroundImage = StyleKeyword.Null;
+            }
+
+            Label fallbackName = _fallbackNames[index];
+            if (fallbackName != null)
+            {
+                fallbackName.style.display = DisplayStyle.None;
+                fallbackName.text = string.Empty;
+            }
+
+            if (!visible)
+                return;
+
+            slot.AddToClassList(SkillTypeAttackClass);
+
+            if (skillSlot.Icon != null && icon != null)
+            {
+                icon.style.display = DisplayStyle.Flex;
+                icon.style.backgroundImage = new StyleBackground(Background.FromSprite(skillSlot.Icon));
+                return;
+            }
+
+            if (fallbackName != null)
+            {
+                fallbackName.style.display = DisplayStyle.Flex;
+                fallbackName.text = skillSlot.Name?.GetLocalizedString() ?? string.Empty;
             }
         }
 

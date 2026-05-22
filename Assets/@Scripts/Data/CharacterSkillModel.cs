@@ -23,6 +23,9 @@ namespace Game.Data
         private int _costTails;
 
         [SerializeField]
+        private bool _requiresTarget = true;
+
+        [SerializeField]
         private SkillEffect[] _effects;
 
         [SerializeField]
@@ -39,6 +42,7 @@ namespace Game.Data
         public string Description => _description;
         public int CostHeads => _costHeads;
         public int CostTails => _costTails;
+        public bool RequiresTarget => _requiresTarget;
         public SkillEffect[] Effects => _effects;
         public EffectSO[] SpecialEffects => _specialEffects;
         public int MaxPerTurn => _maxPerTurn;

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">UI Toolkit font reference result</title>
+  <desc id="desc">A minimal developer-facing visual result showing a font asset applied to labels with normal, bold, and italic styles on an existing screen.</desc>
+
+  <defs>
+    <style>
+      .bg { fill: #f6f7fb; }
+      .document { fill: #ffffff; stroke: #334155; stroke-width: 2.5; }
+      .screen { fill: #eff6ff; stroke: #2563eb; stroke-width: 2.5; }
+      .panel { fill: #ffffff; stroke: #93c5fd; stroke-width: 2; }
+      .row { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 1.5; }
+      .title { fill: #111827; font-family: Arial, sans-serif; font-size: 22px; font-weight: 700; }
+      .screen-label { fill: #1e3a8a; font-family: Arial, sans-serif; font-size: 20px; font-weight: 700; }
+      .value { fill: #475569; font-family: Arial, sans-serif; font-size: 15px; font-weight: 600; }
+      .label-normal { fill: #111827; font-family: Georgia, serif; font-size: 26px; font-weight: 700; }
+      .label-bold { fill: #111827; font-family: Georgia, serif; font-size: 26px; font-weight: 700; }
+      .label-italic { fill: #111827; font-family: Georgia, serif; font-size: 26px; font-style: italic; font-weight: 700; }
+      .caption { fill: #2563eb; font-family: Arial, sans-serif; font-size: 16px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="960" height="540" />
+
+  <text class="title" x="48" y="52">UIDocument</text>
+
+  <rect class="document" x="48" y="72" width="864" height="420" rx="10" />
+  <rect class="screen" x="48" y="72" width="864" height="420" rx="10" />
+
+  <text class="screen-label" x="84" y="110">Existing Screen</text>
+
+  <rect class="panel" x="160" y="150" width="640" height="250" rx="12" />
+
+  <rect class="row" x="200" y="190" width="560" height="56" rx="8" />
+  <text class="value" x="224" y="224">Font Asset + normal</text>
+  <text class="label-normal" x="520" y="226">Sample Text</text>
+
+  <rect class="row" x="200" y="262" width="560" height="56" rx="8" />
+  <text class="value" x="224" y="296">Font Asset + bold</text>
+  <text class="label-bold" x="520" y="298">Sample Text</text>
+
+  <rect class="row" x="200" y="334" width="560" height="56" rx="8" />
+  <text class="value" x="224" y="368">Font Asset + italic</text>
+  <text class="label-italic" x="520" y="370">Sample Text</text>
+
+  <text class="caption" x="200" y="438">font asset and font style applied with USS</text>
+</svg>

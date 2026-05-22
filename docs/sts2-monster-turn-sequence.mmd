@@ -1,0 +1,65 @@
+sequenceDiagram
+    participant View as Combat/Adventure View
+    participant Controller as Controller
+    participant CombatMgr as CombatManager
+    participant CombatState as CombatState
+    participant Creature as Creature
+    participant Monster as MonsterModel
+    participant MoveSM as MonsterMoveStateMachine
+    participant Move as MoveState
+
+    Note over CombatMgr,Monster: Combat starts
+
+    CombatMgr->>CombatState: AddCreature(monster creature)
+    CombatMgr->>Monster: SetUpForCombat()
+    Monster->>Monster: GenerateMoveStateMachine()
+    Monster->>MoveSM: create
+    Monster-->>CombatMgr: MoveStateMachine ready
+
+    Note over CombatMgr,Monster: Player turn starts and enemy intent is prepared
+
+    CombatMgr->>CombatMgr: StartTurn()
+    CombatMgr->>CombatState: CurrentSide == Player?
+    CombatMgr->>CombatState: Enemies
+    loop each enemy
+        CombatMgr->>Creature: PrepareForNextTurn(playerCreatures)
+        Creature->>Monster: RollMove(targets)
+        Monster->>MoveSM: RollMove(targets, creature, rng)
+        MoveSM-->>Monster: MoveState
+        Monster->>Monster: NextMove = rolled move
+        Creature->>View: RefreshIntents()
+    end
+
+    Note over View,Monster: Player acts after reading intents
+
+    View->>Controller: EndTurn clicked
+    Controller->>CombatMgr: SetReadyToEndTurn(player)
+
+    CombatMgr->>CombatMgr: AfterAllPlayersReadyToEndTurn()
+    CombatMgr->>CombatMgr: EndPlayerTurnPhaseOneInternal()
+    CombatMgr->>CombatMgr: EndPlayerTurnPhaseTwoInternal()
+    CombatMgr->>CombatMgr: SwitchFromPlayerToEnemySide()
+    CombatMgr->>CombatState: CurrentSide = Enemy
+    CombatMgr->>CombatMgr: StartTurn()
+
+    Note over CombatMgr,Monster: Enemy turn executes the prepared move
+
+    CombatMgr->>CombatMgr: ExecuteEnemyTurn()
+    CombatMgr->>CombatState: Enemies
+    loop each enemy
+        CombatMgr->>View: PerformIntent()
+        CombatMgr->>Creature: TakeTurn()
+        Creature->>Monster: PerformMove()
+        Monster->>Monster: move = NextMove
+        Monster->>CombatState: PlayerCreatures
+        Monster->>Move: PerformMove(targets)
+        Move-->>CombatState: damage / block / buff / debuff
+        Monster->>MoveSM: OnMovePerformed(move)
+        Monster->>CombatMgr: History.MonsterPerformedMove(...)
+    end
+
+    CombatMgr->>CombatMgr: EndEnemyTurn()
+    CombatMgr->>CombatMgr: SwitchSides()
+    CombatMgr->>CombatState: CurrentSide = Player
+    CombatMgr->>CombatState: RoundNumber++
+    CombatMgr->>CombatMgr: StartTurn()

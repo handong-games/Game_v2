@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: Character_Mage
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterModel
   _name: Mage
+  _ownedTags: []
+  _front: {fileID: 11400000, guid: 26b657f1a1122804c8d70dc63ca39eae, type: 2}
+  _back: {fileID: 11400000, guid: 2304b67d41d836448895606f9230bf33, type: 2}
   _localizedName:
     m_TableReference:
       m_TableCollectionName: CharacterNames
@@ -25,4 +28,9 @@ MonoBehaviour:
   _portrait: {fileID: 0}
   _coinCount: 140
   _maxHp: 58
+  _defaultSkillSlotCount: 4
+  _maxSkillSlotCount: 8
   _defaultSkills: []
+  references:
+    version: 2
+    RefIds: []

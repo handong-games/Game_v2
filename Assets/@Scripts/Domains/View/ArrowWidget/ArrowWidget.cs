@@ -28,10 +28,12 @@ namespace Domains.View.Widgets
         private readonly float[] _bodyWidths = new float[MaxBodySegments];
         private readonly float[] _bodyHeights = new float[MaxBodySegments];
         private readonly float[] _visibleLengths = new float[MaxBodySegments];
+        private readonly bool[] _bodySegmentVisible = new bool[MaxBodySegments];
         private readonly VisualElement _head;
 
         private Vector2 _origin;
         private bool _isShown;
+        private bool _headVisible;
 
         private readonly int _segmentCount = 8;
         private readonly float _curveHeight = 0.35f;
@@ -45,7 +47,7 @@ namespace Domains.View.Widgets
         public ArrowWidget()
         {
             pickingMode = PickingMode.Ignore;
-            usageHints = UsageHints.DynamicTransform;
+            usageHints = UsageHints.GroupTransform;
 
             style.position = Position.Absolute;
             style.left = 0f;
@@ -67,6 +69,8 @@ namespace Domains.View.Widgets
             _head = CreateImageElement("arrow-widget-head", _headTexture);
             _head.AddToClassList("arrow-widget__head");
             Add(_head);
+
+            InitializeGeometry();
             SetArrowVisible(false);
         }
 
@@ -120,6 +124,7 @@ namespace Domains.View.Widgets
 
             element.style.position = Position.Absolute;
             element.style.transformOrigin = new TransformOrigin(Length.Percent(50), Length.Percent(50), 0f);
+            element.style.display = DisplayStyle.None;
 
             if (texture != null)
                 element.style.backgroundImage = new StyleBackground(texture);
@@ -138,8 +143,6 @@ namespace Domains.View.Widgets
                 return;
             }
 
-            SetArrowVisible(true);
-
             float curveMagnitude = Mathf.Max(distance * _curveHeight, _minCurveHeight);
             Vector2 mid = (origin + target) * 0.5f;
             Vector2 controlPoint = mid + new Vector2(0f, -curveMagnitude);
@@ -155,28 +158,6 @@ namespace Domains.View.Widgets
             float bodyEndDistance = totalCurveLength * bodyEndT;
             float availableBodyLength = Mathf.Max(1f, bodyEndDistance - bodyStartDistance);
 
-            for (int i = 0; i < activeSegments; i++)
-            {
-                float ratio = activeSegments == 1 ? 1f : i / (activeSegments - 1f);
-                float curvedRatio = Mathf.Pow(ratio, 1.08f);
-                float sizeBoost = i == activeSegments - 2 ? 1.14f : i == activeSegments - 1 ? 1.22f : 1f;
-
-                _bodyWidths[i] = Mathf.Lerp(_bodyWidthStart, _bodyWidthEnd, curvedRatio) * sizeBoost;
-                _bodyHeights[i] = _bodyWidths[i] * _bodyAspect;
-                _visibleLengths[i] = _bodyHeights[i] * BodyContentHeightNormalized;
-
-                if (i == 0)
-                {
-                    _rawCenters[i] = _visibleLengths[i] * 0.5f;
-                    continue;
-                }
-
-                float spacingRatio = activeSegments <= 1 ? 1f : i / (activeSegments - 1f);
-                float spacingFactor = Mathf.Lerp(SegmentSpacingStartFactor, SegmentSpacingEndFactor, spacingRatio);
-                float spacing = (_visibleLengths[i - 1] + _visibleLengths[i]) * 0.5f * spacingFactor;
-                _rawCenters[i] = _rawCenters[i - 1] + spacing;
-            }
-
             float rawMin = _rawCenters[0] - _visibleLengths[0] * 0.5f;
             float rawMax = _rawCenters[activeSegments - 1] + _visibleLengths[activeSegments - 1] * 0.5f;
             float rawSpan = Mathf.Max(1f, rawMax - rawMin);
@@ -190,6 +171,8 @@ namespace Domains.View.Widgets
                     continue;
                 }
 
+                SetBodySegmentVisible(i, true);
+
                 float centerDistance = bodyStartDistance + (_rawCenters[i] - rawMin) * fitScale;
                 Vector2 position = EvaluateCurvePointAtDistance(_curvePoints, _curveLengths, centerDistance);
                 Vector2 tangent = EvaluateCurveTangentAtDistance(_curvePoints, _curveLengths, centerDistance).normalized;
@@ -197,46 +180,96 @@ namespace Domains.View.Widgets
                 PlaceElement(
                     _bodySegments[i],
                     position,
-                    _bodyWidths[i],
-                    _bodyHeights[i],
                     Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg - 180f);
             }
 
             Vector2 headTangent = EvaluateCurveTangentAtDistance(_curvePoints, _curveLengths, totalCurveLength).normalized;
             Vector2 headAnchor = target - headTangent * (_headHeight * (HeadTipOffsetNormalized + HeadExtraBackOverlapNormalized));
 
+            SetHeadVisible(true);
+
             PlaceElement(
                 _head,
                 headAnchor,
-                _headWidth,
-                _headHeight,
                 Mathf.Atan2(headTangent.y, headTangent.x) * Mathf.Rad2Deg + 90f);
+        }
+
+        private void InitializeGeometry()
+        {
+            int activeSegments = Mathf.Clamp(_segmentCount, 4, MaxBodySegments);
+
+            for (int i = 0; i < activeSegments; i++)
+            {
+                float ratio = activeSegments == 1 ? 1f : i / (activeSegments - 1f);
+                float curvedRatio = Mathf.Pow(ratio, 1.08f);
+                float sizeBoost = i == activeSegments - 2 ? 1.14f : i == activeSegments - 1 ? 1.22f : 1f;
+
+                _bodyWidths[i] = Mathf.Lerp(_bodyWidthStart, _bodyWidthEnd, curvedRatio) * sizeBoost;
+                _bodyHeights[i] = _bodyWidths[i] * _bodyAspect;
+                _visibleLengths[i] = _bodyHeights[i] * BodyContentHeightNormalized;
+
+                if (i == 0)
+                {
+                    _rawCenters[i] = _visibleLengths[i] * 0.5f;
+                }
+                else
+                {
+                    float spacingRatio = activeSegments <= 1 ? 1f : i / (activeSegments - 1f);
+                    float spacingFactor = Mathf.Lerp(SegmentSpacingStartFactor, SegmentSpacingEndFactor, spacingRatio);
+                    float spacing = (_visibleLengths[i - 1] + _visibleLengths[i]) * 0.5f * spacingFactor;
+                    _rawCenters[i] = _rawCenters[i - 1] + spacing;
+                }
+
+                SetElementGeometry(_bodySegments[i], _bodyWidths[i], _bodyHeights[i]);
+            }
+
+            SetElementGeometry(_head, _headWidth, _headHeight);
         }
 
         private void SetArrowVisible(bool visible)
         {
-            DisplayStyle display = visible ? DisplayStyle.Flex : DisplayStyle.None;
-
-            foreach (VisualElement segment in _bodySegments)
+            for (int i = 0; i < MaxBodySegments; i++)
             {
-                segment.style.display = display;
+                SetBodySegmentVisible(i, visible);
             }
 
-            _head.style.display = display;
+            SetHeadVisible(visible);
+        }
+
+        private void SetBodySegmentVisible(int index, bool visible)
+        {
+            if (_bodySegmentVisible[index] == visible)
+                return;
+
+            _bodySegmentVisible[index] = visible;
+            _bodySegments[index].style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        private void SetHeadVisible(bool visible)
+        {
+            if (_headVisible == visible)
+                return;
+
+            _headVisible = visible;
+            _head.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        private static void SetElementGeometry(VisualElement element, float width, float height)
+        {
+            element.style.width = width;
+            element.style.height = height;
+            element.style.left = -width * 0.5f;
+            element.style.top = -height * 0.5f;
         }
 
         private static void PlaceElement(
             VisualElement element,
             Vector2 center,
-            float width,
-            float height,
             float angleDegrees)
         {
-            element.style.display = DisplayStyle.Flex;
-            element.style.width = width;
-            element.style.height = height;
-            element.style.left = center.x - width * 0.5f;
-            element.style.top = center.y - height * 0.5f;
+            element.style.translate = new Translate(
+                new Length(center.x, LengthUnit.Pixel),
+                new Length(center.y, LengthUnit.Pixel));
             element.style.rotate = new StyleRotate(new Rotate(angleDegrees));
         }
 

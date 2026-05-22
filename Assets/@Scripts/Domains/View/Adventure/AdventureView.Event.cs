@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Domains.Event;
 using Domains.Player;
 
@@ -10,6 +9,7 @@ namespace Domains.Adventure
         {
             AdventureEvents.AdventureStarted += OnAdventureStarted;
             AdventureEvents.CardsDrawn += OnCardsDrawn;
+            AdventureEvents.BoardChanged += OnBoardChanged;
             AdventureEvents.TurnBannerRequested += OnTurnBannerRequested;
             _pouch.Clicked += OnPouchClicked;
             _endTurnWidget.Clicked += OnEndTurnClicked;
@@ -19,6 +19,7 @@ namespace Domains.Adventure
         {
             AdventureEvents.AdventureStarted -= OnAdventureStarted;
             AdventureEvents.CardsDrawn -= OnCardsDrawn;
+            AdventureEvents.BoardChanged -= OnBoardChanged;
             AdventureEvents.TurnBannerRequested -= OnTurnBannerRequested;
             _pouch.Clicked -= OnPouchClicked;
             _endTurnWidget.Clicked -= OnEndTurnClicked;
@@ -27,16 +28,6 @@ namespace Domains.Adventure
         private void OnAdventureStarted()
         {
             _ = PlayIntroAnimation();
-        }
-
-        private async void OnCardsDrawn(IReadOnlyList<CardState> cards)
-        {
-            if (_cardDealer == null)
-                return;
-
-            await _cardDealer.DealAsync(cards);
-
-            AdventureEvents.CardDealCompleted?.Invoke();
         }
 
         private async void OnTurnBannerRequested()
@@ -57,7 +48,7 @@ namespace Domains.Adventure
                 _coinStatusWidget.GetTarget(ECoinFace.Tails),
                 _coinStatusWidget.Add);
 
-            await _skillSlotWidget.Show();
+            await ShowSkillSlots();
             await _endTurnWidget.Show();
         }
 

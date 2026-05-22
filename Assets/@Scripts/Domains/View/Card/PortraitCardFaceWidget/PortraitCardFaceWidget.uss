@@ -1,0 +1,42 @@
+.portrait-card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.portrait-card .card__frame {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("project://database/Assets/@Resources/Cards/card-frame.png?fileID=2636098505404031755&guid=a26aa20ed97d89b4c8b453255f186057&type=3#frame-player_0");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.portrait-card .card__portrait {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 183px;
+    height: 220px;
+    translate: -50% -50%;
+    opacity: 0.78;
+    -unity-background-scale-mode: scale-to-fit;
+    transition-property: opacity;
+    transition-duration: var(--motion-duration-fast-120ms);
+    transition-timing-function: ease-out;
+}
+
+.portrait-card .card__front-name {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 22px;
+    min-height: 28px;
+    color: rgb(82, 50, 38);
+    -unity-font-style: bold;
+    font-size: 18px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}

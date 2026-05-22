@@ -13,8 +13,10 @@ namespace Domains.Event
     {
         public static Action AdventureStarted;
         public static Action IntroCompleted;
-        public static Action<IReadOnlyList<CardState>> CardsDrawn;
+        public static Action<CardBoardViewModel> CardsDrawn;
+        public static Action<CardBoardViewModel> BoardChanged;
         public static Action CardDealCompleted;
         public static Action TurnBannerRequested;
+        public static Action StageCompleted;
     }
 }

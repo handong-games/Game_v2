@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
+    <Style src="project://database/Assets/@Scripts/Domains/View/HealthWidget/HealthWidget.uss?fileID=7433441132597879392&amp;guid=9ce742e2a19e437e94f7107a91dfd104&amp;type=3#HealthWidget"/>
+
+    <widgets:HealthWidget name="health-widget" class="health-widget ui-transition--hidden ui-transition--from-bottom" picking-mode="Ignore">
+        <ui:VisualElement name="health-widget-background" class="health-widget__background" picking-mode="Ignore"/>
+        <ui:VisualElement name="health-widget-mask" class="health-widget__mask" picking-mode="Ignore"/>
+        <ui:VisualElement name="health-widget-fill-clip" class="health-widget__fill-clip" picking-mode="Ignore">
+            <ui:VisualElement name="health-widget-fill" class="health-widget__fill" picking-mode="Ignore"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="health-widget-damage-preview" class="health-widget__damage-preview ui-hidden" picking-mode="Ignore"/>
+        <ui:VisualElement name="health-widget-stroke" class="health-widget__stroke" picking-mode="Ignore"/>
+        <ui:Label name="health-widget-text" text="34 / 50" class="health-widget__text" picking-mode="Ignore"/>
+        <ui:Label name="health-widget-damage-preview-text" text="-0" class="health-widget__damage-preview-text ui-hidden" picking-mode="Ignore"/>
+    </widgets:HealthWidget>
+</ui:UXML>

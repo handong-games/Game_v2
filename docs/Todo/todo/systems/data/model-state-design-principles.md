@@ -1,15 +1,15 @@
 # Unity Model / State 데이터 설계 원칙
 
 ## 현재 상태
-- 구현된 것: `ScriptableObject` 기반 Model과 런타임 State가 일부 존재한다.
+- 구현된 것: `ScriptableObject` 기반 Model과 런타임 State/Runtime Object 분리가 일부 적용되었다.
 - 관련 파일:
-  - `Assets/@Scripts/Data/AbstractModel.cs`
+  - `Assets/@Scripts/Data/CardModel.cs`
+  - `Assets/@Scripts/Data/CardFaceModel.cs`
   - `Assets/@Scripts/Data/CharacterModel.cs`
   - `Assets/@Scripts/Data/MonsterModel.cs`
-  - `Assets/@Scripts/Data/RegionModel.cs`
-  - `Assets/@Scripts/Data/StageModel.cs`
   - `Assets/@Scripts/Domains/Adventure/AdventureSession.cs`
-  - `Assets/@Scripts/Domains/Run/StageState.cs`
+  - `Assets/@Scripts/Domains/Card/Card.cs`
+  - `Assets/@Scripts/Domains/Card/CardBoardService.cs`
 
 ## 목적
 Unity 데이터 설계에서 `Model`과 `State`를 왜 나누는지 설명하고, 새 데이터가 생겼을 때 어떤 기준으로 역할을 분리할지 판단할 수 있게 한다.
@@ -161,11 +161,16 @@ MonsterState
 - CurrentHp
 - Buffs
 
-StageState
-- StageId
-- RemainingMonsterIds
-- RemainingEventIds
-- StageNumber
+Card
+- CardId
+- Face
+- Model
+
+AdventureSession
+- SelectedCharacterId
+- CardDeckId
+- Seed
+- CurrentStage
 ```
 
 ### Presentation Data
@@ -249,8 +254,8 @@ CardViewData
   https://learn.microsoft.com/en-us/azure/architecture/microservices/model/tactical-domain-driven-design
 
 ## 할 일
-- [ ] 현재 `CharacterModel`, `MonsterModel`, `RegionModel`, `StageModel`을 이 기준으로 다시 검토한다 — Done: 각 필드가 Content / Rule / State / Presentation 중 어디에 속하는지 분류됨
-- [ ] 현재 `AdventureSession`, `StageState`를 이 기준으로 다시 검토한다 — Done: 각 State가 런타임 변화값만 가지는지 확인됨
+- [ ] 현재 `CharacterModel`, `MonsterModel`, `CardModel`을 이 기준으로 다시 검토한다 — Done: 각 필드가 Content / Rule / State / Presentation 중 어디에 속하는지 분류됨
+- [ ] 현재 `AdventureSession`, `Card`, `CardBoardService`를 이 기준으로 다시 검토한다 — Done: 런타임 변화값과 위치 관리 책임이 분리되도록 정리됨
 - [ ] RuleModel 분리 후보를 표시한다 — Done: 아직 구현하지 않고 후보 목록만 정리됨
 
 ## 의존성

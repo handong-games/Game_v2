@@ -6,8 +6,10 @@ using UnityEngine.Localization;
 namespace Game.Data
 {
     [CreateAssetMenu(menuName = "Game/Data/Character")]
-    public sealed class CharacterModel : AbstractModel<ECharacter>, ICardModel
+    public sealed class CharacterModel : CardModel<ECharacter>, ICombatModel
     {
+        private IReadOnlyList<GameplayTagReference> _runtimeOwnedTags;
+
         [SerializeField]
         private LocalizedString _localizedName;
 
@@ -31,6 +33,12 @@ namespace Game.Data
 
         public LocalizedString LocalizedName => _localizedName;
         public Sprite Portrait => _portrait;
+        public override IReadOnlyList<GameplayTagReference> OwnedTags => _runtimeOwnedTags ??=
+            CardGameplayTags.Combine(
+                base.OwnedTags,
+                CardGameplayTags.KindPlayerName,
+                CardGameplayTags.CombatantName,
+                CardGameplayTags.TargetableName);
         public int CoinCount => _coinCount;
         public int MaxHp => _maxHp;
         public int DefaultSkillSlotCount => _defaultSkillSlotCount;

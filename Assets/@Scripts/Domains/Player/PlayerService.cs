@@ -8,16 +8,20 @@ using UnityRandom = Unity.Mathematics.Random;
 
 namespace Domains.Player
 {
+    using Card = global::Domains.Card.Card;
+
     [Dependency]
     public sealed class PlayerService : IDisposable
     {
         private UnityRandom _coinRandom;
+        private Card _currentPlayerCard;
 
         public PlayerState CurrentPlayer { get; private set; }
 
         public void Initialize(CharacterModel character, uint seed)
         {
             CurrentPlayer = CreatePlayerState(character);
+            _currentPlayerCard = null;
             _coinRandom = new UnityRandom(RandomUtility.CombineSeed(seed, "Coin"));
         }
 
@@ -38,6 +42,17 @@ namespace Domains.Player
         public void Dispose()
         {
             CurrentPlayer = null;
+            _currentPlayerCard = null;
+        }
+
+        public void SetPlayerCard(Card card)
+        {
+            _currentPlayerCard = card;
+        }
+
+        public Card GetPlayerCard()
+        {
+            return _currentPlayerCard;
         }
 
         private static PlayerState CreatePlayerState(CharacterModel character)

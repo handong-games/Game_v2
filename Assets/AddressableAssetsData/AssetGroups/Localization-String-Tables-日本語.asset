@@ -15,14 +15,32 @@ MonoBehaviour:
   m_GroupName: "Localization-String-Tables-\u65E5\u672C\u8A9E"
   m_GUID: edd27b1605f690c4d8a52fe86d663d1a
   m_SerializeEntries:
-  - m_GUID: 5de57f48020e4cb18bc9c16a24ac9958
-    m_Address: CharacterNames_ja-JP
+  - m_GUID: 0cd5d938a84fd22479baf6989e4ae366
+    m_Address: SettingsView_ja-JP
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-ja-JP
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0ed6f113de854153836669297e3095aa
     m_Address: MonsterNames_ja-JP
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ja-JP
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 29fbc8acbe5995e438c7150c0128b312
+    m_Address: CharacterSelectView_ja-JP
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ja-JP
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 499bc6ddc3f6a2d44889bd50c0b54c0f
+    m_Address: TitleView_ja-JP
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ja-JP
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5de57f48020e4cb18bc9c16a24ac9958
+    m_Address: CharacterNames_ja-JP
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-ja-JP

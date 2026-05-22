@@ -18,7 +18,9 @@ namespace Game.Core.Managers.DB
         public CharacterTable Character { get; private set; }
         public CharacterSkillTable CharacterSkill { get; private set; }
         public AdventureTable Adventure { get; private set; }
+        public CardTable Card { get; private set; }
         public CardDeckTable CardDeck { get; private set; }
+        public MonsterTable Monster { get; private set; }
 
         protected override void OnInit()
         {
@@ -28,7 +30,9 @@ namespace Game.Core.Managers.DB
             Character = assets.OfType<CharacterTable>().First();
             CharacterSkill = assets.OfType<CharacterSkillTable>().First();
             Adventure = assets.OfType<AdventureTable>().First();
+            Card = assets.OfType<CardTable>().First();
             CardDeck = assets.OfType<CardDeckTable>().First();
+            Monster = assets.OfType<MonsterTable>().First();
         }
 
         protected override void OnDispose()
@@ -36,7 +40,9 @@ namespace Game.Core.Managers.DB
             Character = null;
             CharacterSkill = null;
             Adventure = null;
+            Card = null;
             CardDeck = null;
+            Monster = null;
 
             if (_tableHandle.IsValid())
             {

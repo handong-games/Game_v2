@@ -1,0 +1,11 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
+    <Style src="project://database/Assets/@Scripts/Domains/View/Common/CardWidget.uss?fileID=7433441132597879392&amp;guid=70e27cadb94c4ef3b614f3c8dc3f1ab5&amp;type=3#CardWidget"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/Card/LockedCardFaceWidget/LockedCardFaceWidget.uss?fileID=7433441132597879392&amp;guid=a76c4ac5dec44fdf98b6f3cc0123eeee&amp;type=3#LockedCardFaceWidget"/>
+    <widgets:LockedCardFaceWidget name="locked-card" class="locked-card" picking-mode="Ignore">
+        <ui:VisualElement name="card-body" class="card__body" picking-mode="Ignore">
+            <ui:VisualElement name="card-frame" class="card__frame" picking-mode="Ignore"/>
+            <ui:VisualElement name="card-overlay" class="card__overlay" picking-mode="Ignore"/>
+            <ui:VisualElement name="card-lock" class="card__lock" picking-mode="Ignore"/>
+        </ui:VisualElement>
+    </widgets:LockedCardFaceWidget>
+</ui:UXML>

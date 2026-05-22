@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">가로 폭 조건</title>
+  <desc id="desc">같은 UI가 좁은 가로 폭과 넓은 가로 폭에서 어떻게 다르게 배치되는지를 보여주는 시각 자료.</desc>
+
+  <defs>
+    <style>
+      .bg { fill: #f6f7fb; }
+      .title { fill: #111827; font-family: Arial, sans-serif; font-size: 24px; font-weight: 700; }
+      .frame { fill: #ffffff; stroke: #334155; stroke-width: 2.5; }
+      .screen { fill: #eff6ff; stroke: #2563eb; stroke-width: 2; }
+      .panel { fill: #ffffff; stroke: #93c5fd; stroke-width: 1.5; }
+      .header { fill: #bfdbfe; stroke: #2563eb; stroke-width: 1.5; }
+      .content { fill: #c7d2fe; stroke: #4f46e5; stroke-width: 1.5; }
+      .button { fill: #ddd6fe; stroke: #7c3aed; stroke-width: 1.5; }
+      .label { fill: #1e3a8a; font-family: Arial, sans-serif; font-size: 16px; font-weight: 700; }
+      .text { fill: #0f172a; font-family: Arial, sans-serif; font-size: 12px; font-weight: 700; }
+      .caption { fill: #475569; font-family: Arial, sans-serif; font-size: 15px; font-weight: 600; }
+      .arrow { stroke: #2563eb; stroke-width: 2.5; fill: none; marker-end: url(#arrowHead); }
+    </style>
+    <marker id="arrowHead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb" />
+    </marker>
+  </defs>
+
+  <rect class="bg" width="960" height="540" />
+  <text class="title" x="48" y="54">가로 폭</text>
+
+  <rect class="frame" x="64" y="96" width="392" height="360" rx="12" />
+  <text class="label" x="94" y="130">좁은 가로 폭</text>
+  <rect class="screen" x="104" y="154" width="132" height="248" rx="12" />
+  <rect class="panel" x="122" y="178" width="96" height="184" rx="10" />
+  <rect class="header" x="136" y="196" width="68" height="22" rx="6" />
+  <text class="text" x="152" y="211">헤더</text>
+  <rect class="content" x="136" y="236" width="68" height="48" rx="6" />
+  <text class="text" x="152" y="263">콘텐츠</text>
+  <rect class="button" x="136" y="302" width="68" height="22" rx="6" />
+  <text class="text" x="152" y="317">버튼</text>
+  <text class="caption" x="104" y="432">좁은 폭에서는 세로 스택이 안정적이다.</text>
+
+  <path class="arrow" d="M252 274 L312 274" />
+
+  <text class="label" x="332" y="130">넓은 가로 폭</text>
+  <rect class="screen" x="304" y="196" width="118" height="156" rx="12" />
+  <rect class="panel" x="320" y="224" width="86" height="92" rx="10" />
+  <rect class="header" x="332" y="240" width="62" height="18" rx="6" />
+  <text class="text" x="348" y="253">헤더</text>
+  <rect class="content" x="332" y="270" width="26" height="26" rx="6" />
+  <text class="text" x="336" y="286">콘</text>
+  <rect class="button" x="368" y="270" width="26" height="26" rx="6" />
+  <text class="text" x="372" y="286">버</text>
+  <text class="caption" x="304" y="432">넓은 폭에서는 가로 배치 여유가 생긴다.</text>
+
+  <text class="caption" x="64" y="492">가로 폭은 요소의 배치 방향과 공간 분배 방식에 직접 영향을 준다.</text>
+</svg>

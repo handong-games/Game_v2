@@ -1,0 +1,12 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
+    <Style src="project://database/Assets/@Scripts/Domains/View/Common/CardWidget.uss?fileID=7433441132597879392&amp;guid=70e27cadb94c4ef3b614f3c8dc3f1ab5&amp;type=3#CardWidget"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/Card/PortraitCardFaceWidget/PortraitCardFaceWidget.uss?fileID=7433441132597879392&amp;guid=730e4e6bc6b34fe79e402cfb0fb19902&amp;type=3#PortraitCardFaceWidget"/>
+    <widgets:PortraitCardFaceWidget name="portrait-card" class="portrait-card" picking-mode="Ignore">
+        <ui:VisualElement name="card-body" class="card__body" picking-mode="Ignore">
+            <ui:VisualElement name="card-frame" class="card__frame" picking-mode="Ignore"/>
+            <ui:VisualElement name="card-portrait" class="card__portrait" picking-mode="Ignore"/>
+            <ui:Label name="card-front-name" class="card__front-name" picking-mode="Ignore"/>
+            <ui:VisualElement name="card-overlay" class="card__overlay" picking-mode="Ignore"/>
+        </ui:VisualElement>
+    </widgets:PortraitCardFaceWidget>
+</ui:UXML>

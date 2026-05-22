@@ -1,0 +1,14 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
+    <Style src="project://database/Assets/@Scripts/Domains/View/Common/CardWidget.uss?fileID=7433441132597879392&amp;guid=70e27cadb94c4ef3b614f3c8dc3f1ab5&amp;type=3#CardWidget"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/Card/ChoiceCardFaceWidget/ChoiceCardFaceWidget.uss?fileID=7433441132597879392&amp;guid=9a6a9176167349ea8d6b85bad1a57d7a&amp;type=3#ChoiceCardFaceWidget"/>
+    <widgets:ChoiceCardFaceWidget name="choice-card" class="choice-card" picking-mode="Ignore">
+        <ui:VisualElement name="card-body" class="card__body" picking-mode="Ignore">
+            <ui:VisualElement name="card-frame" class="card__frame" picking-mode="Ignore"/>
+            <ui:VisualElement name="choice-card-content" class="choice-card__content" picking-mode="Ignore">
+                <ui:VisualElement name="choice-card-icon" class="choice-card__icon" picking-mode="Ignore"/>
+                <ui:Label name="choice-card-label" class="choice-card__label" picking-mode="Ignore"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="card-overlay" class="card__overlay" picking-mode="Ignore"/>
+        </ui:VisualElement>
+    </widgets:ChoiceCardFaceWidget>
+</ui:UXML>

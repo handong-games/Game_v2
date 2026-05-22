@@ -1,0 +1,107 @@
+.health-widget {
+    --ui-transition-offset-y: var(--ui-transition-offset-y-small-18px);
+    width: 184px;
+    height: 16px;
+    position: relative;
+    overflow: visible;
+}
+
+.health-widget__background {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("project://database/Assets/@Resources/UI/CardHealth/health-bar-bg.png?fileID=2800000&guid=cbfd62af1590451c94c820243860716a&type=3#health-bar-bg");
+    -unity-slice-left: 8;
+    -unity-slice-right: 8;
+    -unity-slice-top: 0;
+    -unity-slice-bottom: 0;
+}
+
+.health-widget__mask {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("project://database/Assets/@Resources/UI/CardHealth/health-bar-mask.png?fileID=2800000&guid=f281c2ffd6db4902b88763e1ebbc158b&type=3#health-bar-mask");
+    -unity-slice-left: 4;
+    -unity-slice-right: 4;
+    -unity-slice-top: 0;
+    -unity-slice-bottom: 0;
+}
+
+.health-widget__fill-clip {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    height: 12px;
+    overflow: hidden;
+}
+
+.health-widget__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 184px;
+    height: 12px;
+    background-image: url("project://database/Assets/@Resources/UI/CardHealth/health-bar-fill.png?fileID=2800000&guid=cd98c520e0e64d119229d9d0182203e7&type=3#health-bar-fill");
+    -unity-background-image-tint-color: rgb(204, 40, 36);
+    -unity-slice-left: 4;
+    -unity-slice-right: 4;
+    -unity-slice-top: 0;
+    -unity-slice-bottom: 0;
+}
+
+.health-widget__stroke {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("project://database/Assets/@Resources/UI/CardHealth/health-bar-stroke.png?fileID=2800000&guid=7d9fc815b8ea4443a7206cf3cf39f144&type=3#health-bar-stroke");
+    -unity-slice-left: 8;
+    -unity-slice-right: 8;
+    -unity-slice-top: 0;
+    -unity-slice-bottom: 0;
+}
+
+.health-widget__damage-preview {
+    position: absolute;
+    top: 2px;
+    height: 12px;
+    background-color: rgba(255, 64, 56, 0.58);
+    border-radius: 999px;
+}
+
+.health-widget__text {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    color: rgb(255, 238, 210);
+    -unity-font-definition: url("project://database/Assets/@Resources/Fonts/Fredoka-Bold.ttf?fileID=12800000&guid=7a7ec8d6fac04e27873622314fce92e6&type=3#Fredoka-Bold");
+    -unity-font-style: bold;
+    font-size: 18px;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 0;
+    -unity-text-outline-color: rgba(0, 0, 0, 0);
+}
+
+.health-widget__damage-preview-text {
+    position: absolute;
+    right: -26px;
+    top: -5px;
+    margin: 0;
+    padding: 0;
+    color: rgb(255, 86, 72);
+    -unity-font-definition: url("project://database/Assets/@Resources/Fonts/Fredoka-Bold.ttf?fileID=12800000&guid=7a7ec8d6fac04e27873622314fce92e6&type=3#Fredoka-Bold");
+    -unity-font-style: bold;
+    font-size: 13px;
+    -unity-text-align: middle-left;
+}

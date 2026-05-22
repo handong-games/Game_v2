@@ -4,6 +4,7 @@
 
 ### data
 - `systems/data/model-state-design-principles.md`: Unity Model과 State를 나누는 이유, AAA식 데이터 분리 의도, Content/Rule/Runtime/Presentation 판단 기준을 정리하는 설계 원칙 문서
+- `systems/data/card-model-gameplay-tags-editor.md`: CardModel의 GameplayTag를 에디터에서 추가/제거하고, 소스코드에서 생성한 태그를 선택할 수 있게 하는 에디터 시스템 작업
 
 ### ui
 - `systems/ui/card-state-to-card-view.md`: CardState를 실제 Card UI로 표시하고 플레이어/선택지 카드의 앞면·뒷면 표현 규칙을 구현하는 작업 묶음

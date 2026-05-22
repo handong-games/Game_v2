@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">UI Toolkit text shadow result</title>
+  <desc id="desc">A minimal developer-facing visual result showing plain text and shadowed text on an existing screen.</desc>
+
+  <defs>
+    <style>
+      .bg { fill: #f6f7fb; }
+      .document { fill: #ffffff; stroke: #334155; stroke-width: 2.5; }
+      .screen { fill: #eff6ff; stroke: #2563eb; stroke-width: 2.5; }
+      .title { fill: #111827; font-family: Arial, sans-serif; font-size: 22px; font-weight: 700; }
+      .panel { fill: #ffffff; stroke: #93c5fd; stroke-width: 2; }
+      .row { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 1.5; }
+      .screen-label { fill: #1e3a8a; font-family: Arial, sans-serif; font-size: 20px; font-weight: 700; }
+      .value { fill: #475569; font-family: Arial, sans-serif; font-size: 15px; font-weight: 600; }
+      .plain-label { fill: #111827; font-family: Arial, sans-serif; font-size: 28px; font-weight: 700; }
+      .shadow-text { fill: #111827; font-family: Arial, sans-serif; font-size: 28px; font-weight: 700; }
+      .shadow-clone { fill: rgba(15, 23, 42, 0.35); font-family: Arial, sans-serif; font-size: 28px; font-weight: 700; }
+      .caption { fill: #2563eb; font-family: Arial, sans-serif; font-size: 16px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="960" height="540" />
+
+  <text class="title" x="48" y="52">UIDocument</text>
+
+  <rect class="document" x="48" y="72" width="864" height="420" rx="10" />
+  <rect class="screen" x="48" y="72" width="864" height="420" rx="10" />
+
+  <text class="screen-label" x="84" y="110">Existing Screen</text>
+
+  <rect class="panel" x="180" y="152" width="600" height="220" rx="12" />
+
+  <rect class="row" x="220" y="192" width="520" height="58" rx="8" />
+  <text class="value" x="248" y="228">text-shadow: none</text>
+  <text class="plain-label" x="520" y="230">Plain Text</text>
+
+  <rect class="row" x="220" y="274" width="520" height="58" rx="8" />
+  <text class="value" x="248" y="310">text-shadow: 2px 2px 4px rgba(...)</text>
+  <text class="shadow-clone" x="522" y="314">Shadow Text</text>
+  <text class="shadow-text" x="520" y="312">Shadow Text</text>
+
+  <text class="caption" x="220" y="402">top to bottom comparison of USS text-shadow</text>
+</svg>

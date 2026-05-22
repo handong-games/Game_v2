@@ -12,168 +12,203 @@ namespace Domains.Adventure
     [Dependency]
     public sealed class CardDeckService : IDisposable
     {
-        private readonly List<CardState> _deck = new();
-        private readonly List<CardState> _drawnCards = new();
+        private readonly List<ICardModel> _deck = new();
+        private readonly List<MonsterModel> _remainingMonsterPool = new();
+        private readonly List<EventModel> _remainingEventPool = new();
 
         private UnityRandom _random;
-        private CardState _playerCard;
+        private int _drawIndex;
 
         public CardDeckModel CurrentCardDeck { get; private set; }
-        public ECharacter CharacterId { get; private set; }
 
-        public void Initialize(ECardDeck cardDeckId, ECharacter characterId, uint seed)
+        public void Initialize(ECardDeck cardDeckId, uint seed)
         {
             CurrentCardDeck = DBManager.Instance.CardDeck.Get(cardDeckId);
-            CharacterId = characterId;
             _random = new UnityRandom(RandomUtility.CombineSeed(seed, "CardDeck"));
-            _deck.Clear();
-            _drawnCards.Clear();
-            _playerCard = null;
+            _drawIndex = 0;
 
-            BuildCards();
+            _deck.Clear();
+            _remainingMonsterPool.Clear();
+            _remainingEventPool.Clear();
+
+            BuildModelPools();
+            BuildDeck();
         }
 
-        public IReadOnlyList<CardState> DrawCard(uint count)
+        public IReadOnlyList<ICardModel> DrawCards(uint count)
         {
-            _drawnCards.Clear();
+            List<ICardModel> models = new();
 
-            int drawCount = (int)Math.Min(count, (uint)_deck.Count);
+            int drawCount = (int)Math.Min(count, (uint)(_deck.Count - _drawIndex));
             for (int i = 0; i < drawCount; i++)
             {
-                int lastIndex = _deck.Count - 1;
-                CardState card = _deck[lastIndex];
-                _deck.RemoveAt(lastIndex);
-                _drawnCards.Add(card);
+                models.Add(_deck[_drawIndex]);
+                _drawIndex++;
             }
 
-            return _drawnCards;
+            return models;
+        }
+
+        public bool TryResolveChoice(ICardModel model, out ICardModel resolvedModel)
+        {
+            resolvedModel = null;
+            if (!model.TryGetChoiceType(out EChoiceCardType choiceType))
+                return false;
+
+            resolvedModel = ResolveChoiceCard(choiceType);
+            return true;
         }
 
         public void Dispose()
         {
             CurrentCardDeck = null;
             _deck.Clear();
-            _drawnCards.Clear();
-            _playerCard = null;
+            _remainingMonsterPool.Clear();
+            _remainingEventPool.Clear();
+            _drawIndex = 0;
         }
 
-        private void BuildCards()
+        private void BuildModelPools()
         {
-            AddBossCard();
-            AddShopCards();
-            AddEventCards();
-            AddMonsterCards();
-
-            ShuffleDeck();
-
-            _deck.Add(CreateFirstMonsterCard());
-            _deck.Add(GetOrCreatePlayerCard());
-        }
-
-        private void ShuffleDeck()
-        {
-            for (int i = _deck.Count - 1; i > 0; i--)
+            MonsterModel[] monsterPool = CurrentCardDeck.MonsterPool;
+            if (monsterPool != null)
             {
-                int j = _random.NextInt(0, i + 1);
-                (_deck[i], _deck[j]) = (_deck[j], _deck[i]);
+                for (int i = 0; i < monsterPool.Length; i++)
+                {
+                    _remainingMonsterPool.Add(monsterPool[i]);
+                }
+            }
+
+            EventModel[] eventPool = CurrentCardDeck.EventPool;
+            if (eventPool != null)
+            {
+                for (int i = 0; i < eventPool.Length; i++)
+                {
+                    _remainingEventPool.Add(eventPool[i]);
+                }
             }
         }
 
-        private CardState GetOrCreatePlayerCard()
+        private void BuildDeck()
         {
-            if (_playerCard != null)
-                return _playerCard;
+            _deck.Add(TakeFirstMonster());
 
-            CharacterModel model = DBManager.Instance.Character.Get(CharacterId);
-            _playerCard = new CardState(
-                model,
-                ECardKind.Player,
-                ECardFace.Front,
-                ECardBoardSide.Left);
+            List<ICardModel> choiceCards = BuildChoiceCards();
+            Shuffle(choiceCards);
 
-            return _playerCard;
+            for (int i = 0; i < choiceCards.Count; i++)
+            {
+                _deck.Add(choiceCards[i]);
+            }
+
+            _deck.Add(GetRequiredCard(CurrentCardDeck.BossChoiceCard, "boss choice card"));
         }
 
-        private CardState CreateFirstMonsterCard()
+        private List<ICardModel> BuildChoiceCards()
         {
-            MonsterModel[] pool = CurrentCardDeck.MonsterPool;
-            if (pool == null || pool.Length == 0)
+            List<ICardModel> choiceCards = new();
+
+            for (uint i = 0; i < CurrentCardDeck.MonsterCardCount; i++)
+            {
+                choiceCards.Add(GetRequiredCard(CurrentCardDeck.MonsterChoiceCard, "monster choice card"));
+            }
+
+            for (uint i = 0; i < CurrentCardDeck.EventCardCount; i++)
+            {
+                choiceCards.Add(GetRequiredCard(CurrentCardDeck.EventChoiceCard, "event choice card"));
+            }
+
+            for (uint i = 0; i < CurrentCardDeck.ShopCardCount; i++)
+            {
+                choiceCards.Add(GetRequiredCard(CurrentCardDeck.ShopChoiceCard, "shop choice card"));
+            }
+
+            return choiceCards;
+        }
+
+        private ICardModel GetRequiredCard(ICardModel card, string label)
+        {
+            if (card == null)
+                throw new InvalidOperationException($"{CurrentCardDeck.Name} requires {label}.");
+
+            return card;
+        }
+
+        private MonsterModel TakeFirstMonster()
+        {
+            if (_remainingMonsterPool.Count == 0)
                 throw new InvalidOperationException($"{CurrentCardDeck.Name} requires at least one monster.");
 
-            MonsterModel model = pool[0];
-            return new CardState(
-                model,
-                GetMonsterKind(model),
-                ECardFace.Front,
-                ECardBoardSide.Right);
+            MonsterModel monster = _remainingMonsterPool[0];
+            _remainingMonsterPool.RemoveAt(0);
+            return monster;
         }
 
-        private void AddMonsterCards()
+        private ICardModel ResolveChoiceCard(EChoiceCardType choiceType)
         {
-            MonsterModel[] pool = CurrentCardDeck.MonsterPool;
-            if (CurrentCardDeck.MonsterCount == 0 || pool == null || pool.Length == 0)
-                return;
-
-            for (uint i = 0; i < CurrentCardDeck.MonsterCount; i++)
+            switch (choiceType)
             {
-                MonsterModel model = pool[(int)((i + 1) % (uint)pool.Length)];
-                _deck.Add(new CardState(
-                    model,
-                    GetMonsterKind(model),
-                    ECardFace.Back,
-                    ECardBoardSide.Right));
+                case EChoiceCardType.Monster:
+                case EChoiceCardType.Elite:
+                    return TakeRandomMonster();
+                case EChoiceCardType.Boss:
+                    return GetBoss();
+                case EChoiceCardType.Event:
+                    return TakeRandomEvent();
+                case EChoiceCardType.Shop:
+                    return GetShop();
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
-        private void AddEventCards()
+        private MonsterModel GetBoss()
         {
-            EventModel[] pool = CurrentCardDeck.EventPool;
-            if (CurrentCardDeck.EventCount == 0 || pool == null || pool.Length == 0)
-                return;
+            MonsterModel boss = CurrentCardDeck.Boss;
+            if (boss == null)
+                throw new InvalidOperationException($"{CurrentCardDeck.Name} requires boss.");
 
-            for (uint i = 0; i < CurrentCardDeck.EventCount; i++)
+            return boss;
+        }
+
+        private ShopModel GetShop()
+        {
+            ShopModel shop = CurrentCardDeck.Shop;
+            if (shop == null)
+                throw new InvalidOperationException($"{CurrentCardDeck.Name} requires shop.");
+
+            return shop;
+        }
+
+        private MonsterModel TakeRandomMonster()
+        {
+            if (_remainingMonsterPool.Count == 0)
+                throw new InvalidOperationException($"{CurrentCardDeck.Name} has no remaining monster.");
+
+            int index = _random.NextInt(0, _remainingMonsterPool.Count);
+            MonsterModel monster = _remainingMonsterPool[index];
+            _remainingMonsterPool.RemoveAt(index);
+            return monster;
+        }
+
+        private EventModel TakeRandomEvent()
+        {
+            if (_remainingEventPool.Count == 0)
+                throw new InvalidOperationException($"{CurrentCardDeck.Name} has no remaining event.");
+
+            int index = _random.NextInt(0, _remainingEventPool.Count);
+            EventModel stageEvent = _remainingEventPool[index];
+            _remainingEventPool.RemoveAt(index);
+            return stageEvent;
+        }
+
+        private void Shuffle(List<ICardModel> cards)
+        {
+            for (int i = cards.Count - 1; i > 0; i--)
             {
-                EventModel model = pool[(int)(i % (uint)pool.Length)];
-                _deck.Add(new CardState(
-                    model,
-                    ECardKind.Event,
-                    ECardFace.Back,
-                    ECardBoardSide.Right));
+                int j = _random.NextInt(0, i + 1);
+                (cards[i], cards[j]) = (cards[j], cards[i]);
             }
-        }
-
-        private void AddShopCards()
-        {
-            if (CurrentCardDeck.ShopCount == 0 || CurrentCardDeck.Shop == null)
-                return;
-
-            for (uint i = 0; i < CurrentCardDeck.ShopCount; i++)
-            {
-                _deck.Add(new CardState(
-                    CurrentCardDeck.Shop,
-                    ECardKind.Shop,
-                    ECardFace.Back,
-                    ECardBoardSide.Right));
-            }
-        }
-
-        private void AddBossCard()
-        {
-            if (CurrentCardDeck.Boss == null)
-                return;
-
-            _deck.Add(new CardState(
-                CurrentCardDeck.Boss,
-                ECardKind.Boss,
-                ECardFace.Back,
-                ECardBoardSide.Right));
-        }
-
-        private static ECardKind GetMonsterKind(MonsterModel model)
-        {
-            return model.Rank == EMonsterRank.Boss
-                ? ECardKind.Boss
-                : ECardKind.Monster;
         }
     }
 }

@@ -16,8 +16,12 @@ namespace Game.Data
         [SerializeField]
         private uint _startDrawCount = 2;
 
+        [SerializeField]
+        private uint _maxStageCount = 1;
+
         public LocalizedString LocalizedRegionName => _localizedRegionName;
         public ECardDeck CardDeckId => _cardDeckId;
         public uint StartDrawCount => _startDrawCount == 0 ? 1 : _startDrawCount;
+        public uint MaxStageCount => _maxStageCount == 0 ? 1 : _maxStageCount;
     }
 }

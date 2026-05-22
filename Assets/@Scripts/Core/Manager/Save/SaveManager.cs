@@ -13,6 +13,7 @@ namespace Game.Core.Managers.Save
     public sealed class SaveManager : BaseManager<SaveManager>
     {
         private readonly List<SaveEntry> _entries = new();
+        private readonly Dictionary<Type, object> _states = new();
 
         protected override void OnInit()
         {
@@ -33,6 +34,7 @@ namespace Game.Core.Managers.Save
             Application.quitting -= SaveAll;
 
             _entries.Clear();
+            _states.Clear();
         }
 
         public void Register<TState, TSave>(string fileName, string sectionName)
@@ -40,6 +42,7 @@ namespace Game.Core.Managers.Save
             where TSave : SaveData, new()
         {
             TState state = DependencyManager.Instance.Resolve<TState>();
+            _states[typeof(TState)] = state;
 
             _entries.Add(new SaveEntry(
                 fileName,
@@ -47,6 +50,16 @@ namespace Game.Core.Managers.Save
                 typeof(TSave),
                 () => state.ToSave(),
                 save => state.LoadFrom((TSave)save)));
+        }
+
+        public TState GetState<TState>() where TState : class
+        {
+            if (_states.TryGetValue(typeof(TState), out object state))
+            {
+                return (TState)state;
+            }
+
+            throw new InvalidOperationException($"Save state is not registered: {typeof(TState).FullName}");
         }
 
         public void SaveAll()

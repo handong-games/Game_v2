@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 620ba89133e84084b7b921055aff0b0e, type: 3}
+  m_Name: CardTable
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CardTable
+  _rows:
+  - {fileID: 11400000, guid: ea3afc1a85624427910c5420ebf699e2, type: 2}
+  - {fileID: 11400000, guid: 42a6128e117444fd91b9a0d0098a43fc, type: 2}
+  - {fileID: 11400000, guid: 7836396d67144302af16f22201fca3bb, type: 2}
+  - {fileID: 11400000, guid: 9eebd7f7598c49959bc01fa18136527a, type: 2}

@@ -19,20 +19,36 @@ namespace Game.Data
         private MonsterModel _boss;
 
         [SerializeField]
-        private uint _monsterCount;
+        private BasicCardModel _monsterChoiceCard;
 
         [SerializeField]
-        private uint _eventCount;
+        private BasicCardModel _eventChoiceCard;
 
         [SerializeField]
-        private uint _shopCount;
+        private BasicCardModel _shopChoiceCard;
+
+        [SerializeField]
+        private BasicCardModel _bossChoiceCard;
+
+        [SerializeField]
+        private uint _monsterCardCount;
+
+        [SerializeField]
+        private uint _eventCardCount;
+
+        [SerializeField]
+        private uint _shopCardCount;
 
         public MonsterModel[] MonsterPool => _monsterPool;
         public EventModel[] EventPool => _eventPool;
         public ShopModel Shop => _shop;
         public MonsterModel Boss => _boss;
-        public uint MonsterCount => _monsterCount;
-        public uint EventCount => _eventCount;
-        public uint ShopCount => _shopCount;
+        public BasicCardModel MonsterChoiceCard => _monsterChoiceCard;
+        public BasicCardModel EventChoiceCard => _eventChoiceCard;
+        public BasicCardModel ShopChoiceCard => _shopChoiceCard;
+        public BasicCardModel BossChoiceCard => _bossChoiceCard;
+        public uint MonsterCardCount => _monsterCardCount;
+        public uint EventCardCount => _eventCardCount;
+        public uint ShopCardCount => _shopCardCount;
     }
 }

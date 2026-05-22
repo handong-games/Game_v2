@@ -17,7 +17,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 98b67d0572804b1c9f87c3c625f0f714, type: 2}
   _eventPool: []
   _shop: {fileID: 0}
-  _boss: {fileID: 0}
-  _monsterCount: 1
-  _eventCount: 1
-  _shopCount: 1
+  _boss: {fileID: 11400000, guid: 98b67d0572804b1c9f87c3c625f0f714, type: 2}
+  _monsterChoiceCard: {fileID: 11400000, guid: ea3afc1a85624427910c5420ebf699e2, type: 2}
+  _eventChoiceCard: {fileID: 11400000, guid: 42a6128e117444fd91b9a0d0098a43fc, type: 2}
+  _shopChoiceCard: {fileID: 11400000, guid: 7836396d67144302af16f22201fca3bb, type: 2}
+  _bossChoiceCard: {fileID: 11400000, guid: 9eebd7f7598c49959bc01fa18136527a, type: 2}
+  _monsterCardCount: 1
+  _eventCardCount: 0
+  _shopCardCount: 0

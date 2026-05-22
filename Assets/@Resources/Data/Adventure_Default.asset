@@ -10,8 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c808c6bfba44408eadd1df3247bc5eee, type: 3}
-  m_Name: Default
+  m_Name: Adventure_Default
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.AdventureModel
   _name: Default
+  _localizedRegionName:
+    m_TableReference:
+      m_TableCollectionName: 
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   _cardDeckId: 0
   _startDrawCount: 2
+  _maxStageCount: 1
+  references:
+    version: 2
+    RefIds: []

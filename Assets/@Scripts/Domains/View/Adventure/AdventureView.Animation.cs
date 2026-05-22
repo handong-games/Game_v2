@@ -43,6 +43,7 @@ namespace Domains.Adventure
 
             timeline
                 .Run(0, () => _banner.PresentTurn("1 턴"))
+                .Run(20, _cardDealer.ShowHealthWidgetsAsync)
                 .Run(TurnBannerExitStartMs, _pouch.Show);
 
             await ViewTransitionManager.Instance.Play(timeline);

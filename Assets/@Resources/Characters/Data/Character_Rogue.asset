@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: Character_Rogue
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterModel
   _name: Rogue
+  _ownedTags: []
+  _front: {fileID: 11400000, guid: d6ee0365790fc19438073cfc5d43f039, type: 2}
+  _back: {fileID: 11400000, guid: 2304b67d41d836448895606f9230bf33, type: 2}
   _localizedName:
     m_TableReference:
       m_TableCollectionName: CharacterNames
@@ -25,4 +28,9 @@ MonoBehaviour:
   _portrait: {fileID: 0}
   _coinCount: 150
   _maxHp: 50
+  _defaultSkillSlotCount: 4
+  _maxSkillSlotCount: 8
   _defaultSkills: []
+  references:
+    version: 2
+    RefIds: []

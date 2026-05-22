@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <title>Flexbox 기반 레이아웃이란 무엇인가</title>
+  <rect width="1280" height="720" fill="#f8fafc"/>
+  <text x="640" y="74" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">Flexbox 기반 레이아웃이란 무엇인가</text>
+  <text x="640" y="112" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#475569">부모 컨테이너가 방향, 공간 분배, 정렬 규칙으로 자식 요소를 배치한다.</text>
+
+  <rect x="110" y="170" width="1060" height="430" rx="24" fill="#e2e8f0" stroke="#94a3b8" stroke-width="3"/>
+  <text x="145" y="210" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#1e293b">Parent Container</text>
+
+  <rect x="185" y="270" width="230" height="210" rx="18" fill="#dbeafe" stroke="#60a5fa" stroke-width="3"/>
+  <rect x="445" y="270" width="230" height="210" rx="18" fill="#dcfce7" stroke="#4ade80" stroke-width="3"/>
+  <rect x="705" y="270" width="230" height="210" rx="18" fill="#fde68a" stroke="#f59e0b" stroke-width="3"/>
+  <rect x="965" y="270" width="130" height="210" rx="18" fill="#fee2e2" stroke="#f87171" stroke-width="3"/>
+
+  <text x="300" y="384" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#1e3a8a">Child A</text>
+  <text x="560" y="384" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#166534">Child B</text>
+  <text x="820" y="384" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#92400e">Child C</text>
+  <text x="1030" y="384" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#991b1b">Child D</text>
+
+  <line x1="210" y1="542" x2="1060" y2="542" stroke="#0f172a" stroke-width="4"/>
+  <polygon points="1060,542 1040,532 1040,552" fill="#0f172a"/>
+  <text x="635" y="575" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#0f172a">메인 축 방향에 따라 자식이 쌓인다</text>
+
+  <rect x="185" y="630" width="320" height="44" rx="12" fill="#dbeafe"/>
+  <rect x="540" y="630" width="320" height="44" rx="12" fill="#dcfce7"/>
+  <rect x="895" y="630" width="200" height="44" rx="12" fill="#fde68a"/>
+  <text x="345" y="658" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#1e293b">방향: row / column</text>
+  <text x="700" y="658" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#1e293b">공간 분배: flex-grow</text>
+  <text x="995" y="658" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#1e293b">정렬</text>
+</svg>

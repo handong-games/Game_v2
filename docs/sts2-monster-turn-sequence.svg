@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1480" viewBox="0 0 1680 1480">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2f3a4a"/>
+    </marker>
+    <marker id="arrow-muted" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#738095"/>
+    </marker>
+    <style>
+      .bg { fill: #f7f3ea; }
+      .title { font: 700 28px Arial, sans-serif; fill: #2f2a24; }
+      .subtitle { font: 400 15px Arial, sans-serif; fill: #6d6257; }
+      .participant { fill: #fffdf8; stroke: #9b7d57; stroke-width: 2; rx: 8; }
+      .participant-text { font: 700 14px Arial, sans-serif; fill: #2f2a24; text-anchor: middle; }
+      .lifeline { stroke: #b7aa98; stroke-width: 1.5; stroke-dasharray: 7 8; }
+      .arrow { stroke: #2f3a4a; stroke-width: 2; marker-end: url(#arrow); fill: none; }
+      .arrow-muted { stroke: #738095; stroke-width: 2; marker-end: url(#arrow-muted); fill: none; }
+      .message { font: 13px Arial, sans-serif; fill: #2f3a4a; }
+      .message-muted { font: 13px Arial, sans-serif; fill: #657285; }
+      .note { fill: #fff4c7; stroke: #d1a846; stroke-width: 1.5; rx: 8; }
+      .note-text { font: 700 14px Arial, sans-serif; fill: #5d4711; text-anchor: middle; }
+      .loop { fill: rgba(222, 235, 247, 0.45); stroke: #7aa1c8; stroke-width: 1.5; stroke-dasharray: 6 6; rx: 8; }
+      .loop-label { font: 700 13px Arial, sans-serif; fill: #315f86; }
+      .section { fill: #eee7dc; stroke: #cbbca9; stroke-width: 1; rx: 8; }
+      .section-text { font: 700 13px Arial, sans-serif; fill: #665747; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1680" height="1480"/>
+  <text class="title" x="60" y="52">STS2 Monster Turn Sequence</text>
+  <text class="subtitle" x="60" y="78">RollMove prepares the next intent during the player turn. PerformMove executes that prepared move during the enemy turn.</text>
+
+  <!-- Participants -->
+  <g id="participants">
+    <rect class="participant" x="35" y="115" width="140" height="46"/>
+    <text class="participant-text" x="105" y="143">View</text>
+
+    <rect class="participant" x="225" y="115" width="140" height="46"/>
+    <text class="participant-text" x="295" y="143">Controller</text>
+
+    <rect class="participant" x="425" y="115" width="150" height="46"/>
+    <text class="participant-text" x="500" y="143">CombatManager</text>
+
+    <rect class="participant" x="625" y="115" width="150" height="46"/>
+    <text class="participant-text" x="700" y="143">CombatState</text>
+
+    <rect class="participant" x="835" y="115" width="140" height="46"/>
+    <text class="participant-text" x="905" y="143">Creature</text>
+
+    <rect class="participant" x="1035" y="115" width="150" height="46"/>
+    <text class="participant-text" x="1110" y="143">MonsterModel</text>
+
+    <rect class="participant" x="1230" y="115" width="170" height="46"/>
+    <text class="participant-text" x="1315" y="143">MoveStateMachine</text>
+
+    <rect class="participant" x="1480" y="115" width="130" height="46"/>
+    <text class="participant-text" x="1545" y="143">MoveState</text>
+  </g>
+
+  <!-- Lifelines -->
+  <line class="lifeline" x1="105" y1="161" x2="105" y2="1420"/>
+  <line class="lifeline" x1="295" y1="161" x2="295" y2="1420"/>
+  <line class="lifeline" x1="500" y1="161" x2="500" y2="1420"/>
+  <line class="lifeline" x1="700" y1="161" x2="700" y2="1420"/>
+  <line class="lifeline" x1="905" y1="161" x2="905" y2="1420"/>
+  <line class="lifeline" x1="1110" y1="161" x2="1110" y2="1420"/>
+  <line class="lifeline" x1="1315" y1="161" x2="1315" y2="1420"/>
+  <line class="lifeline" x1="1545" y1="161" x2="1545" y2="1420"/>
+
+  <!-- Combat starts -->
+  <rect class="note" x="438" y="190" width="470" height="34"/>
+  <text class="note-text" x="673" y="212">Combat starts</text>
+
+  <line class="arrow" x1="500" y1="260" x2="700" y2="260"/>
+  <text class="message" x="515" y="252">AddCreature(monster creature)</text>
+
+  <line class="arrow" x1="500" y1="305" x2="1110" y2="305"/>
+  <text class="message" x="585" y="297">SetUpForCombat()</text>
+
+  <path class="arrow" d="M1110 350 C1175 350 1175 382 1110 382"/>
+  <text class="message" x="1130" y="342">GenerateMoveStateMachine()</text>
+
+  <line class="arrow" x1="1110" y1="425" x2="1315" y2="425"/>
+  <text class="message" x="1142" y="417">create</text>
+
+  <line class="arrow-muted" x1="1315" y1="470" x2="500" y2="470"/>
+  <text class="message-muted" x="775" y="462">MoveStateMachine ready</text>
+
+  <!-- Intent preparation -->
+  <rect class="note" x="410" y="520" width="720" height="34"/>
+  <text class="note-text" x="770" y="542">Player turn starts and enemy intent is prepared</text>
+
+  <line class="arrow" x1="500" y1="595" x2="500" y2="595"/>
+  <path class="arrow" d="M500 590 C560 590 560 622 500 622"/>
+  <text class="message" x="520" y="582">StartTurn()</text>
+
+  <line class="arrow" x1="500" y1="660" x2="700" y2="660"/>
+  <text class="message" x="515" y="652">CurrentSide == Player?</text>
+
+  <line class="arrow" x1="500" y1="705" x2="700" y2="705"/>
+  <text class="message" x="535" y="697">Enemies</text>
+
+  <rect class="loop" x="450" y="735" width="1015" height="285"/>
+  <text class="loop-label" x="465" y="758">loop each enemy</text>
+
+  <line class="arrow" x1="500" y1="790" x2="905" y2="790"/>
+  <text class="message" x="545" y="782">PrepareForNextTurn(playerCreatures)</text>
+
+  <line class="arrow" x1="905" y1="835" x2="1110" y2="835"/>
+  <text class="message" x="925" y="827">RollMove(targets)</text>
+
+  <line class="arrow" x1="1110" y1="880" x2="1315" y2="880"/>
+  <text class="message" x="1128" y="872">RollMove(targets, creature, rng)</text>
+
+  <line class="arrow-muted" x1="1315" y1="925" x2="1110" y2="925"/>
+  <text class="message-muted" x="1172" y="917">MoveState</text>
+
+  <path class="arrow" d="M1110 965 C1175 965 1175 997 1110 997"/>
+  <text class="message" x="1130" y="957">NextMove = rolled move</text>
+
+  <line class="arrow-muted" x1="905" y1="1035" x2="105" y2="1035"/>
+  <text class="message-muted" x="425" y="1027">RefreshIntents()</text>
+
+  <!-- Player acts -->
+  <rect class="note" x="412" y="1070" width="620" height="34"/>
+  <text class="note-text" x="722" y="1092">Player acts after reading intents</text>
+
+  <line class="arrow" x1="105" y1="1140" x2="295" y2="1140"/>
+  <text class="message" x="125" y="1132">EndTurn clicked</text>
+
+  <line class="arrow" x1="295" y1="1185" x2="500" y2="1185"/>
+  <text class="message" x="315" y="1177">SetReadyToEndTurn(player)</text>
+
+  <path class="arrow" d="M500 1230 C580 1230 580 1262 500 1262"/>
+  <text class="message" x="520" y="1222">AfterAllPlayersReadyToEndTurn()</text>
+
+  <path class="arrow" d="M500 1300 C580 1300 580 1332 500 1332"/>
+  <text class="message" x="520" y="1292">EndPlayerTurn phase 1 / phase 2</text>
+
+  <!-- Enemy turn execution -->
+  <rect class="section" x="44" y="1365" width="1590" height="1"/>
+
+  <rect class="note" x="450" y="1385" width="690" height="34"/>
+  <text class="note-text" x="795" y="1407">Enemy turn executes the prepared NextMove</text>
+
+  <!-- Condensed lower summary inside limited canvas -->
+  <rect class="section" x="60" y="1435" width="1560" height="34"/>
+  <text class="section-text" x="80" y="1457">Enemy phase summary: SwitchFromPlayerToEnemySide() -> CurrentSide = Enemy -> ExecuteEnemyTurn() -> each enemy TakeTurn() -> Monster.PerformMove() -> NextMove.PerformMove(targets) -> EndEnemyTurn() -> CurrentSide = Player</text>
+</svg>

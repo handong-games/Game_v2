@@ -29,8 +29,8 @@ namespace Domains.Scene
             AdventureView adventureView = DependencyManager.Instance.Instantiate<AdventureView>();
             ViewManager.Instance.Push(adventureView);
 
-            AdventureDirector adventureDirector = DependencyManager.Instance.Resolve<AdventureDirector>();
-            adventureDirector.StartAdventure();
+            AdventureController adventureController = DependencyManager.Instance.Resolve<AdventureController>();
+            adventureController.StartAdventure();
         }
         
         protected override async Awaitable OnBeforeUnload()

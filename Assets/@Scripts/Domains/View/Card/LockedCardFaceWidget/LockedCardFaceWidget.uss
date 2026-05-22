@@ -1,0 +1,22 @@
+.locked-card {
+    width: 100%;
+    height: 100%;
+}
+
+.locked-card .card__frame {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("project://database/Assets/@Resources/Cards/card-frame-locked.png?fileID=-640489702429309938&guid=95695ae2463e6a84da5d039fdd00d20d&type=3#card-frame-locked_0");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.locked-card .card__overlay {
+    opacity: 0.2;
+}
+
+.locked-card .card__lock {
+    opacity: 1;
+}

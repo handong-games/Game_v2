@@ -15,14 +15,32 @@ MonoBehaviour:
   m_GroupName: Localization-String-Tables-English
   m_GUID: aa677f3c7e71daf48a563b1e373ef80d
   m_SerializeEntries:
-  - m_GUID: fa272c0ab17648fcb1b11a88ab0629bd
-    m_Address: CharacterNames_en-US
+  - m_GUID: 0804e833c3ad4c14aa9b9905aa903c0d
+    m_Address: SettingsView_en-US
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en-US
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7877c17a71086844886721644c1f0e2c
+    m_Address: TitleView_en-US
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en-US
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dcf6dd9163fa0e142a4578c2b90a67e9
+    m_Address: CharacterSelectView_en-US
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-en-US
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e23e6132b8844fd889f4ad2be2668d41
     m_Address: MonsterNames_en-US
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en-US
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fa272c0ab17648fcb1b11a88ab0629bd
+    m_Address: CharacterNames_en-US
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-en-US

@@ -1,4 +1,4 @@
-using Domains.CharacterSelect;
+﻿using Domains.CharacterSelect;
 using Game.Core.Managers.Dependency;
 using Game.Core.Managers.View;
 using Domains.Scene;

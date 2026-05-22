@@ -1,0 +1,12 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
+    <Style src="project://database/Assets/@Scripts/Domains/View/Common/CardWidget.uss?fileID=7433441132597879392&amp;guid=70e27cadb94c4ef3b614f3c8dc3f1ab5&amp;type=3#CardWidget"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/Card/PortraitCardFaceWidget/PortraitCardFaceWidget.uss?fileID=7433441132597879392&amp;guid=730e4e6bc6b34fe79e402cfb0fb19902&amp;type=3#PortraitCardFaceWidget"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/Card/LockedCardFaceWidget/LockedCardFaceWidget.uss?fileID=7433441132597879392&amp;guid=a76c4ac5dec44fdf98b6f3cc0123eeee&amp;type=3#LockedCardFaceWidget"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/Card/ChoiceCardFaceWidget/ChoiceCardFaceWidget.uss?fileID=7433441132597879392&amp;guid=9a6a9176167349ea8d6b85bad1a57d7a&amp;type=3#ChoiceCardFaceWidget"/>
+    <widgets:CardWidget name="card" class="card-v2 card-v2--front card-board__card" picking-mode="Ignore">
+        <ui:VisualElement name="card-v2-flip-root" class="card-v2__flip-root" picking-mode="Ignore">
+            <ui:VisualElement name="card-v2-front-slot" class="card-v2__face-slot card-v2__front-slot" picking-mode="Ignore"/>
+            <ui:VisualElement name="card-v2-back-slot" class="card-v2__face-slot card-v2__back-slot" picking-mode="Ignore"/>
+        </ui:VisualElement>
+    </widgets:CardWidget>
+</ui:UXML>

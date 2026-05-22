@@ -10,39 +10,32 @@ namespace Domains.Adventure
         [Inject]
         private AdventureController _controller;
 
-        private VisualElement _cardBoard;
         private Banner _banner;
         private VisualElement _resourceStatusBar;
         private VisualElement _progressBar;
         private VisualElement _progressBarTrackFill;
-        private VisualElement _cardDeck;
         private VisualElement _effectLayer;
         private Pouch _pouch;
         private CoinStatusWidget _coinStatusWidget;
-        private SkillSlotWidget _skillSlotWidget;
         private EndTurnWidget _endTurnWidget;
         private ArrowWidget _arrowWidget;
-        private CardDealer _cardDealer;
         private CoinEffectPlayer _coinEffectPlayer;
 
         protected override void OnBind(VisualElement root)
         {
-            _cardBoard = Root.Q<VisualElement>("card-board");
+            AdventureInitialViewModel initialViewModel = _controller.CreateInitialViewModel();
+
             _banner = Root.Q<Banner>("banner");
             _resourceStatusBar = Root.Q<VisualElement>("resource-status-bar");
             _progressBar = Root.Q<VisualElement>("progress-bar");
             _progressBarTrackFill = Root.Q<VisualElement>("progress-bar-track-fill");
-            _cardDeck = Root.Q<VisualElement>("card-deck");
             _effectLayer = Root.Q<VisualElement>("adventure-effect-layer");
             _pouch = Root.Q<Pouch>("pouch");
             _coinStatusWidget = Root.Q<CoinStatusWidget>("coin-status-widget");
-            _skillSlotWidget = Root.Q<SkillSlotWidget>("skill-slot-widget");
             _endTurnWidget = Root.Q<EndTurnWidget>("end-turn-widget");
             _arrowWidget = Root.Q<ArrowWidget>("arrow-widget");
-            _skillSlotWidget.Bind(_controller.GetSkillSlots());
-
-            _cardDealer = new CardDealer();
-            _cardDealer.Bind(_cardDeck, _cardBoard);
+            BindCards();
+            BindSkillSlots(initialViewModel.SkillSlots);
 
             _coinEffectPlayer = new CoinEffectPlayer();
             _coinEffectPlayer.Bind(_effectLayer);
@@ -53,9 +46,9 @@ namespace Domains.Adventure
 
         public override void Dispose()
         {
+            ClearCards();
             UnregisterTargetingEvents();
             UnregisterEvents();
-            _cardDealer?.Clear();
             _coinEffectPlayer?.Clear();
             base.Dispose();
         }

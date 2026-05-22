@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <title>크기 확장과 축소</title>
+  <rect width="1280" height="720" fill="#f8fafc"/>
+  <text x="640" y="74" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">크기 확장과 축소</text>
+  <text x="640" y="112" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#475569">기본 크기, 최소/최대 크기, shrink 규칙이 함께 작동해 요소 크기를 제한한다.</text>
+
+  <rect x="120" y="190" width="480" height="390" rx="24" fill="#ecfeff" stroke="#22d3ee" stroke-width="3"/>
+  <rect x="680" y="190" width="480" height="390" rx="24" fill="#fff7ed" stroke="#fb923c" stroke-width="3"/>
+  <text x="360" y="236" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#155e75">넓은 공간</text>
+  <text x="920" y="236" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#9a3412">좁은 공간</text>
+
+  <rect x="220" y="345" width="280" height="100" rx="18" fill="#cffafe" stroke="#06b6d4" stroke-width="3"/>
+  <text x="360" y="387" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#0f172a">width: 240px</text>
+  <text x="360" y="418" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#334155">max-width 안에서 확장</text>
+
+  <rect x="790" y="345" width="210" height="100" rx="18" fill="#fed7aa" stroke="#f97316" stroke-width="3"/>
+  <text x="895" y="387" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#0f172a">shrink 적용</text>
+  <text x="895" y="418" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#334155">min-width 아래로는 축소 금지</text>
+
+  <rect x="220" y="500" width="280" height="32" rx="10" fill="#bae6fd"/>
+  <rect x="790" y="500" width="180" height="32" rx="10" fill="#fdba74"/>
+  <text x="360" y="640" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#0f172a">넓을 때는 max-width가 상한을 만든다</text>
+  <text x="920" y="640" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#0f172a">좁을 때는 min-width가 하한을 만든다</text>
+
+  <rect x="220" y="592" width="780" height="52" rx="12" fill="#e2e8f0"/>
+  <text x="610" y="624" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#334155">고정 크기만 두기보다 기본 크기와 min/max를 함께 두는 편이 반응형에서 안정적이다.</text>
+</svg>

@@ -27,6 +27,11 @@ namespace Game.Data
             return _rows[index];
         }
 
+        public TModel Get(TKey key)
+        {
+            return Get(Convert.ToInt32(key));
+        }
+
         public List<TModel> GetAll()
         {
             return _rows;

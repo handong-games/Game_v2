@@ -30,6 +30,7 @@
     translate: -50% -50%;
     border-radius: 6px;
     -unity-background-scale-mode: scale-to-fit;
+    display: none;
 }
 
 .skill-slot__fallback-name {
@@ -42,6 +43,15 @@
     -unity-text-align: middle-center;
     white-space: normal;
     overflow: hidden;
+    display: none;
+}
+
+.skill-slot--has-icon .skill-slot__icon {
+    display: flex;
+}
+
+.skill-slot--has-label .skill-slot__fallback-name {
+    display: flex;
 }
 
 .skill-slot--type-attack .skill-slot__frame,

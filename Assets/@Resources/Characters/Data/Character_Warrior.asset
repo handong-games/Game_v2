@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: Character_Warrior
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterModel
   _name: Warrior
+  _ownedTags: []
+  _front: {fileID: 11400000, guid: 93c2a5a995d4d4247880b1c48d5d48a1, type: 2}
+  _back: {fileID: 11400000, guid: 2304b67d41d836448895606f9230bf33, type: 2}
+  _abilitySet: {fileID: 11400000, guid: 3c0118f2463183f41b0303b6284d2341, type: 2}
   _localizedName:
     m_TableReference:
       m_TableCollectionName: CharacterNames
@@ -25,6 +29,8 @@ MonoBehaviour:
   _portrait: {fileID: -466615050291791420, guid: 79ca560bf20b50444a111f73f50a553c, type: 3}
   _coinCount: 3
   _maxHp: 70
+  _defaultSkillSlotCount: 4
+  _maxSkillSlotCount: 8
   _defaultSkills:
   - {fileID: 11400000, guid: dd3ccb0d895173d408aa2e034e6914c1, type: 2}
   - {fileID: 11400000, guid: 2ea1e056dbc9e524db82ce4c441f5db5, type: 2}

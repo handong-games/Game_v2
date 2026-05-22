@@ -26,7 +26,7 @@ namespace Domains.Scene
                 new TableReference[]
                 {
                     nameof(TitleView),
-                    nameof(CharacterSelectView),
+                    "CharacterSelectView",
                     nameof(SettingsView),
                     "CharacterNames",
                 }
@@ -58,7 +58,7 @@ namespace Domains.Scene
         {
             /* Localization */
             LocalizationSettings.StringDatabase.ReleaseTable(nameof(TitleView));
-            LocalizationSettings.StringDatabase.ReleaseTable(nameof(CharacterSelectView));
+            LocalizationSettings.StringDatabase.ReleaseTable("CharacterSelectView");
             LocalizationSettings.StringDatabase.ReleaseTable(nameof(SettingsView));
 
             /* Audio */

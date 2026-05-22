@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <title>정렬</title>
+  <rect width="1280" height="720" fill="#f8fafc"/>
+  <text x="640" y="74" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">정렬</text>
+  <text x="640" y="112" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#475569">justify-content는 메인 축 정렬, align-items는 교차 축 정렬을 담당한다.</text>
+
+  <rect x="140" y="185" width="460" height="390" rx="24" fill="#eff6ff" stroke="#60a5fa" stroke-width="3"/>
+  <rect x="680" y="185" width="460" height="390" rx="24" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="3"/>
+  <text x="370" y="230" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#1e3a8a">justify-content</text>
+  <text x="910" y="230" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#6d28d9">align-items</text>
+
+  <rect x="245" y="335" width="90" height="90" rx="16" fill="#bfdbfe" stroke="#3b82f6" stroke-width="3"/>
+  <rect x="355" y="335" width="90" height="90" rx="16" fill="#c7d2fe" stroke="#6366f1" stroke-width="3"/>
+  <rect x="465" y="335" width="90" height="90" rx="16" fill="#ddd6fe" stroke="#8b5cf6" stroke-width="3"/>
+
+  <rect x="850" y="285" width="120" height="90" rx="16" fill="#ddd6fe" stroke="#8b5cf6" stroke-width="3"/>
+  <rect x="850" y="390" width="120" height="90" rx="16" fill="#c4b5fd" stroke="#7c3aed" stroke-width="3"/>
+
+  <line x1="250" y1="485" x2="550" y2="485" stroke="#1e293b" stroke-width="4"/>
+  <polygon points="550,485 530,475 530,495" fill="#1e293b"/>
+  <text x="400" y="522" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#1e293b">메인 축에서 위치를 정함</text>
+
+  <line x1="1015" y1="300" x2="1015" y2="480" stroke="#6d28d9" stroke-width="4"/>
+  <polygon points="1015,480 1005,460 1025,460" fill="#6d28d9"/>
+  <text x="1068" y="395" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#6d28d9">교차 축에서 위치를 정함</text>
+
+  <rect x="170" y="624" width="940" height="50" rx="12" fill="#ede9fe"/>
+  <text x="640" y="656" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#4c1d95">정렬은 한 축에서만 보지 않는다. 어떤 축의 정렬인지 같이 봐야 한다.</text>
+</svg>

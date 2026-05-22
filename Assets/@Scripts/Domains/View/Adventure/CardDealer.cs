@@ -1,6 +1,9 @@
+﻿using System;
 using System.Collections.Generic;
-using Game.Data;
+using Domains.Card;
+using Domains.View.Widgets;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
 
 namespace Domains.Adventure
@@ -8,31 +11,40 @@ namespace Domains.Adventure
     public sealed class CardDealer
     {
         private const int MaxCardCount = 3;
-        private const float CardSpacing = 224f;
+        private const float CardSpacing = 264f;
         private const float StartScale = 0.28f;
+        private const float DealFallbackSeconds = 0.8f;
         private const string CardDealEnterClass = "card-deal--enter";
 
-        private readonly List<VisualElement> _playerCards = new();
-        private readonly List<VisualElement> _encounterCards = new();
+        private readonly List<VisualElement> _cards = new();
+        private readonly List<VisualElement> _leftCards = new();
+        private readonly List<VisualElement> _rightCards = new();
+        private readonly Dictionary<VisualElement, uint> _cardIdsByElement = new();
+        private readonly Dictionary<uint, VisualElement> _cardElementsById = new();
+        private readonly Dictionary<uint, CombatCardWidget> _cardWidgetsById = new();
 
         private VisualElement _cardDeck;
         private VisualElement _cardBoard;
-        private VisualElement _playerArea;
-        private VisualElement _encounterArea;
+        private VisualElement _leftArea;
+        private VisualElement _rightArea;
+
+        public IReadOnlyList<VisualElement> Cards => _cards;
 
         public void Bind(VisualElement cardDeck, VisualElement cardBoard)
         {
             _cardDeck = cardDeck;
             _cardBoard = cardBoard;
-            _playerArea = _cardBoard?.Q<VisualElement>("card-board-player-area");
-            _encounterArea = _cardBoard?.Q<VisualElement>("card-board-encounter-area");
+            _leftArea = _cardBoard?.Q<VisualElement>("card-board-left-area");
+            _rightArea = _cardBoard?.Q<VisualElement>("card-board-right-area");
         }
 
-        private async Awaitable DealPlaceholderAsync(CardState cardState, int totalCount)
+        private async Awaitable DealCardAsync(
+            BoardCardViewModel boardCardViewModel,
+            ECardZone zone,
+            int totalCount)
         {
-            ECardBoardSide side = cardState.Side;
-            VisualElement area = GetArea(side);
-            List<VisualElement> cards = GetCards(side);
+            VisualElement area = GetArea(zone);
+            List<VisualElement> cards = GetCards(zone);
 
             if (area == null || _cardDeck == null)
                 return;
@@ -44,58 +56,111 @@ namespace Domains.Adventure
                 return;
 
             VisualElement slot = CreateSlot(index, clampedTotalCount);
-            VisualElement card = CreatePlaceholderCard(cardState, index);
-            PrepareCardBeforeLayout(card);
+            VisualElement cardAnchor = CreateCardAnchor();
+            CombatCardWidget card = CreateCard(boardCardViewModel);
+            cardAnchor.Add(card);
 
-            slot.Add(card);
+            PrepareCardBeforeLayout(cardAnchor);
+
+            slot.Add(cardAnchor);
             area.Add(slot);
-            cards.Add(card);
+            _cards.Add(cardAnchor);
+            cards.Add(cardAnchor);
+            RegisterCard(cardAnchor, card, boardCardViewModel.CardId);
 
             await Awaitable.NextFrameAsync();
 
-            PrepareCardFromDeck(card);
+            PrepareCardFromDeck(cardAnchor);
 
-            await PlayDealEnterAsync(card);
+            await PlayDealEnterAsync(cardAnchor);
 
-            card.pickingMode = PickingMode.Position;
+            cardAnchor.pickingMode = PickingMode.Position;
         }
 
-        public async Awaitable DealAsync(IReadOnlyList<CardState> cards)
+        public async Awaitable DealAsync(CardBoardViewModel board)
         {
-            int leftCount = CountCards(cards, ECardBoardSide.Left);
-            int rightCount = CountCards(cards, ECardBoardSide.Right);
+            IReadOnlyList<BoardCardViewModel> leftCards = board.LeftCards;
+            IReadOnlyList<BoardCardViewModel> rightCards = board.RightCards;
 
-            for (int i = 0; i < cards.Count; i++)
+            if (_leftCards.Count == 0)
             {
-                CardState card = cards[i];
-                int totalCount = card.Side == ECardBoardSide.Left
-                    ? leftCount
-                    : rightCount;
-
-                await DealPlaceholderAsync(card, totalCount);
+                for (int i = 0; i < leftCards.Count; i++)
+                {
+                    await DealCardAsync(leftCards[i], ECardZone.Left, leftCards.Count);
+                }
             }
+            else
+            {
+                RefreshZone(ECardZone.Left, leftCards);
+            }
+
+            ClearZone(ECardZone.Right);
+
+            for (int i = 0; i < rightCards.Count; i++)
+            {
+                await DealCardAsync(rightCards[i], ECardZone.Right, rightCards.Count);
+            }
+        }
+
+        public async Awaitable ShowHealthWidgetsAsync()
+        {
+            if (_cardWidgetsById.Count == 0)
+                return;
+
+            AwaitableCompletionSource completionSource = new();
+            int remainingCount = _cardWidgetsById.Count;
+
+            foreach (CombatCardWidget cardWidget in _cardWidgetsById.Values)
+            {
+                _ = ShowHealthWidgetAsync(cardWidget, () =>
+                {
+                    remainingCount--;
+                    if (remainingCount == 0)
+                    {
+                        completionSource.SetResult();
+                    }
+                });
+            }
+
+            await completionSource.Awaitable;
+        }
+
+        public bool TryGetCardId(VisualElement card, out uint cardId)
+        {
+            return _cardIdsByElement.TryGetValue(card, out cardId);
+        }
+
+        public void Refresh(CardBoardViewModel board)
+        {
+            RefreshZone(ECardZone.Left, board.LeftCards);
+            RefreshZone(ECardZone.Right, board.RightCards);
         }
 
         public void Clear()
         {
-            _playerArea?.Clear();
-            _encounterArea?.Clear();
-            _playerCards.Clear();
-            _encounterCards.Clear();
+            UnbindCards();
+            _leftArea?.Clear();
+            _rightArea?.Clear();
+            _cards.Clear();
+            _leftCards.Clear();
+            _rightCards.Clear();
+            _cardIdsByElement.Clear();
+            _cardElementsById.Clear();
+            _cardWidgetsById.Clear();
         }
 
-        private VisualElement GetArea(ECardBoardSide side)
+        private VisualElement GetArea(ECardZone zone)
         {
-            return side == ECardBoardSide.Left
-                ? _playerArea
-                : _encounterArea;
+            return zone == ECardZone.Left
+                ? _leftArea
+                : _rightArea;
         }
 
-        private List<VisualElement> GetCards(ECardBoardSide side)
+        private List<VisualElement> GetCards(ECardZone zone)
         {
-            return side == ECardBoardSide.Left
-                ? _playerCards
-                : _encounterCards;
+            return zone == ECardZone.Left
+                ? _leftCards
+                : _rightCards;
         }
 
         private static VisualElement CreateSlot(int index, int totalCount)
@@ -117,37 +182,23 @@ namespace Domains.Adventure
             return slot;
         }
 
-        private static VisualElement CreatePlaceholderCard(CardState cardState, int index)
+        private static VisualElement CreateCardAnchor()
         {
-            string sideName = cardState.Side == ECardBoardSide.Left
-                ? "left"
-                : "right";
-
-            VisualElement card = new()
+            VisualElement cardAnchor = new()
             {
-                name = $"card-board-{sideName}-placeholder-card-{index}",
+                name = "card-board-card-anchor",
                 pickingMode = PickingMode.Ignore,
             };
 
-            card.AddToClassList("card-board__placeholder-card");
-            card.AddToClassList($"card-board__placeholder-card--{cardState.Kind.ToString().ToLowerInvariant()}");
+            cardAnchor.AddToClassList("card-board__card-anchor");
+            return cardAnchor;
+        }
 
-            card.Add(CreatePlaceholderLabel(
-                "card-board-placeholder-kind",
-                cardState.Kind.ToString(),
-                "card-board__placeholder-kind"));
-
-            card.Add(CreatePlaceholderLabel(
-                "card-board-placeholder-name",
-                GetModelName(cardState.Model),
-                "card-board__placeholder-name"));
-
-            card.Add(CreatePlaceholderLabel(
-                "card-board-placeholder-face",
-                cardState.Face.ToString(),
-                "card-board__placeholder-face"));
-
-            return card;
+        private static CombatCardWidget CreateCard(BoardCardViewModel cardViewModel)
+        {
+            CombatCardWidget widget = CombatCardWidget.Create();
+            widget.Bind(cardViewModel.Card, cardViewModel.Health);
+            return widget;
         }
 
         private static void PrepareCardBeforeLayout(VisualElement card)
@@ -156,42 +207,38 @@ namespace Domains.Adventure
             card.style.scale = new Scale(new Vector2(StartScale, StartScale));
         }
 
-        private static Label CreatePlaceholderLabel(string name, string text, string className)
+        private static async Awaitable ShowHealthWidgetAsync(CombatCardWidget cardWidget, System.Action onCompleted)
         {
-            Label label = new(text)
-            {
-                name = name,
-            };
-
-            label.AddToClassList(className);
-            return label;
+            await cardWidget.ShowHealthAsync();
+            onCompleted?.Invoke();
         }
 
-        private static string GetModelName(ICardModel model)
+        private void RegisterCard(VisualElement card, CombatCardWidget cardWidget, uint cardId)
         {
-            return model switch
-            {
-                CharacterModel character => character.Name,
-                MonsterModel monster => monster.Name,
-                EventModel stageEvent => stageEvent.Name,
-                ShopModel shop => shop.Name,
-                _ => model.GetType().Name,
-            };
+            _cardIdsByElement.Add(card, cardId);
+            _cardElementsById.Add(cardId, card);
+            _cardWidgetsById.Add(cardId, cardWidget);
         }
 
-        private static int CountCards(IReadOnlyList<CardState> cards, ECardBoardSide side)
+        private void UnregisterCard(VisualElement card)
         {
-            int count = 0;
+            if (!_cardIdsByElement.Remove(card, out uint cardId))
+                return;
 
-            for (int i = 0; i < cards.Count; i++)
+            _cardElementsById.Remove(cardId);
+            if (_cardWidgetsById.TryGetValue(cardId, out CombatCardWidget cardWidget))
             {
-                if (cards[i].Side == side)
-                {
-                    count++;
-                }
+                cardWidget.Unbind();
+                _cardWidgetsById.Remove(cardId);
             }
+        }
 
-            return count;
+        private void UnbindCards()
+        {
+            foreach (CombatCardWidget cardWidget in _cardWidgetsById.Values)
+            {
+                cardWidget.Unbind();
+            }
         }
 
         private void PrepareCardFromDeck(VisualElement card)
@@ -233,6 +280,14 @@ namespace Domains.Adventure
 
             card.RegisterCallback(onTransitionEnd);
             card.RegisterCallback(onTransitionCancel);
+            _ = CompleteDealAfterFallback(() =>
+            {
+                if (completed)
+                    return;
+
+                completed = true;
+                completionSource.SetResult();
+            });
 
             await Awaitable.NextFrameAsync();
 
@@ -248,6 +303,12 @@ namespace Domains.Adventure
             card.UnregisterCallback(onTransitionCancel);
         }
 
+        private static async Awaitable CompleteDealAfterFallback(Action complete)
+        {
+            await Awaitable.WaitForSecondsAsync(DealFallbackSeconds);
+            complete();
+        }
+
         private static void ClearDealStartStyle(VisualElement card)
         {
             card.style.opacity = StyleKeyword.Null;
@@ -259,6 +320,47 @@ namespace Domains.Adventure
         {
             float startOffset = -((totalCount - 1) * CardSpacing) * 0.5f;
             return startOffset + index * CardSpacing;
+        }
+
+        private void RefreshZone(ECardZone zone, IReadOnlyList<BoardCardViewModel> cards)
+        {
+            ClearZone(zone);
+
+            VisualElement area = GetArea(zone);
+            List<VisualElement> cardElements = GetCards(zone);
+            if (area == null)
+                return;
+
+            for (int i = 0; i < cards.Count; i++)
+            {
+                BoardCardViewModel boardCard = cards[i];
+                VisualElement slot = CreateSlot(i, Mathf.Clamp(cards.Count, 1, MaxCardCount));
+                VisualElement cardAnchor = CreateCardAnchor();
+                CombatCardWidget cardWidget = CreateCard(boardCard);
+
+                cardAnchor.Add(cardWidget);
+                slot.Add(cardAnchor);
+                area.Add(slot);
+                _cards.Add(cardAnchor);
+                cardElements.Add(cardAnchor);
+                RegisterCard(cardAnchor, cardWidget, boardCard.CardId);
+                cardAnchor.pickingMode = PickingMode.Position;
+            }
+        }
+
+        private void ClearZone(ECardZone zone)
+        {
+            List<VisualElement> cards = GetCards(zone);
+            for (int i = 0; i < cards.Count; i++)
+            {
+                VisualElement card = cards[i];
+                _cards.Remove(card);
+                UnregisterCard(card);
+                card.RemoveFromHierarchy();
+            }
+
+            cards.Clear();
+            GetArea(zone)?.Clear();
         }
     }
 }

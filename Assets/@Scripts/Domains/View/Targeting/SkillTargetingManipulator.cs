@@ -144,7 +144,7 @@ namespace Domains.View.Targeting
         private static Vector2 GetArrowOrigin(VisualElement element)
         {
             Rect bounds = element.worldBound;
-
+            
             return new Vector2(
                 bounds.center.x,
                 bounds.yMin + bounds.height * 0.25f);

@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Domains.Event;
 using Game.Core.Managers.DB;
 using Game.Core.Managers.Dependency;
 using Game.Core.Utility;
@@ -12,9 +10,6 @@ namespace Domains.Adventure
     [Dependency]
     public sealed class AdventureService : IDisposable
     {
-        [Inject]
-        private CardDeckService _cardDeckService;
-
         public AdventureSession CurrentAdventure { get; private set; }
 
         public AdventureSession StartNew(ECharacter character)
@@ -26,17 +21,32 @@ namespace Domains.Adventure
                 character,
                 adventure.Id,
                 adventure.CardDeckId,
+                adventure.MaxStageCount,
                 RandomUtility.CreateSeed());
 
             return CurrentAdventure;
         }
 
-        public void StartFirstStage()
+        public AdventureStageRequest CreateCurrentStageRequest()
         {
             AdventureModel adventure = DBManager.Instance.Adventure.Get(CurrentAdventure.AdventureId);
-            IReadOnlyList<CardState> cards = _cardDeckService.DrawCard(adventure.StartDrawCount);
 
-            AdventureEvents.CardsDrawn?.Invoke(cards);
+            if (CurrentAdventure.StageNumber == 1)
+            {
+                return new AdventureStageRequest(EAdventureStageType.First, adventure.StartDrawCount);
+            }
+
+            if (CurrentAdventure.StageNumber >= CurrentAdventure.MaxStageCount)
+            {
+                return new AdventureStageRequest(EAdventureStageType.Boss, 1);
+            }
+
+            return new AdventureStageRequest(EAdventureStageType.Choice, adventure.StartDrawCount);
+        }
+
+        public void AdvanceStage()
+        {
+            CurrentAdventure.AdvanceStage();
         }
 
         public void Dispose()
