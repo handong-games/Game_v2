@@ -54,7 +54,6 @@ namespace Domains.CharacterSelect
                     CardFaceViewModelFactory.Create(
                         isLocked ? character.Back : character.Front),
                     character.LocalizedName,
-                    character.MaxHp,
                     character.CoinCount,
                     character.DefaultSkills);
             }

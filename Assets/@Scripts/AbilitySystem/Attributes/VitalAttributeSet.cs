@@ -21,7 +21,6 @@ namespace Game.AbilitySystem.Attributes
 
         [AttributeDefaultValue]
         public GameplayAttributeData MaxHealth = new(1f);
-
         public GameplayAttributeData PreviewHealth = new(0f);
         public GameplayAttributeData IncomingDamage = new(0f);
         public GameplayAttributeData IncomingPreviewDamage = new(0f);

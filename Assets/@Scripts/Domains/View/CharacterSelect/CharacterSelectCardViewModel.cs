@@ -12,7 +12,6 @@ namespace Domains.CharacterSelect
             bool isLocked,
             CardFaceViewModel face,
             LocalizedString localizedName,
-            int maxHp,
             int coinCount,
             IReadOnlyList<CharacterSkillModel> skills)
         {
@@ -20,7 +19,6 @@ namespace Domains.CharacterSelect
             IsLocked = isLocked;
             Face = face;
             LocalizedName = localizedName;
-            MaxHp = maxHp;
             CoinCount = coinCount;
             Skills = skills;
         }
@@ -29,7 +27,6 @@ namespace Domains.CharacterSelect
         public bool IsLocked { get; }
         public CardFaceViewModel Face { get; }
         public LocalizedString LocalizedName { get; }
-        public int MaxHp { get; }
         public int CoinCount { get; }
         public IReadOnlyList<CharacterSkillModel> Skills { get; }
     }
