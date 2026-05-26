@@ -55,6 +55,7 @@ namespace Domains.CharacterSelect
         private Button _backButton;
         private Button _startButton;
         private Label _detailName;
+        private Label _detailHp;
         private Label _detailCoin;
 
         private VisualElement[] _cards;
@@ -84,6 +85,7 @@ namespace Domains.CharacterSelect
             _cardList = Root.Q<VisualElement>("card-list");
             _detailPanel = Root.Q<VisualElement>("detail-panel");
             _detailName = Root.Q<Label>("detail-name");
+            _detailHp = Root.Q<Label>("detail-hp");
             _detailCoin = Root.Q<Label>("detail-coin");
             _navigation = Root.Q<VisualElement>("navigation");
             _backButton = Root.Q<Button>("btn-back");
@@ -148,6 +150,7 @@ namespace Domains.CharacterSelect
             _backButton = null;
             _startButton = null;
             _detailName = null;
+            _detailHp = null;
             _detailCoin = null;
             _cards = null;
             _cardWidgets = null;
@@ -229,6 +232,7 @@ namespace Domains.CharacterSelect
             _startButton.RemoveFromClassList(StartVisibleClass);
             _startButton.SetEnabled(false);
             _detailName.text = string.Empty;
+            _detailHp.text = string.Empty;
             _detailCoin.text = string.Empty;
 
             ResetSkillSlots();
@@ -340,6 +344,7 @@ namespace Domains.CharacterSelect
         private void BindDetailPanel(CharacterSelectCardViewModel card)
         {
             BindLocalizedName(card);
+            _detailHp.text = $"HP {Mathf.RoundToInt(card.MaxHealth)}";
             _detailCoin.text = $"COIN {card.CoinCount}";
 
             ResetSkillSlots();

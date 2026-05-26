@@ -37,6 +37,7 @@
                     <ui:VisualElement name="detail-panel" class="character-select__detail-panel">
                         <ui:Label name="detail-name" text="" class="character-select__detail-name"/>
                         <ui:VisualElement name="detail-summary" class="character-select__detail-summary">
+                            <ui:Label name="detail-hp" text="" class="character-select__detail-value"/>
                             <ui:Label name="detail-coin" text="" class="character-select__detail-value"/>
                         </ui:VisualElement>
                         <ui:VisualElement name="skill-list" class="character-select__detail-skills">

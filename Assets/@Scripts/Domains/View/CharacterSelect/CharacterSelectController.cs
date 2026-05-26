@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Domains.Adventure;
 using Domains.Card;
+using Domains.Character;
 using Domains.Combat;
 using Domains.Player;
 using Domains.Scene;
-using Game.Core.Managers.DB;
 using Game.Core.Managers.Dependency;
 using Game.Core.Managers.Scene;
 using Game.Core.Managers.Save;
@@ -37,9 +37,12 @@ namespace Domains.CharacterSelect
         [Inject]
         private CombatService _combatService;
 
+        [Inject]
+        private CharacterService _characterService;
+
         public CharacterSelectInitialViewModel CreateInitialViewModel()
         {
-            IReadOnlyList<CharacterModel> characters = DBManager.Instance.Character.GetAll();
+            IReadOnlyList<CharacterModel> characters = _characterService.GetAll();
             ProgressState progress = SaveManager.Instance.GetState<ProgressState>();
             CharacterSelectCardViewModel[] viewModels = new CharacterSelectCardViewModel[characters.Count];
 
@@ -47,6 +50,11 @@ namespace Domains.CharacterSelect
             {
                 CharacterModel character = characters[i];
                 bool isLocked = !progress.IsUnlocked(character.Id);
+                float maxHealth = 0f;
+                _characterService.TryGetInitialAttributeValue(
+                    character.Id,
+                    Game.AbilitySystem.Attributes.VitalAttributeSet.MaxHealthAttribute,
+                    out maxHealth);
 
                 viewModels[i] = new CharacterSelectCardViewModel(
                     character.Id,
@@ -54,6 +62,7 @@ namespace Domains.CharacterSelect
                     CardFaceViewModelFactory.Create(
                         isLocked ? character.Back : character.Front),
                     character.LocalizedName,
+                    maxHealth,
                     character.CoinCount,
                     character.DefaultSkills);
             }
@@ -73,7 +82,7 @@ namespace Domains.CharacterSelect
                 return;
 
             AdventureSession adventure = _adventureService.StartNew(selectedCharacterId);
-            CharacterModel characterModel = DBManager.Instance.Character.Get(selectedCharacterId);
+            CharacterModel characterModel = _characterService.Get(selectedCharacterId);
 
             _cardService.Clear();
             _cardBoardService.Clear();
