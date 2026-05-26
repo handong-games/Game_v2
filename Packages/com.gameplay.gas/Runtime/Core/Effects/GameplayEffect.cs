@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Gameplay.GAS
 {
-    public class GameplayEffect
+    [CreateAssetMenu(fileName = "GameplayEffect", menuName = "Gameplay/GAS/Gameplay Effect")]
+    public class GameplayEffect : ScriptableObject
     {
         private readonly List<GameplayModifier> _modifiers = new();
         private readonly List<GameplayEffectExecution> _executions = new();
@@ -27,6 +29,11 @@ namespace Gameplay.GAS
             GameplayEffectStackingExpirationPolicy.ClearEntireStack;
 
         public bool IsPeriodic => PeriodSeconds > 0f;
+
+        public static GameplayEffect Create()
+        {
+            return CreateInstance<GameplayEffect>();
+        }
 
         public void AddModifier(GameplayModifier modifier)
         {

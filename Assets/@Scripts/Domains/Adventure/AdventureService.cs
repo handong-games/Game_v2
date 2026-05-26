@@ -27,21 +27,26 @@ namespace Domains.Adventure
             return CurrentAdventure;
         }
 
-        public AdventureStageRequest CreateCurrentStageRequest()
+        public AdventureStageDto GetCurrentStage()
         {
             AdventureModel adventure = DBManager.Instance.Adventure.Get(CurrentAdventure.AdventureId);
 
             if (CurrentAdventure.StageNumber == 1)
             {
-                return new AdventureStageRequest(EAdventureStageType.First, adventure.StartDrawCount);
+                return new AdventureStageDto(EAdventureStageType.First, adventure.StartDrawCount);
             }
 
             if (CurrentAdventure.StageNumber >= CurrentAdventure.MaxStageCount)
             {
-                return new AdventureStageRequest(EAdventureStageType.Boss, 1);
+                return new AdventureStageDto(EAdventureStageType.Boss, 1);
             }
 
-            return new AdventureStageRequest(EAdventureStageType.Choice, adventure.StartDrawCount);
+            return new AdventureStageDto(EAdventureStageType.Choice, adventure.StartDrawCount);
+        }
+
+        public EAdventureStageType GetCurrentStageType()
+        {
+            return GetCurrentStage().StageType;
         }
 
         public void AdvanceStage()

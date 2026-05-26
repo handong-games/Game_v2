@@ -1,6 +1,6 @@
 ﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:l="UnityEngine.Localization" editor-extension-mode="False">
     <ui:Template name="CardTemplate" src="project://database/Assets/@Scripts/Domains/View/Common/CardWidget.uxml?fileID=9197481963319205126&amp;guid=5a79bce03ca747d697ab7b08aef8611e&amp;type=3#CardWidget"/>
-    <ui:Template name="SkillSlotTemplate" src="project://database/Assets/@Scripts/Domains/View/Common/SkillSlot.uxml?fileID=9197481963319205126&amp;guid=d575c97a498c46cea091d4ee11171754&amp;type=3#SkillSlot"/>
+    <ui:Template name="SkillSlotTemplate" src="project://database/Assets/@Scripts/Domains/View/Common/SkillSlotWidget.uxml?fileID=9197481963319205126&amp;guid=d575c97a498c46cea091d4ee11171754&amp;type=3#SkillSlotWidget"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Common/Screen.uss?fileID=7433441132597879392&amp;guid=c1e5869491c34e1980a912a5e6dce02e&amp;type=3#Screen"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Common/CardWidget.uss?fileID=7433441132597879392&amp;guid=70e27cadb94c4ef3b614f3c8dc3f1ab5&amp;type=3#CardWidget"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Card/PortraitCardFaceWidget/PortraitCardFaceWidget.uss?fileID=7433441132597879392&amp;guid=730e4e6bc6b34fe79e402cfb0fb19902&amp;type=3#PortraitCardFaceWidget"/>

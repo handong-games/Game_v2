@@ -21,9 +21,13 @@ namespace Domains.View.Widgets
         private Label _regionName;
         private Label _turnText;
 
+        public Banner()
+        {
+            RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
+        }
+
         public async Awaitable PresentRegion(string kicker, string regionName)
         {
-            EnsureInitialized();
             SetMode(RegionClass, TurnClass);
 
             _regionKicker.text = kicker;
@@ -34,7 +38,6 @@ namespace Domains.View.Widgets
 
         public async Awaitable PresentTurn(string turnText)
         {
-            EnsureInitialized();
             SetMode(TurnClass, RegionClass);
 
             _turnText.text = turnText;
@@ -49,11 +52,11 @@ namespace Domains.View.Widgets
             await ViewTransitionManager.Instance.Play(this, ExitClass);
         }
 
-        private void EnsureInitialized()
+        private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
-            _regionKicker ??= this.Q<Label>(RegionKickerName);
-            _regionName ??= this.Q<Label>(RegionNameName);
-            _turnText ??= this.Q<Label>(TurnTextName);
+            _regionKicker = this.Q<Label>(RegionKickerName);
+            _regionName = this.Q<Label>(RegionNameName);
+            _turnText = this.Q<Label>(TurnTextName);
         }
 
         private void SetMode(string enabledClass, string disabledClass)

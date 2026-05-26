@@ -139,8 +139,8 @@ namespace Game.Core.Managers.View
 
             container.Add(logicalRoot);
             visualTreeAsset.CloneTree(logicalRoot);
-            baseView.Bind(container, logicalRoot);
             _viewLayer.Add(container);
+            baseView.Bind(container, logicalRoot);
             _views.Push(baseView);
 
             OnViewportSizeChanged(Screen.width, Screen.height);

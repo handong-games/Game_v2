@@ -45,14 +45,14 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void TryActivateAbility_CanApplyGameplayEffectToTarget()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor source = new();
             GameplayActor target = new();
-            AttributeSet targetAttributes = new();
+            TestAttributeSet targetAttributes = new();
             targetAttributes.AddAttribute(health, 50f);
             target.AbilitySystem.AddAttributeSet(targetAttributes);
 
-            GameplayEffect damageEffect = new();
+            GameplayEffect damageEffect = GameplayEffect.Create();
             damageEffect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Add, -12f));
 
             EffectTargetAbility ability = ScriptableObject.CreateInstance<EffectTargetAbility>();
@@ -72,17 +72,17 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void TryActivateAbility_CommitsCostAndCooldownBeforeActivation()
         {
-            GameplayAttribute energy = new("Energy");
+            GameplayAttribute energy = TestAttributeSet.EnergyAttribute;
             GameplayTag cooldown = GameplayTag.Request("Cooldown.Fireball");
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(energy, 10f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect cost = new();
+            GameplayEffect cost = GameplayEffect.Create();
             cost.AddModifier(new GameplayModifier(energy, GameplayModifierOperation.Add, -3f));
 
-            GameplayEffect cooldownEffect = new();
+            GameplayEffect cooldownEffect = GameplayEffect.Create();
             cooldownEffect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             cooldownEffect.DurationSeconds = 2f;
             cooldownEffect.GrantedTags.Add(cooldown);
@@ -103,13 +103,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void TryActivateAbility_ReturnsFalse_WhenCostCannotBePaid()
         {
-            GameplayAttribute energy = new("Energy");
+            GameplayAttribute energy = TestAttributeSet.EnergyAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(energy, 2f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect cost = new();
+            GameplayEffect cost = GameplayEffect.Create();
             cost.AddModifier(new GameplayModifier(energy, GameplayModifierOperation.Add, -3f));
 
             TestAbility ability = ScriptableObject.CreateInstance<TestAbility>();
@@ -128,7 +128,7 @@ namespace Gameplay.GAS.Tests
         {
             GameplayTag cooldown = GameplayTag.Request("Cooldown.Fireball");
             GameplayActor actor = new();
-            GameplayEffect cooldownEffect = new();
+            GameplayEffect cooldownEffect = GameplayEffect.Create();
             cooldownEffect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             cooldownEffect.DurationSeconds = 2f;
             cooldownEffect.GrantedTags.Add(cooldown);
@@ -324,3 +324,5 @@ namespace Gameplay.GAS.Tests
         }
     }
 }
+
+

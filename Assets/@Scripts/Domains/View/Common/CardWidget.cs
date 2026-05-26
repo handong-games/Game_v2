@@ -15,20 +15,21 @@ namespace Domains.View.Widgets
 
         private VisualElement _frontSlot;
         private VisualElement _backSlot;
+        private CardViewModel _pendingViewModel;
+
+        public CardWidget()
+        {
+            RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
+        }
 
         public void Bind(CardViewModel viewModel)
         {
-            ResolveSlots();
-            Unbind();
-            ClearFaces();
-            AddFace(_frontSlot, viewModel.Front);
-            AddFace(_backSlot, viewModel.Back);
-            SetFace(viewModel.Face);
+            _pendingViewModel = viewModel;
+            ApplyBinding();
         }
 
         public void Unbind()
         {
-            ResolveSlots();
             UnbindChildren(_frontSlot);
             UnbindChildren(_backSlot);
         }
@@ -39,10 +40,22 @@ namespace Domains.View.Widgets
             EnableInClassList(BackClass, face == ECardFace.Back);
         }
 
-        private void ResolveSlots()
+        private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
-            _frontSlot ??= this.Q<VisualElement>(FrontSlotName);
-            _backSlot ??= this.Q<VisualElement>(BackSlotName);
+            _frontSlot = this.Q<VisualElement>(FrontSlotName);
+            _backSlot = this.Q<VisualElement>(BackSlotName);
+        }
+
+        private void ApplyBinding()
+        {
+            if (_frontSlot == null || _backSlot == null || _pendingViewModel == null)
+                return;
+
+            Unbind();
+            ClearFaces();
+            AddFace(_frontSlot, _pendingViewModel.Front);
+            AddFace(_backSlot, _pendingViewModel.Back);
+            SetFace(_pendingViewModel.Face);
         }
 
         private void ClearFaces()
@@ -57,6 +70,11 @@ namespace Domains.View.Widgets
             if (face != null)
             {
                 slot.Add(face);
+
+                if (face is ICardFaceWidget faceWidget)
+                {
+                    faceWidget.Bind(viewModel);
+                }
             }
         }
 

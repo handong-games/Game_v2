@@ -18,9 +18,11 @@ namespace Domains.View.Widgets
         private VisualElement _portrait;
         private Label _name;
         private LocalizedString _localizedName;
+        private PortraitCardFaceViewModel _pendingViewModel;
 
         public PortraitCardFaceWidget()
         {
+            RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
         }
 
@@ -39,22 +41,8 @@ namespace Domains.View.Widgets
 
         public void Bind(PortraitCardFaceViewModel viewModel)
         {
-            ResolveElements();
-            Unbind();
-
-            _portrait.style.backgroundImage = viewModel.Portrait != null
-                ? new StyleBackground(Background.FromSprite(viewModel.Portrait))
-                : StyleKeyword.Null;
-
-            if (viewModel.LocalizedName == null || viewModel.LocalizedName.IsEmpty)
-            {
-                SetName(string.Empty);
-                return;
-            }
-
-            _localizedName = viewModel.LocalizedName;
-            SetName(_localizedName.GetLocalizedString());
-            _localizedName.StringChanged += SetName;
+            _pendingViewModel = viewModel;
+            ApplyBinding();
         }
 
         public void Unbind()
@@ -68,14 +56,35 @@ namespace Domains.View.Widgets
 
         private void SetName(string value)
         {
-            ResolveElements();
             _name.text = value ?? string.Empty;
         }
 
-        private void ResolveElements()
+        private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
             _portrait = this.Q<VisualElement>(PortraitName);
             _name = this.Q<Label>(NameLabelName);
+        }
+
+        private void ApplyBinding()
+        {
+            if (_portrait == null || _name == null || _pendingViewModel == null)
+                return;
+
+            Unbind();
+
+            _portrait.style.backgroundImage = _pendingViewModel.Portrait != null
+                ? new StyleBackground(Background.FromSprite(_pendingViewModel.Portrait))
+                : StyleKeyword.Null;
+
+            if (_pendingViewModel.LocalizedName == null || _pendingViewModel.LocalizedName.IsEmpty)
+            {
+                SetName(string.Empty);
+                return;
+            }
+
+            _localizedName = _pendingViewModel.LocalizedName;
+            SetName(_localizedName.GetLocalizedString());
+            _localizedName.StringChanged += SetName;
         }
 
         private void OnDetachedFromPanel(DetachFromPanelEvent evt)

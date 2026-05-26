@@ -10,13 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3d0a4543b45ccf468d8410fbd9a9c43, type: 3}
-  m_Name: Character_Warrior
+  m_Name: CharacterModel_Warrior
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterModel
   _name: Warrior
   _ownedTags: []
   _front: {fileID: 11400000, guid: 93c2a5a995d4d4247880b1c48d5d48a1, type: 2}
   _back: {fileID: 11400000, guid: 2304b67d41d836448895606f9230bf33, type: 2}
   _abilitySet: {fileID: 11400000, guid: 3c0118f2463183f41b0303b6284d2341, type: 2}
+  _attributeSetDefaults: []
   _localizedName:
     m_TableReference:
       m_TableCollectionName: CharacterNames

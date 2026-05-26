@@ -1,5 +1,5 @@
-﻿using Domains.Adventure;
-using Domains.Combat;
+using Domains.Adventure;
+using Gameplay.GAS;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
@@ -18,11 +18,22 @@ namespace Domains.View.Widgets
 
         private CardWidget _cardWidget;
         private HealthWidget _healthWidget;
-        private CardHealthBinding _healthBinding;
 
         public CombatCardWidget()
         {
+            RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
+        }
+
+        private void OnAttachedToPanel(AttachToPanelEvent evt)
+        {
+            _cardWidget = this.Q<CardWidget>(CardWidgetName);
+            _healthWidget = this.Q<HealthWidget>(HealthWidgetName);
+        }
+
+        private void OnDetachedFromPanel(DetachFromPanelEvent evt)
+        {
+            Unbind();
         }
 
         public static CombatCardWidget Create()
@@ -33,20 +44,16 @@ namespace Domains.View.Widgets
             return widget;
         }
 
-        public void Bind(CardViewModel card, CardHealthBinding health)
+        public void Bind(CardViewModel card, AbilitySystemComponent abilitySystem)
         {
-            ResolveElements();
             Unbind();
-
             _cardWidget.Bind(card);
-            BindHealth(health);
+            _healthWidget.Bind(abilitySystem);
         }
 
         public async Awaitable ShowHealthAsync()
         {
-            ResolveElements();
-
-            if (_healthBinding == null || !_healthBinding.IsValid)
+            if (_healthWidget == null)
                 return;
 
             await _healthWidget.Show();
@@ -55,63 +62,7 @@ namespace Domains.View.Widgets
         public void Unbind()
         {
             _cardWidget?.Unbind();
-            UnbindHealth();
-        }
-
-        private void BindHealth(CardHealthBinding health)
-        {
-            if (health == null || !health.IsValid)
-                return;
-
-            _healthBinding = health;
-            _healthWidget.SetHealth(_healthBinding.CurrentHealth, _healthBinding.MaxHealth);
-            _healthBinding.HealthChanged += OnHealthChanged;
-            _healthBinding.HealthPreviewChanged += OnHealthPreviewChanged;
-        }
-
-        private void UnbindHealth()
-        {
-            if (_healthBinding == null)
-                return;
-
-            _healthBinding.HealthChanged -= OnHealthChanged;
-            _healthBinding.HealthPreviewChanged -= OnHealthPreviewChanged;
-            _healthBinding = null;
-            _healthWidget.Hide();
-            _healthWidget.HidePreview();
-        }
-
-        private void OnHealthChanged(int currentHealth, int maxHealth)
-        {
-            if (panel == null)
-                return;
-
-            _healthWidget.SetHealth(currentHealth, maxHealth);
-        }
-
-        private void OnHealthPreviewChanged(HealthPreviewDto preview)
-        {
-            if (panel == null)
-                return;
-
-            if (preview.IsEnabled)
-            {
-                _healthWidget.ShowPreview(preview);
-                return;
-            }
-
-            _healthWidget.HidePreview();
-        }
-
-        private void ResolveElements()
-        {
-            _cardWidget ??= this.Q<CardWidget>(CardWidgetName);
-            _healthWidget ??= this.Q<HealthWidget>(HealthWidgetName);
-        }
-
-        private void OnDetachedFromPanel(DetachFromPanelEvent evt)
-        {
-            Unbind();
+            _healthWidget?.Unbind();
         }
 
         private static VisualTreeAsset LoadTemplate()

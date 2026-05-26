@@ -32,14 +32,14 @@ namespace Domains.Adventure
             _cardDealer?.Clear();
         }
 
-        private async void OnCardsDrawn(CardBoardViewModel board)
+        private async void OnCardsDrawn(IReadOnlyList<AdventureCardViewModel> cards)
         {
             if (_cardDealer == null)
                 return;
 
             UnregisterCardEvents();
 
-            await _cardDealer.DealAsync(board);
+            await _cardDealer.DealAsync(cards);
             RegisterCardEvents();
 
             AdventureEvents.CardDealCompleted?.Invoke();
@@ -118,13 +118,13 @@ namespace Domains.Adventure
             _controller.OnCardClicked(cardId);
         }
 
-        private void OnBoardChanged(CardBoardViewModel board)
+        private void OnBoardChanged(IReadOnlyList<AdventureCardViewModel> cards)
         {
             if (_cardDealer == null)
                 return;
 
             UnregisterCardEvents();
-            _cardDealer.Refresh(board);
+            _cardDealer.Refresh(cards);
             RegisterCardEvents();
         }
 

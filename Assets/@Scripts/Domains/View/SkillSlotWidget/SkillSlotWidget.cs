@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
+using Gameplay.GAS;
 using Game.Core.Managers.View;
-using Game.Data;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
@@ -8,186 +9,72 @@ using UnityEngine.UIElements;
 namespace Domains.View.Widgets
 {
     [UxmlElement]
-    public sealed partial class SkillSlotWidget : VisualElement
+    public sealed partial class SkillSlotButton : Button
     {
-        private const string SkillSlotAddress = "SkillSlot";
-        private const string SlotClass = "skill-slot-widget__slot";
-        private const string HiddenClass = "ui-transition--hidden";
-        private const string FromBottomClass = "ui-transition--from-bottom";
-        private const string EnterClass = "ui-transition--enter";
-        private const string SlotEmptyClass = "skill-slot--empty";
-        private const string SkillTypeAttackClass = "skill-slot--type-attack";
-        private const string SkillTypeDefenseClass = "skill-slot--type-defense";
-        private const string SkillTypeUtilityClass = "skill-slot--type-utility";
-        private readonly List<VisualElement> _slots = new();
-        private readonly List<VisualElement> _icons = new();
-        private readonly List<Label> _fallbackNames = new();
+        private const string SkillSlotAddress = "SkillSlotWidget";
 
-        private VisualTreeAsset _slotTemplate;
-        private bool _isShown;
+        private static VisualTreeAsset _slotTemplate;
 
-        public IReadOnlyList<VisualElement> Slots => _slots;
+        private VisualElement _iconElement;
+        private Label _fallbackNameLabel;
+        private SkillSlotViewModelV2 _pendingViewModel;
+        private bool _hasPendingViewModel;
 
-        public void Bind(IReadOnlyList<SkillSlotViewModel> skillSlots)
+        public SkillSlotButton()
         {
-            int count = skillSlots?.Count ?? 0;
-            EnsureSlotCount(count);
+            text = string.Empty;
+            focusable = false;
+            RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
 
-            for (int i = 0; i < _slots.Count; i++)
-            {
-                bool visible = i < count;
-                SkillSlotViewModel skillSlot = visible ? skillSlots[i] : default;
-                BindSlot(i, skillSlot, visible);
-            }
-        }
-
-        public void BindV2(IReadOnlyList<SkillSlotViewModelV2> skillSlots)
-        {
-            int count = skillSlots?.Count ?? 0;
-            EnsureSlotCount(count);
-
-            for (int i = 0; i < _slots.Count; i++)
-            {
-                bool visible = i < count;
-                SkillSlotViewModelV2 skillSlot = visible ? skillSlots[i] : default;
-                BindSlotV2(i, skillSlot, visible);
-            }
-        }
-
-        public async Awaitable Show()
-        {
-            if (_isShown)
-                return;
-
-            _isShown = true;
-            SetHidden();
-
-            await ViewTransitionManager.Instance.Play(this, EnterClass);
-        }
-
-        public void Hide()
-        {
-            _isShown = false;
-            SetHidden();
-        }
-
-        private void EnsureSlotCount(int count)
-        {
             EnsureTemplate();
-            if (_slotTemplate == null)
-                return;
-
-            while (_slots.Count < count)
-            {
-                AddSlot();
-            }
+            _slotTemplate?.CloneTree(this);
         }
 
-        private void AddSlot()
+        public void Bind(SkillSlotViewModelV2 viewModel)
         {
-            TemplateContainer slot = _slotTemplate.CloneTree();
-            slot.AddToClassList(SlotClass);
-            slot.pickingMode = PickingMode.Position;
-            Add(slot);
-
-            _slots.Add(slot);
-            _icons.Add(slot.Q<VisualElement>("skill-slot-icon"));
-            _fallbackNames.Add(slot.Q<Label>("skill-slot-fallback-name"));
+            _pendingViewModel = viewModel;
+            _hasPendingViewModel = true;
+            ApplyBinding();
         }
 
-        private void BindSlot(int index, SkillSlotViewModel skillSlot, bool visible)
+        private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
-            VisualElement slot = _slots[index];
-            slot.userData = visible ? (object)skillSlot.SlotIndex : null;
-            slot.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
-            slot.RemoveFromClassList(SlotEmptyClass);
-            slot.RemoveFromClassList(SkillTypeAttackClass);
-            slot.RemoveFromClassList(SkillTypeDefenseClass);
-            slot.RemoveFromClassList(SkillTypeUtilityClass);
-
-            VisualElement icon = _icons[index];
-            if (icon != null)
-            {
-                icon.style.display = DisplayStyle.None;
-                icon.style.backgroundImage = StyleKeyword.Null;
-            }
-
-            Label fallbackName = _fallbackNames[index];
-            if (fallbackName != null)
-            {
-                fallbackName.style.display = DisplayStyle.None;
-                fallbackName.text = string.Empty;
-            }
-
-            if (!visible)
-                return;
-
-            if (skillSlot.IsEmpty)
-            {
-                slot.AddToClassList(SlotEmptyClass);
-                return;
-            }
-
-            slot.AddToClassList(GetSkillTypeClass(skillSlot.SkillType));
-
-            if (skillSlot.Icon != null && icon != null)
-            {
-                icon.style.display = DisplayStyle.Flex;
-                icon.style.backgroundImage = new StyleBackground(Background.FromSprite(skillSlot.Icon));
-                return;
-            }
-
-            if (fallbackName != null)
-            {
-                fallbackName.style.display = DisplayStyle.Flex;
-                fallbackName.text = skillSlot.Name ?? string.Empty;
-            }
+            _iconElement = this.Q<VisualElement>("skill-slot-icon");
+            _fallbackNameLabel = this.Q<Label>("skill-slot-fallback-name");
         }
 
-        private void BindSlotV2(int index, SkillSlotViewModelV2 skillSlot, bool visible)
+        private void ApplyBinding()
         {
-            VisualElement slot = _slots[index];
-            slot.userData = null;
-            slot.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
-            slot.RemoveFromClassList(SlotEmptyClass);
-            slot.RemoveFromClassList(SkillTypeAttackClass);
-            slot.RemoveFromClassList(SkillTypeDefenseClass);
-            slot.RemoveFromClassList(SkillTypeUtilityClass);
-
-            VisualElement icon = _icons[index];
-            if (icon != null)
-            {
-                icon.style.display = DisplayStyle.None;
-                icon.style.backgroundImage = StyleKeyword.Null;
-            }
-
-            Label fallbackName = _fallbackNames[index];
-            if (fallbackName != null)
-            {
-                fallbackName.style.display = DisplayStyle.None;
-                fallbackName.text = string.Empty;
-            }
-
-            if (!visible)
+            if (!_hasPendingViewModel)
                 return;
 
-            slot.AddToClassList(SkillTypeAttackClass);
+            userData = _pendingViewModel;
+            RemoveFromClassList("skill-slot--has-icon");
+            RemoveFromClassList("skill-slot--has-label");
+            AddToClassList("skill-slot--type-attack");
 
-            if (skillSlot.Icon != null && icon != null)
+            if (_iconElement != null)
+                _iconElement.style.backgroundImage = StyleKeyword.Null;
+
+            if (_fallbackNameLabel != null)
+                _fallbackNameLabel.text = string.Empty;
+
+            if (_pendingViewModel.Icon != null && _iconElement != null)
             {
-                icon.style.display = DisplayStyle.Flex;
-                icon.style.backgroundImage = new StyleBackground(Background.FromSprite(skillSlot.Icon));
+                AddToClassList("skill-slot--has-icon");
+                _iconElement.style.backgroundImage =
+                    new StyleBackground(Background.FromSprite(_pendingViewModel.Icon));
                 return;
             }
 
-            if (fallbackName != null)
+            if (_fallbackNameLabel != null)
             {
-                fallbackName.style.display = DisplayStyle.Flex;
-                fallbackName.text = skillSlot.Name?.GetLocalizedString() ?? string.Empty;
+                AddToClassList("skill-slot--has-label");
+                _fallbackNameLabel.text = _pendingViewModel.Name?.GetLocalizedString() ?? string.Empty;
             }
         }
 
-        private void EnsureTemplate()
+        private static void EnsureTemplate()
         {
             if (_slotTemplate != null)
                 return;
@@ -197,19 +84,104 @@ namespace Domains.View.Widgets
                 .WaitForCompletion();
 
             if (_slotTemplate == null)
+                Debug.LogError($"{nameof(SkillSlotButton)} failed to load {SkillSlotAddress}.");
+        }
+    }
+
+    [UxmlElement]
+    public sealed partial class SkillSlotGroup : ToggleButtonGroup
+    {
+        private const string HiddenClass = "ui-transition--hidden";
+        private const string FromBottomClass = "ui-transition--from-bottom";
+        private const string EnterClass = "ui-transition--enter";
+
+        private readonly List<SkillSlotButton> _slots = new();
+        private bool _isShown;
+
+        public IReadOnlyList<SkillSlotButton> Slots => _slots;
+        public event Action<int, SkillSlotButton> SelectionChanged;
+
+        public SkillSlotGroup()
+        {
+            focusable = false;
+            isMultipleSelection = false;
+            allowEmptySelection = true;
+            RegisterCallback<ChangeEvent<ToggleButtonGroupState>>(OnSelectionChanged);
+
+            AddToClassList("skill-slot-group");
+        }
+
+        public void Bind(IReadOnlyList<SkillSlotViewModelV2> skillSlots)
+        {
+            int count = skillSlots?.Count ?? 0;
+            EnsureSlotCount(count);
+
+            SetValueWithoutNotify(new ToggleButtonGroupState(0ul, _slots.Count));
+
+            for (int i = 0; i < _slots.Count; i++)
             {
-                Debug.LogError($"{nameof(SkillSlotWidget)} failed to load {SkillSlotAddress}.");
+                bool visible = i < count;
+                SkillSlotButton slot = _slots[i];
+                slot.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+
+                if (!visible)
+                    continue;
+
+                slot.Bind(skillSlots[i]);
             }
         }
 
-        private static string GetSkillTypeClass(SkillType skillType)
+        public async Awaitable Show()
         {
-            return skillType switch
+            if (_isShown)
+                return;
+
+            _isShown = true;
+            RemoveFromClassList(HiddenClass);
+            await ViewTransitionManager.Instance.Play(this, EnterClass);
+        }
+
+        public void Hide()
+        {
+            _isShown = false;
+            SetHidden();
+        }
+
+        private void OnSelectionChanged(ChangeEvent<ToggleButtonGroupState> evt)
+        {
+            int selectedIndex = FindSelectedIndex(evt.newValue);
+            SkillSlotButton selectedButton = GetSelectedButton(selectedIndex);
+            SelectionChanged?.Invoke(selectedIndex, selectedButton);
+        }
+
+        private SkillSlotButton GetSelectedButton(int selectedIndex)
+        {
+            if (selectedIndex < 0 || selectedIndex >= _slots.Count)
+                return null;
+
+            return _slots[selectedIndex];
+        }
+
+        private static int FindSelectedIndex(ToggleButtonGroupState state)
+        {
+            for (int i = 0; i < state.length; i++)
             {
-                SkillType.Defense => SkillTypeDefenseClass,
-                SkillType.Utility => SkillTypeUtilityClass,
-                _ => SkillTypeAttackClass,
-            };
+                if (state[i])
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private void EnsureSlotCount(int count)
+        {
+            while (_slots.Count < count)
+            {
+                SkillSlotButton slot = new();
+                slot.AddToClassList("skill-slot-group__slot");
+                _slots.Add(slot);
+                Add(slot);
+            }
         }
 
         private void SetHidden()

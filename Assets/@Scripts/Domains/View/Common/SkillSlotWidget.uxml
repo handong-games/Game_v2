@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <ui:VisualElement class="skill-slot" picking-mode="Ignore" focusable="false">
+    <ui:VisualElement class="skill-slot-button skill-slot" picking-mode="Ignore" focusable="false">
         <ui:VisualElement name="skill-slot-frame" class="skill-slot__frame" picking-mode="Ignore" focusable="false"/>
         <ui:VisualElement name="skill-slot-icon" class="skill-slot__icon" picking-mode="Ignore" focusable="false"/>
         <ui:Label name="skill-slot-fallback-name" text="" class="skill-slot__fallback-name" picking-mode="Ignore" focusable="false"/>

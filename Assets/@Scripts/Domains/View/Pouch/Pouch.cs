@@ -41,7 +41,6 @@ namespace Domains.View.Widgets
 
         public async Awaitable Hide()
         {
-            EnsureInitialized();
             if (_image == null)
                 return;
 
@@ -52,7 +51,6 @@ namespace Domains.View.Widgets
 
         private void PrepareHidden()
         {
-            EnsureInitialized();
             if (_image == null)
                 return;
 
@@ -77,6 +75,7 @@ namespace Domains.View.Widgets
 
         private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
+            _image = this.Q<VisualElement>(ImageName);
             PrepareHidden();
         }
 
@@ -95,14 +94,8 @@ namespace Domains.View.Widgets
             Clicked?.Invoke();
         }
 
-        private void EnsureInitialized()
-        {
-            _image ??= this.Q<VisualElement>(ImageName);
-        }
-
         private void StartIdleAnimation()
         {
-            EnsureInitialized();
             if (_image == null)
                 return;
 

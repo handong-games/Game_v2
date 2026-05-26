@@ -12,9 +12,8 @@ namespace Domains.Event
     public static class AdventureEvents
     {
         public static Action AdventureStarted;
-        public static Action IntroCompleted;
-        public static Action<CardBoardViewModel> CardsDrawn;
-        public static Action<CardBoardViewModel> BoardChanged;
+        public static Action<IReadOnlyList<AdventureCardViewModel>> CardsDrawn;
+        public static Action<IReadOnlyList<AdventureCardViewModel>> BoardChanged;
         public static Action CardDealCompleted;
         public static Action TurnBannerRequested;
         public static Action StageCompleted;

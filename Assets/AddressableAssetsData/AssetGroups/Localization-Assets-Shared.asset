@@ -15,28 +15,35 @@ MonoBehaviour:
   m_GroupName: Localization-Assets-Shared
   m_GUID: 02025ffae5732354d8d8b94f53c4bd7b
   m_SerializeEntries:
+  - m_GUID: 1a0454840a4eac045bd7630833dd0c7c
+    m_Address: Assets/@Resources/Localization/SkillNames/SkillNames Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1aacffa3751a4cbcb2cb0b49b4a4e3b8
+    m_Address: Assets/@Resources/Localization/CharacterNames/CharacterNames Shared
+      Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 45386a82b1684cd498c37087a2f872ef
     m_Address: Assets/@Resources/Localization/TitleView Shared Data.asset
     m_ReadOnly: 1
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 51f8bc55f54f41a4a8eb729c28f3b063
-    m_Address: Assets/@Resources/Localization/CharacterSelectView/CharacterSelectView Shared Data.asset
-    m_ReadOnly: 1
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1aacffa3751a4cbcb2cb0b49b4a4e3b8
-    m_Address: Assets/@Resources/Localization/CharacterNames/CharacterNames Shared Data.asset
-    m_ReadOnly: 1
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ab2e6695c6b149579d2fcf29a11f3d73
-    m_Address: Assets/@Resources/Localization/MonsterNames/MonsterNames Shared Data.asset
+    m_Address: Assets/@Resources/Localization/CharacterSelectView/CharacterSelectView
+      Shared Data.asset
     m_ReadOnly: 1
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a18b3a7f10824024eb538086ff6d89b1
     m_Address: Assets/@Resources/Localization/SettingsView/SettingsView Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ab2e6695c6b149579d2fcf29a11f3d73
+    m_Address: Assets/@Resources/Localization/MonsterNames/MonsterNames Shared Data.asset
     m_ReadOnly: 1
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

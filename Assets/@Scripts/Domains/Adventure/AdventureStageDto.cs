@@ -1,8 +1,8 @@
 namespace Domains.Adventure
 {
-    public readonly struct AdventureStageRequest
+    public readonly struct AdventureStageDto
     {
-        public AdventureStageRequest(EAdventureStageType stageType, uint drawCount)
+        public AdventureStageDto(EAdventureStageType stageType, uint drawCount)
         {
             StageType = stageType;
             DrawCount = drawCount;

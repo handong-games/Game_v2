@@ -82,6 +82,11 @@ namespace Domains.View.Widgets
             SetArrowVisible(false);
         }
 
+        public void Update(PointerMoveEvent evt)
+        {
+            Update(evt.position);
+        }
+
         public void Update(Vector2 target)
         {
             if (!_isShown)

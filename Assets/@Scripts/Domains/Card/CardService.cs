@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.AbilitySystem.Attributes;
 using Game.Core.Managers.Dependency;
 using Game.Data;
 using Gameplay.GAS;
@@ -19,6 +20,8 @@ namespace Domains.Card
 
             Card card = new(CreateCardId(), model, ECardFace.Front);
             ApplyOwnedTags(card, model);
+            CreateAndApplyAttributeSets(card, model.AttributeSetDefaults);
+
             model.AbilitySet?.GiveAbilities(card.AbilitySystem);
             _cards.Add(card.CardId, card);
             return card;
@@ -62,6 +65,40 @@ namespace Domains.Card
         private uint CreateCardId()
         {
             return _nextCardId++;
+        }
+
+        private static void CreateAndApplyAttributeSets(
+            Card card,
+            IReadOnlyList<AttributeSetDefaultsDefinition> definitions)
+        {
+            if (card == null || definitions == null)
+                return;
+
+            HashSet<Type> createdSetTypes = new();
+
+            for (int i = 0; i < definitions.Count; i++)
+            {
+                AttributeSetDefaultsDefinition definition = definitions[i];
+                if (definition == null)
+                    continue;
+
+                Type setType = definition.GetAttributeSetType();
+                if (setType == null)
+                    continue;
+
+                if (!typeof(AttributeSet).IsAssignableFrom(setType))
+                    continue;
+
+                if (!createdSetTypes.Add(setType))
+                    continue;
+
+                AttributeSet attributeSet = Activator.CreateInstance(setType) as AttributeSet;
+                if (attributeSet == null)
+                    continue;
+
+                definition.ApplyTo(attributeSet);
+                card.AbilitySystem.AddAttributeSet(attributeSet);
+            }
         }
 
         private static void ApplyOwnedTags(Card card, ICardModel model)

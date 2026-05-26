@@ -27,6 +27,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Locale-en-US
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 87941a6bf2d81c346a7826b0713eb3ee
+    m_Address: SkillNames_en-US
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en-US
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: dcf6dd9163fa0e142a4578c2b90a67e9
     m_Address: CharacterSelectView_en-US
     m_ReadOnly: 1

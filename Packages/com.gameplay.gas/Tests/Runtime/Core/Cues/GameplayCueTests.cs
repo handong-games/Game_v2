@@ -10,7 +10,7 @@ namespace Gameplay.GAS.Tests
         {
             GameplayActor actor = new();
             GameplayTag cueTag = GameplayTag.Request("GameplayCue.Damage");
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddGameplayCue(CreateCue(cueTag));
 
             GameplayCueEventData received = null;
@@ -29,7 +29,7 @@ namespace Gameplay.GAS.Tests
         {
             GameplayActor actor = new();
             GameplayTag cueTag = GameplayTag.Request("GameplayCue.Buff");
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 3f;
             effect.AddGameplayCue(CreateCue(cueTag));
@@ -51,7 +51,7 @@ namespace Gameplay.GAS.Tests
         {
             GameplayActor actor = new();
             GameplayTag cueTag = GameplayTag.Request("GameplayCue.Buff");
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             effect.AddGameplayCue(CreateCue(cueTag));
 
@@ -88,7 +88,7 @@ namespace Gameplay.GAS.Tests
         {
             GameplayActor actor = new();
             GameplayTag cueTag = GameplayTag.Request("GameplayCue.Level");
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddGameplayCue(CreateCue(cueTag, 1f, 5f));
 
             GameplayCueParameters parameters = null;
@@ -110,3 +110,4 @@ namespace Gameplay.GAS.Tests
         }
     }
 }
+

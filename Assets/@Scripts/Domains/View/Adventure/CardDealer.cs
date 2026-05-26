@@ -39,7 +39,7 @@ namespace Domains.Adventure
         }
 
         private async Awaitable DealCardAsync(
-            BoardCardViewModel boardCardViewModel,
+            AdventureCardViewModel cardViewModel,
             ECardZone zone,
             int totalCount)
         {
@@ -57,16 +57,17 @@ namespace Domains.Adventure
 
             VisualElement slot = CreateSlot(index, clampedTotalCount);
             VisualElement cardAnchor = CreateCardAnchor();
-            CombatCardWidget card = CreateCard(boardCardViewModel);
+            CombatCardWidget card = CreateCard();
             cardAnchor.Add(card);
 
             PrepareCardBeforeLayout(cardAnchor);
 
             slot.Add(cardAnchor);
             area.Add(slot);
+            card.Bind(cardViewModel.Card, cardViewModel.AbilitySystem);
             _cards.Add(cardAnchor);
             cards.Add(cardAnchor);
-            RegisterCard(cardAnchor, card, boardCardViewModel.CardId);
+            RegisterCard(cardAnchor, card, cardViewModel.CardId);
 
             await Awaitable.NextFrameAsync();
 
@@ -77,28 +78,36 @@ namespace Domains.Adventure
             cardAnchor.pickingMode = PickingMode.Position;
         }
 
-        public async Awaitable DealAsync(CardBoardViewModel board)
+        public async Awaitable DealAsync(IReadOnlyList<AdventureCardViewModel> cards)
         {
-            IReadOnlyList<BoardCardViewModel> leftCards = board.LeftCards;
-            IReadOnlyList<BoardCardViewModel> rightCards = board.RightCards;
+            int leftCount = CountCardsInZone(cards, ECardZone.Left);
+            int rightCount = CountCardsInZone(cards, ECardZone.Right);
 
             if (_leftCards.Count == 0)
             {
-                for (int i = 0; i < leftCards.Count; i++)
+                for (int i = 0; i < cards.Count; i++)
                 {
-                    await DealCardAsync(leftCards[i], ECardZone.Left, leftCards.Count);
+                    AdventureCardViewModel card = cards[i];
+                    if (card.Zone != ECardZone.Left)
+                        continue;
+
+                    await DealCardAsync(card, ECardZone.Left, leftCount);
                 }
             }
             else
             {
-                RefreshZone(ECardZone.Left, leftCards);
+                RefreshZone(ECardZone.Left, cards);
             }
 
             ClearZone(ECardZone.Right);
 
-            for (int i = 0; i < rightCards.Count; i++)
+            for (int i = 0; i < cards.Count; i++)
             {
-                await DealCardAsync(rightCards[i], ECardZone.Right, rightCards.Count);
+                AdventureCardViewModel card = cards[i];
+                if (card.Zone != ECardZone.Right)
+                    continue;
+
+                await DealCardAsync(card, ECardZone.Right, rightCount);
             }
         }
 
@@ -130,10 +139,10 @@ namespace Domains.Adventure
             return _cardIdsByElement.TryGetValue(card, out cardId);
         }
 
-        public void Refresh(CardBoardViewModel board)
+        public void Refresh(IReadOnlyList<AdventureCardViewModel> cards)
         {
-            RefreshZone(ECardZone.Left, board.LeftCards);
-            RefreshZone(ECardZone.Right, board.RightCards);
+            RefreshZone(ECardZone.Left, cards);
+            RefreshZone(ECardZone.Right, cards);
         }
 
         public void Clear()
@@ -194,11 +203,9 @@ namespace Domains.Adventure
             return cardAnchor;
         }
 
-        private static CombatCardWidget CreateCard(BoardCardViewModel cardViewModel)
+        private static CombatCardWidget CreateCard()
         {
-            CombatCardWidget widget = CombatCardWidget.Create();
-            widget.Bind(cardViewModel.Card, cardViewModel.Health);
-            return widget;
+            return CombatCardWidget.Create();
         }
 
         private static void PrepareCardBeforeLayout(VisualElement card)
@@ -322,7 +329,7 @@ namespace Domains.Adventure
             return startOffset + index * CardSpacing;
         }
 
-        private void RefreshZone(ECardZone zone, IReadOnlyList<BoardCardViewModel> cards)
+        private void RefreshZone(ECardZone zone, IReadOnlyList<AdventureCardViewModel> cards)
         {
             ClearZone(zone);
 
@@ -331,21 +338,40 @@ namespace Domains.Adventure
             if (area == null)
                 return;
 
+            int totalCount = CountCardsInZone(cards, zone);
+            int zoneIndex = 0;
             for (int i = 0; i < cards.Count; i++)
             {
-                BoardCardViewModel boardCard = cards[i];
-                VisualElement slot = CreateSlot(i, Mathf.Clamp(cards.Count, 1, MaxCardCount));
+                AdventureCardViewModel cardViewModel = cards[i];
+                if (cardViewModel.Zone != zone)
+                    continue;
+
+                VisualElement slot = CreateSlot(zoneIndex, Mathf.Clamp(totalCount, 1, MaxCardCount));
                 VisualElement cardAnchor = CreateCardAnchor();
-                CombatCardWidget cardWidget = CreateCard(boardCard);
+                CombatCardWidget cardWidget = CreateCard();
 
                 cardAnchor.Add(cardWidget);
                 slot.Add(cardAnchor);
                 area.Add(slot);
+                cardWidget.Bind(cardViewModel.Card, cardViewModel.AbilitySystem);
                 _cards.Add(cardAnchor);
                 cardElements.Add(cardAnchor);
-                RegisterCard(cardAnchor, cardWidget, boardCard.CardId);
+                RegisterCard(cardAnchor, cardWidget, cardViewModel.CardId);
                 cardAnchor.pickingMode = PickingMode.Position;
+                zoneIndex++;
             }
+        }
+
+        private static int CountCardsInZone(IReadOnlyList<AdventureCardViewModel> cards, ECardZone zone)
+        {
+            int count = 0;
+            for (int i = 0; i < cards.Count; i++)
+            {
+                if (cards[i].Zone == zone)
+                    count++;
+            }
+
+            return count;
         }
 
         private void ClearZone(ECardZone zone)

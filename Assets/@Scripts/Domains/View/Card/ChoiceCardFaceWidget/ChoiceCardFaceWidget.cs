@@ -23,9 +23,11 @@ namespace Domains.View.Widgets
         private VisualElement _icon;
         private Label _label;
         private LocalizedString _localizedLabel;
+        private ChoiceCardFaceViewModel _pendingViewModel;
 
         public ChoiceCardFaceWidget()
         {
+            RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
         }
 
@@ -44,25 +46,8 @@ namespace Domains.View.Widgets
 
         public void Bind(ChoiceCardFaceViewModel viewModel)
         {
-            _icon ??= this.Q<VisualElement>(IconName);
-            _label ??= this.Q<Label>(LabelName);
-
-            Unbind();
-            ApplyStyleClass(viewModel.StyleType);
-
-            _icon.style.backgroundImage = viewModel.Icon != null
-                ? new StyleBackground(Background.FromSprite(viewModel.Icon))
-                : StyleKeyword.Null;
-
-            if (viewModel.Label == null || viewModel.Label.IsEmpty)
-            {
-                SetLabel(GetFallbackLabel(viewModel.StyleType));
-                return;
-            }
-
-            _localizedLabel = viewModel.Label;
-            SetLabel(_localizedLabel.GetLocalizedString());
-            _localizedLabel.StringChanged += SetLabel;
+            _pendingViewModel = viewModel;
+            ApplyBinding();
         }
 
         public void Unbind()
@@ -112,6 +97,35 @@ namespace Domains.View.Widgets
         private void OnDetachedFromPanel(DetachFromPanelEvent evt)
         {
             Unbind();
+        }
+
+        private void OnAttachedToPanel(AttachToPanelEvent evt)
+        {
+            _icon = this.Q<VisualElement>(IconName);
+            _label = this.Q<Label>(LabelName);
+        }
+
+        private void ApplyBinding()
+        {
+            if (_icon == null || _label == null || _pendingViewModel == null)
+                return;
+
+            Unbind();
+            ApplyStyleClass(_pendingViewModel.StyleType);
+
+            _icon.style.backgroundImage = _pendingViewModel.Icon != null
+                ? new StyleBackground(Background.FromSprite(_pendingViewModel.Icon))
+                : StyleKeyword.Null;
+
+            if (_pendingViewModel.Label == null || _pendingViewModel.Label.IsEmpty)
+            {
+                SetLabel(GetFallbackLabel(_pendingViewModel.StyleType));
+                return;
+            }
+
+            _localizedLabel = _pendingViewModel.Label;
+            SetLabel(_localizedLabel.GetLocalizedString());
+            _localizedLabel.StringChanged += SetLabel;
         }
 
         private static VisualTreeAsset LoadTemplate()

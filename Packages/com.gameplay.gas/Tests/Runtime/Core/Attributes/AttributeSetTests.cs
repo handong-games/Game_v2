@@ -7,8 +7,8 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void AddAttribute_StoresBaseAndCurrentValue()
         {
-            GameplayAttribute health = new("Health");
-            AttributeSet attributes = new();
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
+            TestAttributeSet attributes = new();
 
             attributes.AddAttribute(health, 50f);
 
@@ -20,8 +20,8 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void SetCurrentValue_RaisesCurrentValueChanged()
         {
-            GameplayAttribute health = new("Health");
-            AttributeSet attributes = new();
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             GameplayAttributeData data = attributes.GetAttributeData(health);
 
@@ -40,3 +40,4 @@ namespace Gameplay.GAS.Tests
         }
     }
 }
+

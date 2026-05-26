@@ -1,5 +1,4 @@
 using UnityEngine;
-using Domains.Event;
 using Game.Core.Managers.View;
 
 namespace Domains.Adventure
@@ -34,7 +33,7 @@ namespace Domains.Adventure
 
             await ViewTransitionManager.Instance.Play(timeline);
 
-            AdventureEvents.IntroCompleted?.Invoke();
+            _controller.OnIntroAnimationCompleted();
         }
 
         private async Awaitable PlayTurnBannerAnimation()

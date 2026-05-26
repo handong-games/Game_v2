@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -67,7 +67,7 @@ MonoBehaviour:
     - TitleScene
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d575c97a498c46cea091d4ee11171754
-    m_Address: SkillSlot
+    m_Address: SkillSlotWidget
     m_ReadOnly: 0
     m_SerializedLabels:
     - AdventureScene

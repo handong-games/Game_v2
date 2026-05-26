@@ -40,14 +40,13 @@ namespace Domains.Adventure
             _coinEffectPlayer = new CoinEffectPlayer();
             _coinEffectPlayer.Bind(_effectLayer);
 
-            RegisterTargetingEvents();
             RegisterEvents();
         }
 
         public override void Dispose()
         {
+            ClearSkillPreview();
             ClearCards();
-            UnregisterTargetingEvents();
             UnregisterEvents();
             _coinEffectPlayer?.Clear();
             base.Dispose();

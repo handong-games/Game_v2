@@ -24,23 +24,17 @@ namespace Domains.View.Widgets
 
         private static ICardFaceWidget CreatePortrait(PortraitCardFaceViewModel viewModel)
         {
-            PortraitCardFaceWidget widget = (PortraitCardFaceWidget)PortraitCardFaceWidget.Create();
-            widget.Bind(viewModel);
-            return widget;
+            return (PortraitCardFaceWidget)PortraitCardFaceWidget.Create();
         }
 
         private static ICardFaceWidget CreateChoice(ChoiceCardFaceViewModel viewModel)
         {
-            ChoiceCardFaceWidget widget = (ChoiceCardFaceWidget)ChoiceCardFaceWidget.Create();
-            widget.Bind(viewModel);
-            return widget;
+            return (ChoiceCardFaceWidget)ChoiceCardFaceWidget.Create();
         }
 
         private static ICardFaceWidget CreateLocked(LockedCardFaceViewModel viewModel)
         {
-            LockedCardFaceWidget widget = (LockedCardFaceWidget)LockedCardFaceWidget.Create();
-            widget.Bind(viewModel);
-            return widget;
+            return (LockedCardFaceWidget)LockedCardFaceWidget.Create();
         }
     }
 }

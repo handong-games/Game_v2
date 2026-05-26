@@ -137,6 +137,17 @@ namespace Gameplay.GAS
                 _attributeSets.Add(attributeSet);
         }
 
+        public T GetSet<T>() where T : AttributeSet
+        {
+            for (int i = 0; i < _attributeSets.Count; i++)
+            {
+                if (_attributeSets[i] is T set)
+                    return set;
+            }
+
+            return null;
+        }
+
         public bool TryGetAttributeData(GameplayAttribute attribute, out GameplayAttributeData data)
         {
             for (int i = 0; i < _attributeSets.Count; i++)
@@ -430,21 +441,18 @@ namespace Gameplay.GAS
                 for (int i = 0; i < modifiers.Count; i++)
                 {
                     GameplayModifier modifier = modifiers[i];
-                    if (!TryGetAttributeData(modifier.Attribute, out GameplayAttributeData data))
+                    float magnitude = ResolveModifierMagnitude(modifier, spec);
+                    GameplayModifierEvaluatedData evaluatedData = new(
+                        modifier.Attribute,
+                        modifier.Operation,
+                        magnitude);
+
+                    if (!TryGetAttributeStorage(modifier.Attribute, out AttributeSet attributeSet, out _))
                         continue;
 
-                    float magnitude = ResolveModifierMagnitude(modifier, spec);
-                    float baseValue = data.BaseValue;
-                    float nextValue = modifier.Operation switch
-                    {
-                        GameplayModifierOperation.Add => baseValue + magnitude,
-                        GameplayModifierOperation.Multiply => baseValue * magnitude,
-                        GameplayModifierOperation.Override => magnitude,
-                        _ => baseValue
-                    };
-
-                    data.SetBaseValue(nextValue);
-                    RecalculateAttribute(modifier.Attribute);
+                    GameplayEffectModCallbackData callbackData = new(spec, evaluatedData, this);
+                    ApplyModToAttribute(evaluatedData.Attribute, evaluatedData.Operation, evaluatedData.Magnitude);
+                    attributeSet.PostGameplayEffectExecute(callbackData);
                 }
             }
 
@@ -505,20 +513,16 @@ namespace Gameplay.GAS
             for (int i = 0; i < modifiers.Count; i++)
             {
                 GameplayModifierEvaluatedData modifier = modifiers[i];
-                if (!TryGetAttributeData(modifier.Attribute, out GameplayAttributeData data))
+                if (!TryGetAttributeStorage(modifier.Attribute, out AttributeSet attributeSet, out _))
                     continue;
 
-                float baseValue = data.BaseValue;
-                float nextValue = modifier.Operation switch
-                {
-                    GameplayModifierOperation.Add => baseValue + modifier.Magnitude,
-                    GameplayModifierOperation.Multiply => baseValue * modifier.Magnitude,
-                    GameplayModifierOperation.Override => modifier.Magnitude,
-                    _ => baseValue
-                };
+                GameplayEffectModCallbackData callbackData = new(
+                    null,
+                    modifier,
+                    this);
 
-                data.SetBaseValue(nextValue);
-                RecalculateAttribute(modifier.Attribute);
+                ApplyModToAttribute(modifier.Attribute, modifier.Operation, modifier.Magnitude);
+                attributeSet.PostGameplayEffectExecute(callbackData);
             }
         }
 
@@ -532,7 +536,7 @@ namespace Gameplay.GAS
 
         private void RecalculateAttribute(GameplayAttribute attribute)
         {
-            if (!TryGetAttributeData(attribute, out GameplayAttributeData data))
+            if (!TryGetAttributeStorage(attribute, out _, out GameplayAttributeData data))
                 return;
 
             GameplayAttributeAggregator aggregator = new();
@@ -553,7 +557,74 @@ namespace Gameplay.GAS
                 }
             }
 
-            data.SetCurrentValue(aggregator.Evaluate(data.BaseValue));
+            InternalUpdateNumericalAttribute(attribute, aggregator.Evaluate(data.BaseValue));
+        }
+
+        private void ApplyModToAttribute(
+            GameplayAttribute attribute,
+            GameplayModifierOperation modifierOperation,
+            float modifierMagnitude)
+        {
+            if (!TryGetAttributeStorage(attribute, out _, out GameplayAttributeData data))
+                return;
+
+            float currentBaseValue = data.BaseValue;
+            float newBaseValue = modifierOperation switch
+            {
+                GameplayModifierOperation.Add => currentBaseValue + modifierMagnitude,
+                GameplayModifierOperation.Multiply => currentBaseValue * modifierMagnitude,
+                GameplayModifierOperation.Override => modifierMagnitude,
+                _ => currentBaseValue
+            };
+
+            SetAttributeBaseValue(attribute, newBaseValue);
+        }
+
+        private void SetAttributeBaseValue(
+            GameplayAttribute attribute,
+            float newBaseValue)
+        {
+            if (!TryGetAttributeStorage(attribute, out AttributeSet attributeSet, out GameplayAttributeData data))
+                return;
+
+            float oldBaseValue = data.BaseValue;
+            attributeSet.PreAttributeBaseChange(attribute, ref newBaseValue);
+            data.SetBaseValue(newBaseValue);
+            RecalculateAttribute(attribute);
+            attributeSet.PostAttributeBaseChange(attribute, oldBaseValue, data.BaseValue);
+        }
+
+        private void InternalUpdateNumericalAttribute(
+            GameplayAttribute attribute,
+            float newCurrentValue)
+        {
+            if (!TryGetAttributeStorage(attribute, out AttributeSet attributeSet, out GameplayAttributeData data))
+                return;
+
+            float oldCurrentValue = data.CurrentValue;
+            attributeSet.PreAttributeChange(attribute, ref newCurrentValue);
+            data.SetCurrentValue(newCurrentValue);
+            attributeSet.PostAttributeChange(attribute, oldCurrentValue, data.CurrentValue);
+        }
+
+        private bool TryGetAttributeStorage(
+            GameplayAttribute attribute,
+            out AttributeSet attributeSet,
+            out GameplayAttributeData data)
+        {
+            for (int i = 0; i < _attributeSets.Count; i++)
+            {
+                AttributeSet currentSet = _attributeSets[i];
+                if (!currentSet.TryGetAttributeData(attribute, out data))
+                    continue;
+
+                attributeSet = currentSet;
+                return true;
+            }
+
+            attributeSet = null;
+            data = null;
+            return false;
         }
 
         private static float ResolveModifierMagnitude(GameplayModifier modifier, GameplayEffectSpec spec)

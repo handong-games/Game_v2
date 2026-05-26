@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Domains.View.Widgets;
 using Game.AbilitySystem;
 using Game.AbilitySystem.Abilities;
-using Game.Data;
 using Gameplay.GAS;
 
 namespace Domains.Adventure
@@ -46,56 +45,31 @@ namespace Domains.Adventure
             return viewModels;
         }
 
-        public IReadOnlyList<SkillSlotViewModel> GetSkillSlotViewModels()
+        public bool UseSkill(GameplayAbilitySpecHandle handle)
         {
-            List<CharacterSkillModel> skillSlots = _playerService.CurrentPlayer.SkillSlots;
-            SkillSlotViewModel[] viewModels = new SkillSlotViewModel[skillSlots.Count];
+            Card playerCard = _playerService.GetPlayerCard();
+            if (playerCard == null)
+                return false;
 
-            for (int i = 0; i < skillSlots.Count; i++)
+            return playerCard.AbilitySystem.TryActivateAbility(handle);
+        }
+
+        public bool UseSkillOnTarget(GameplayAbilitySpecHandle handle, uint targetCardId)
+        {
+            Card playerCard = _playerService.GetPlayerCard();
+            if (playerCard == null)
+                return false;
+
+            if (!_cardService.TryGet(targetCardId, out Card targetCard))
+                return false;
+
+            GameplayEventData eventData = new(default)
             {
-                CharacterSkillModel skill = skillSlots[i];
-                viewModels[i] = skill == null
-                    ? new SkillSlotViewModel(i, string.Empty, null, SkillType.Attack, true)
-                    : new SkillSlotViewModel(i, skill.Name, skill.Icon, skill.SkillType, false);
-            }
+                Instigator = playerCard.AbilitySystem,
+                Target = targetCard.AbilitySystem,
+            };
 
-            return viewModels;
-        }
-
-        public SkillSelectionDto TrySelectSkill(int slotIndex)
-        {
-            CharacterSkillModel skill = GetSkill(slotIndex);
-            if (skill == null)
-                return new SkillSelectionDto(false, false);
-
-            return new SkillSelectionDto(true, skill.RequiresTarget);
-        }
-
-        public bool UseSkill(int slotIndex)
-        {
-            CharacterSkillModel skill = GetSkill(slotIndex);
-            return skill != null && !skill.RequiresTarget;
-        }
-
-        public bool UseSkillOnTarget(int slotIndex, uint targetCardId)
-        {
-            CharacterSkillModel skill = GetSkill(slotIndex);
-            if (skill == null || !skill.RequiresTarget)
-                return false;
-
-            if (!_cardService.TryGet(targetCardId, out _))
-                return false;
-
-            return _combatService.ApplySkill(skill, targetCardId);
-        }
-
-        private CharacterSkillModel GetSkill(int slotIndex)
-        {
-            List<CharacterSkillModel> skillSlots = _playerService.CurrentPlayer.SkillSlots;
-            if (slotIndex < 0 || slotIndex >= skillSlots.Count)
-                return null;
-
-            return skillSlots[slotIndex];
+            return playerCard.AbilitySystem.TriggerAbilityFromGameplayEvent(handle, eventData);
         }
     }
 }

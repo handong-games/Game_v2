@@ -7,13 +7,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void ApplyGameplayEffectSpecToSelf_AddsModifierMagnitude()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Add, -10f));
 
             ActiveGameplayEffect activeEffect =
@@ -28,13 +28,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void ApplyGameplayEffectSpecToSelf_OverridesAttributeValue()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Override, 1f));
 
             actor.AbilitySystem.ApplyGameplayEffectSpecToSelf(new GameplayEffectSpec(effect));
@@ -46,7 +46,7 @@ namespace Gameplay.GAS.Tests
         public void ApplyGameplayEffectSpecToSelf_InfiniteEffectAddsGrantedTags()
         {
             GameplayActor actor = new();
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             GameplayTag stun = GameplayTag.Request("Status.Stun");
             effect.GrantedTags.Add(stun);
@@ -63,7 +63,7 @@ namespace Gameplay.GAS.Tests
         public void RemoveActiveGameplayEffect_RemovesGrantedTags()
         {
             GameplayActor actor = new();
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             GameplayTag stun = GameplayTag.Request("Status.Stun");
             effect.GrantedTags.Add(stun);
@@ -81,7 +81,7 @@ namespace Gameplay.GAS.Tests
         public void TickActiveGameplayEffects_RemovesExpiredDurationEffect()
         {
             GameplayActor actor = new();
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 2f;
             GameplayTag stun = GameplayTag.Request("Status.Stun");
@@ -102,13 +102,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void DurationModifier_RecalculatesCurrentValueWithoutChangingBaseValue()
         {
-            GameplayAttribute attack = new("Attack");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(attack, 10f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 2f;
             effect.AddModifier(new GameplayModifier(attack, GameplayModifierOperation.Add, 5f));
@@ -122,13 +122,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void RemoveActiveGameplayEffect_RecalculatesModifiedAttributes()
         {
-            GameplayAttribute attack = new("Attack");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(attack, 10f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             effect.AddModifier(new GameplayModifier(attack, GameplayModifierOperation.Add, 5f));
 
@@ -143,17 +143,17 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void ActiveModifiers_AreAggregatedInAddMultiplyOverrideOrder()
         {
-            GameplayAttribute attack = new("Attack");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(attack, 10f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect addEffect = new();
+            GameplayEffect addEffect = GameplayEffect.Create();
             addEffect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             addEffect.AddModifier(new GameplayModifier(attack, GameplayModifierOperation.Add, 5f));
 
-            GameplayEffect multiplyEffect = new();
+            GameplayEffect multiplyEffect = GameplayEffect.Create();
             multiplyEffect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             multiplyEffect.AddModifier(new GameplayModifier(attack, GameplayModifierOperation.Multiply, 2f));
 
@@ -162,7 +162,7 @@ namespace Gameplay.GAS.Tests
 
             Assert.That(attributes.GetAttributeData(attack).CurrentValue, Is.EqualTo(30f));
 
-            GameplayEffect overrideEffect = new();
+            GameplayEffect overrideEffect = GameplayEffect.Create();
             overrideEffect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             overrideEffect.AddModifier(new GameplayModifier(attack, GameplayModifierOperation.Override, 1f));
 
@@ -174,18 +174,18 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void InstantModifier_ChangesBaseValueThenRecalculatesActiveModifiers()
         {
-            GameplayAttribute attack = new("Attack");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(attack, 10f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect buff = new();
+            GameplayEffect buff = GameplayEffect.Create();
             buff.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             buff.AddModifier(new GameplayModifier(attack, GameplayModifierOperation.Add, 5f));
             actor.AbilitySystem.ApplyGameplayEffectSpecToSelf(new GameplayEffectSpec(buff));
 
-            GameplayEffect instant = new();
+            GameplayEffect instant = GameplayEffect.Create();
             instant.AddModifier(new GameplayModifier(attack, GameplayModifierOperation.Add, 3f));
             actor.AbilitySystem.ApplyGameplayEffectSpecToSelf(new GameplayEffectSpec(instant));
 
@@ -196,14 +196,14 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void ApplyGameplayEffectSpecToTarget_ChangesTargetAttribute()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor source = new();
             GameplayActor target = new();
-            AttributeSet targetAttributes = new();
+            TestAttributeSet targetAttributes = new();
             targetAttributes.AddAttribute(health, 50f);
             target.AbilitySystem.AddAttributeSet(targetAttributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Add, -15f));
 
             GameplayEffectSpec spec = source.AbilitySystem.MakeOutgoingSpec(effect);
@@ -218,18 +218,18 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void Execution_CanUseSourceAttributeToModifyTargetAttribute()
         {
-            GameplayAttribute attack = new("Attack");
-            GameplayAttribute health = new("Health");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor source = new();
             GameplayActor target = new();
-            AttributeSet sourceAttributes = new();
-            AttributeSet targetAttributes = new();
+            TestAttributeSet sourceAttributes = new();
+            TestAttributeSet targetAttributes = new();
             sourceAttributes.AddAttribute(attack, 12f);
             targetAttributes.AddAttribute(health, 50f);
             source.AbilitySystem.AddAttributeSet(sourceAttributes);
             target.AbilitySystem.AddAttributeSet(targetAttributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddExecution(new SourceAttackDamageExecution(attack, health));
 
             GameplayEffectSpec spec = source.AbilitySystem.MakeOutgoingSpec(effect);
@@ -242,14 +242,14 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void Execution_CanUseSetByCallerMagnitude()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayTag damageTag = GameplayTag.Request("Data.Damage");
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddExecution(new SetByCallerDamageExecution(health, damageTag));
 
             GameplayEffectSpec spec = new(effect);
@@ -263,13 +263,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void Execution_CanUseTargetAttributeWhenOutgoingSpecIsAppliedToSelf()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddExecution(new TargetPercentDamageExecution(health, 0.1f));
 
             GameplayEffectSpec spec = actor.AbilitySystem.MakeOutgoingSpec(effect);
@@ -282,18 +282,18 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void Execution_SourceSnapshotCapture_UsesValueFromSpecCreation()
         {
-            GameplayAttribute attack = new("Attack");
-            GameplayAttribute health = new("Health");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor source = new();
             GameplayActor target = new();
-            AttributeSet sourceAttributes = new();
-            AttributeSet targetAttributes = new();
+            TestAttributeSet sourceAttributes = new();
+            TestAttributeSet targetAttributes = new();
             sourceAttributes.AddAttribute(attack, 12f);
             targetAttributes.AddAttribute(health, 50f);
             source.AbilitySystem.AddAttributeSet(sourceAttributes);
             target.AbilitySystem.AddAttributeSet(targetAttributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddExecution(new CapturedSourceAttackDamageExecution(attack, health, true));
 
             GameplayEffectSpec spec = source.AbilitySystem.MakeOutgoingSpec(effect);
@@ -306,18 +306,18 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void Execution_SourceLiveCapture_UsesValueFromExecutionTime()
         {
-            GameplayAttribute attack = new("Attack");
-            GameplayAttribute health = new("Health");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor source = new();
             GameplayActor target = new();
-            AttributeSet sourceAttributes = new();
-            AttributeSet targetAttributes = new();
+            TestAttributeSet sourceAttributes = new();
+            TestAttributeSet targetAttributes = new();
             sourceAttributes.AddAttribute(attack, 12f);
             targetAttributes.AddAttribute(health, 50f);
             source.AbilitySystem.AddAttributeSet(sourceAttributes);
             target.AbilitySystem.AddAttributeSet(targetAttributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddExecution(new CapturedSourceAttackDamageExecution(attack, health, false));
 
             GameplayEffectSpec spec = source.AbilitySystem.MakeOutgoingSpec(effect);
@@ -330,14 +330,14 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void SetByCallerModifier_UsesMagnitudeFromSpec()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayTag damageTag = GameplayTag.Request("Data.Damage");
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Add, damageTag));
 
             GameplayEffectSpec spec = new(effect);
@@ -352,12 +352,12 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void AttributeBasedModifier_SourceSnapshot_UsesValueFromSpecCreation()
         {
-            GameplayAttribute attack = new("Attack");
-            GameplayAttribute health = new("Health");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor source = new();
             GameplayActor target = new();
-            AttributeSet sourceAttributes = new();
-            AttributeSet targetAttributes = new();
+            TestAttributeSet sourceAttributes = new();
+            TestAttributeSet targetAttributes = new();
             sourceAttributes.AddAttribute(attack, 12f);
             targetAttributes.AddAttribute(health, 50f);
             source.AbilitySystem.AddAttributeSet(sourceAttributes);
@@ -367,7 +367,7 @@ namespace Gameplay.GAS.Tests
                 attack,
                 GameplayEffectAttributeCaptureSource.Source,
                 true);
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddModifier(new GameplayModifier(
                 health,
                 GameplayModifierOperation.Add,
@@ -383,12 +383,12 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void AttributeBasedModifier_SourceLive_UsesValueFromApplicationTime()
         {
-            GameplayAttribute attack = new("Attack");
-            GameplayAttribute health = new("Health");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor source = new();
             GameplayActor target = new();
-            AttributeSet sourceAttributes = new();
-            AttributeSet targetAttributes = new();
+            TestAttributeSet sourceAttributes = new();
+            TestAttributeSet targetAttributes = new();
             sourceAttributes.AddAttribute(attack, 12f);
             targetAttributes.AddAttribute(health, 50f);
             source.AbilitySystem.AddAttributeSet(sourceAttributes);
@@ -398,7 +398,7 @@ namespace Gameplay.GAS.Tests
                 attack,
                 GameplayEffectAttributeCaptureSource.Source,
                 false);
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddModifier(new GameplayModifier(
                 health,
                 GameplayModifierOperation.Add,
@@ -414,12 +414,12 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void AttributeBasedModifier_CanUsePreAndPostAdditiveValues()
         {
-            GameplayAttribute attack = new("Attack");
-            GameplayAttribute health = new("Health");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor source = new();
             GameplayActor target = new();
-            AttributeSet sourceAttributes = new();
-            AttributeSet targetAttributes = new();
+            TestAttributeSet sourceAttributes = new();
+            TestAttributeSet targetAttributes = new();
             sourceAttributes.AddAttribute(attack, 10f);
             targetAttributes.AddAttribute(health, 50f);
             source.AbilitySystem.AddAttributeSet(sourceAttributes);
@@ -429,7 +429,7 @@ namespace Gameplay.GAS.Tests
                 attack,
                 GameplayEffectAttributeCaptureSource.Source,
                 false);
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddModifier(new GameplayModifier(
                 health,
                 GameplayModifierOperation.Add,
@@ -448,13 +448,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void SetByCallerModifier_DefaultsToZeroWhenMagnitudeIsMissing()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddModifier(new GameplayModifier(
                 health,
                 GameplayModifierOperation.Add,
@@ -469,15 +469,15 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void ApplyGameplayEffectSpecToTarget_PreservesSetByCallerMagnitude()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayTag damageTag = GameplayTag.Request("Data.Damage");
             GameplayActor source = new();
             GameplayActor target = new();
-            AttributeSet targetAttributes = new();
+            TestAttributeSet targetAttributes = new();
             targetAttributes.AddAttribute(health, 50f);
             target.AbilitySystem.AddAttributeSet(targetAttributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Add, damageTag));
 
             GameplayEffectSpec spec = source.AbilitySystem.MakeOutgoingSpec(effect);
@@ -491,14 +491,14 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void DurationSetByCallerModifier_UsesMagnitudeFromSpecInAggregator()
         {
-            GameplayAttribute attack = new("Attack");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
             GameplayTag buffTag = GameplayTag.Request("Data.AttackBonus");
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(attack, 10f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             effect.AddModifier(new GameplayModifier(attack, GameplayModifierOperation.Add, buffTag));
 
@@ -517,7 +517,7 @@ namespace Gameplay.GAS.Tests
         {
             GameplayActor source = new();
             GameplayActor target = new();
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             GameplayTag stun = GameplayTag.Request("Status.Stun");
             effect.GrantedTags.Add(stun);
@@ -532,13 +532,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void ApplicationTagRequirements_BlocksEffectWhenRequiredTagIsMissing()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.ApplicationTagRequirements.RequiredTags.Add(GameplayTag.Request("State.Vulnerable"));
             effect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Add, -10f));
 
@@ -552,14 +552,14 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void ApplicationTagRequirements_AllowsEffectWhenRequiredTagExists()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
             actor.AbilitySystem.OwnedTags.AddTag(GameplayTag.Request("State.Vulnerable"));
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.ApplicationTagRequirements.RequiredTags.Add(GameplayTag.Request("State.Vulnerable"));
             effect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Add, -10f));
 
@@ -573,14 +573,14 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void ApplicationTagRequirements_BlocksEffectWhenBlockedTagExists()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
             actor.AbilitySystem.OwnedTags.AddTag(GameplayTag.Request("State.Invulnerable"));
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.ApplicationTagRequirements.BlockedTags.Add(GameplayTag.Request("State.Invulnerable"));
             effect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Add, -10f));
 
@@ -594,13 +594,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void PeriodicEffect_DoesNotExecuteBeforePeriodElapses()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 3f;
             effect.PeriodSeconds = 1f;
@@ -616,13 +616,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void PeriodicEffect_ExecutesWhenPeriodElapses()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 3f;
             effect.PeriodSeconds = 1f;
@@ -638,13 +638,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void PeriodicEffect_CanExecuteOnApplication()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 3f;
             effect.PeriodSeconds = 1f;
@@ -660,13 +660,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void PeriodicEffect_ExecutesMultipleTicksForLargeDelta()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 5f;
             effect.PeriodSeconds = 1f;
@@ -682,13 +682,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void PeriodicEffect_DoesNotUseDurationModifierAggregation()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 3f;
             effect.PeriodSeconds = 1f;
@@ -703,13 +703,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void PeriodicEffect_DoesNotExecuteBeyondDuration()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 1f;
             effect.PeriodSeconds = 0.25f;
@@ -725,13 +725,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void StackingTypeNone_CreatesSeparateActiveEffects()
         {
-            GameplayAttribute attack = new("Attack");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(attack, 10f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             effect.AddModifier(new GameplayModifier(attack, GameplayModifierOperation.Add, 5f));
 
@@ -745,13 +745,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void AggregateByTarget_ReusesActiveEffectAndIncreasesStackCount()
         {
-            GameplayAttribute attack = new("Attack");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(attack, 10f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             effect.StackingType = GameplayEffectStackingType.AggregateByTarget;
             effect.AddModifier(new GameplayModifier(attack, GameplayModifierOperation.Add, 5f));
@@ -770,15 +770,15 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void AggregateBySource_KeepsSeparateStacksPerSource()
         {
-            GameplayAttribute attack = new("Attack");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
             GameplayActor sourceA = new();
             GameplayActor sourceB = new();
             GameplayActor target = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(attack, 10f);
             target.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             effect.StackingType = GameplayEffectStackingType.AggregateBySource;
             effect.AddModifier(new GameplayModifier(attack, GameplayModifierOperation.Add, 5f));
@@ -799,13 +799,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void StackLimitCount_CapsStackCount()
         {
-            GameplayAttribute attack = new("Attack");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(attack, 10f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             effect.StackingType = GameplayEffectStackingType.AggregateByTarget;
             effect.StackLimitCount = 2;
@@ -824,7 +824,7 @@ namespace Gameplay.GAS.Tests
         public void StackDurationRefreshPolicy_CanRefreshDurationOnSuccessfulApplication()
         {
             GameplayActor actor = new();
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 2f;
             effect.StackingType = GameplayEffectStackingType.AggregateByTarget;
@@ -844,7 +844,7 @@ namespace Gameplay.GAS.Tests
         public void StackDurationRefreshPolicy_CanKeepExistingDuration()
         {
             GameplayActor actor = new();
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 2f;
             effect.StackingType = GameplayEffectStackingType.AggregateByTarget;
@@ -861,13 +861,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void StackExpirationPolicy_CanRemoveSingleStackAndRefreshDuration()
         {
-            GameplayAttribute attack = new("Attack");
+            GameplayAttribute attack = TestAttributeSet.AttackAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(attack, 10f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 1f;
             effect.StackingType = GameplayEffectStackingType.AggregateByTarget;
@@ -892,13 +892,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void StackPeriodResetPolicy_CanResetProgressTowardNextTick()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 3f;
             effect.PeriodSeconds = 1f;
@@ -918,13 +918,13 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void StackPeriodResetPolicy_CanKeepProgressTowardNextTick()
         {
-            GameplayAttribute health = new("Health");
+            GameplayAttribute health = TestAttributeSet.HealthAttribute;
             GameplayActor actor = new();
-            AttributeSet attributes = new();
+            TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
 
-            GameplayEffect effect = new();
+            GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 3f;
             effect.PeriodSeconds = 1f;
@@ -1058,3 +1058,5 @@ namespace Gameplay.GAS.Tests
         }
     }
 }
+
+
