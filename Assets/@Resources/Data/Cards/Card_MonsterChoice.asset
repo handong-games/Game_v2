@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.BasicCardModel
   _name: MonsterChoice
   _ownedTags:
-  - _name: Card.Kind.Choice
-  - _name: Card.Selectable
-  - _name: Card.Flippable
-  - _name: Choice.Monster
+  - _path: Card.Kind.Choice
+  - _path: Card.Selectable
+  - _path: Card.Flippable
+  - _path: Choice.Monster
   _front: {fileID: 11400000, guid: 9aff4b7639c755445acd6b6faca814c6, type: 2}
   _back: {fileID: 11400000, guid: 9aff4b7639c755445acd6b6faca814c6, type: 2}
+

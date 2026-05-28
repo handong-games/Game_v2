@@ -48,7 +48,7 @@ namespace Gameplay.GAS.Tests
             GameplayActor actor = new();
             GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
-            GameplayTag stun = GameplayTag.Request("Status.Stun");
+            GameplayTag stun = GameplayTag.Define("Status.Stun");
             effect.GrantedTags.Add(stun);
 
             ActiveGameplayEffect activeEffect =
@@ -65,7 +65,7 @@ namespace Gameplay.GAS.Tests
             GameplayActor actor = new();
             GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
-            GameplayTag stun = GameplayTag.Request("Status.Stun");
+            GameplayTag stun = GameplayTag.Define("Status.Stun");
             effect.GrantedTags.Add(stun);
 
             ActiveGameplayEffect activeEffect =
@@ -84,7 +84,7 @@ namespace Gameplay.GAS.Tests
             GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 2f;
-            GameplayTag stun = GameplayTag.Request("Status.Stun");
+            GameplayTag stun = GameplayTag.Define("Status.Stun");
             effect.GrantedTags.Add(stun);
 
             actor.AbilitySystem.ApplyGameplayEffectSpecToSelf(new GameplayEffectSpec(effect));
@@ -243,7 +243,7 @@ namespace Gameplay.GAS.Tests
         public void Execution_CanUseSetByCallerMagnitude()
         {
             GameplayAttribute health = TestAttributeSet.HealthAttribute;
-            GameplayTag damageTag = GameplayTag.Request("Data.Damage");
+            GameplayTag damageTag = GameplayTag.Define("Data.Damage");
             GameplayActor actor = new();
             TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
@@ -331,7 +331,7 @@ namespace Gameplay.GAS.Tests
         public void SetByCallerModifier_UsesMagnitudeFromSpec()
         {
             GameplayAttribute health = TestAttributeSet.HealthAttribute;
-            GameplayTag damageTag = GameplayTag.Request("Data.Damage");
+            GameplayTag damageTag = GameplayTag.Define("Data.Damage");
             GameplayActor actor = new();
             TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
@@ -458,7 +458,7 @@ namespace Gameplay.GAS.Tests
             effect.AddModifier(new GameplayModifier(
                 health,
                 GameplayModifierOperation.Add,
-                GameplayTag.Request("Data.Damage")));
+                GameplayTag.Define("Data.Damage")));
 
             actor.AbilitySystem.ApplyGameplayEffectSpecToSelf(new GameplayEffectSpec(effect));
 
@@ -470,7 +470,7 @@ namespace Gameplay.GAS.Tests
         public void ApplyGameplayEffectSpecToTarget_PreservesSetByCallerMagnitude()
         {
             GameplayAttribute health = TestAttributeSet.HealthAttribute;
-            GameplayTag damageTag = GameplayTag.Request("Data.Damage");
+            GameplayTag damageTag = GameplayTag.Define("Data.Damage");
             GameplayActor source = new();
             GameplayActor target = new();
             TestAttributeSet targetAttributes = new();
@@ -492,7 +492,7 @@ namespace Gameplay.GAS.Tests
         public void DurationSetByCallerModifier_UsesMagnitudeFromSpecInAggregator()
         {
             GameplayAttribute attack = TestAttributeSet.AttackAttribute;
-            GameplayTag buffTag = GameplayTag.Request("Data.AttackBonus");
+            GameplayTag buffTag = GameplayTag.Define("Data.AttackBonus");
             GameplayActor actor = new();
             TestAttributeSet attributes = new();
             attributes.AddAttribute(attack, 10f);
@@ -519,7 +519,7 @@ namespace Gameplay.GAS.Tests
             GameplayActor target = new();
             GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
-            GameplayTag stun = GameplayTag.Request("Status.Stun");
+            GameplayTag stun = GameplayTag.Define("Status.Stun");
             effect.GrantedTags.Add(stun);
 
             GameplayEffectSpec spec = source.AbilitySystem.MakeOutgoingSpec(effect);
@@ -539,7 +539,7 @@ namespace Gameplay.GAS.Tests
             actor.AbilitySystem.AddAttributeSet(attributes);
 
             GameplayEffect effect = GameplayEffect.Create();
-            effect.ApplicationTagRequirements.RequiredTags.Add(GameplayTag.Request("State.Vulnerable"));
+            effect.ApplicationTagRequirements.RequiredTags.Add(GameplayTag.Define("State.Vulnerable"));
             effect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Add, -10f));
 
             ActiveGameplayEffect activeEffect =
@@ -557,10 +557,10 @@ namespace Gameplay.GAS.Tests
             TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
-            actor.AbilitySystem.OwnedTags.AddTag(GameplayTag.Request("State.Vulnerable"));
+            actor.AbilitySystem.OwnedTags.AddTag(GameplayTag.Define("State.Vulnerable"));
 
             GameplayEffect effect = GameplayEffect.Create();
-            effect.ApplicationTagRequirements.RequiredTags.Add(GameplayTag.Request("State.Vulnerable"));
+            effect.ApplicationTagRequirements.RequiredTags.Add(GameplayTag.Define("State.Vulnerable"));
             effect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Add, -10f));
 
             ActiveGameplayEffect activeEffect =
@@ -578,10 +578,10 @@ namespace Gameplay.GAS.Tests
             TestAttributeSet attributes = new();
             attributes.AddAttribute(health, 50f);
             actor.AbilitySystem.AddAttributeSet(attributes);
-            actor.AbilitySystem.OwnedTags.AddTag(GameplayTag.Request("State.Invulnerable"));
+            actor.AbilitySystem.OwnedTags.AddTag(GameplayTag.Define("State.Invulnerable"));
 
             GameplayEffect effect = GameplayEffect.Create();
-            effect.ApplicationTagRequirements.BlockedTags.Add(GameplayTag.Request("State.Invulnerable"));
+            effect.ApplicationTagRequirements.BlockedTags.Add(GameplayTag.Define("State.Invulnerable"));
             effect.AddModifier(new GameplayModifier(health, GameplayModifierOperation.Add, -10f));
 
             ActiveGameplayEffect activeEffect =
@@ -1058,5 +1058,7 @@ namespace Gameplay.GAS.Tests
         }
     }
 }
+
+
 
 

@@ -1,25 +1,31 @@
 using System;
+using UnityEngine;
 
 namespace Gameplay.GAS
 {
-    public readonly struct GameplayTag : IEquatable<GameplayTag>
+    [Serializable]
+    public struct GameplayTag : IEquatable<GameplayTag>
     {
-        internal GameplayTag(int id)
+        [SerializeField]
+        private string _path;
+
+        // Runtime cache only. Do not serialize or persist this value.
+        [NonSerialized]
+        private int _runtimeId;
+
+        internal GameplayTag(string path, int runtimeId)
         {
-            Id = id;
+            _path = path;
+            _runtimeId = runtimeId;
         }
 
-        public GameplayTag(string name)
-        {
-            Id = GameplayTagRegistry.RequestId(name);
-        }
+        public string Path => _path;
+        public bool IsValid => !string.IsNullOrWhiteSpace(_path);
+        internal int RuntimeId => _runtimeId;
 
-        internal int Id { get; }
-        public bool IsValid => Id > 0;
-
-        public static GameplayTag Request(string name)
+        public static GameplayTag Define(string path)
         {
-            return GameplayTagRegistry.Request(name);
+            return GameplayTagRegistry.Define(path);
         }
 
         public bool MatchesTag(GameplayTag other)
@@ -32,14 +38,25 @@ namespace Gameplay.GAS
             return Equals(other);
         }
 
-        public GameplayTag RequestDirectParent()
+        public GameplayTag GetDirectParent()
         {
-            return GameplayTagRegistry.RequestDirectParent(this);
+            return GameplayTagRegistry.GetDirectParent(this);
+        }
+
+        internal GameplayTag WithRuntimeId(int runtimeId)
+        {
+            return new GameplayTag(_path, runtimeId);
         }
 
         public bool Equals(GameplayTag other)
         {
-            return Id == other.Id;
+            int leftRuntimeId = GameplayTagRegistry.EnsureRuntimeId(ref this);
+            int rightRuntimeId = GameplayTagRegistry.EnsureRuntimeId(ref other);
+
+            if (leftRuntimeId > 0 && rightRuntimeId > 0)
+                return leftRuntimeId == rightRuntimeId;
+
+            return string.Equals(_path, other._path, StringComparison.Ordinal);
         }
 
         public override bool Equals(object obj)
@@ -49,12 +66,12 @@ namespace Gameplay.GAS
 
         public override int GetHashCode()
         {
-            return Id;
+            return StringComparer.Ordinal.GetHashCode(_path ?? string.Empty);
         }
 
         public override string ToString()
         {
-            return GameplayTagRegistry.GetName(this);
+            return _path ?? string.Empty;
         }
 
         public static bool operator ==(GameplayTag left, GameplayTag right)

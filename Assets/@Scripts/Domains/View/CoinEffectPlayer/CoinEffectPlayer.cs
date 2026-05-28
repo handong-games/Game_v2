@@ -41,7 +41,7 @@ namespace Domains.Adventure
         }
 
         public async Awaitable Play(
-            CoinFlipDto coinFlip,
+            CoinFlipCueData coinFlip,
             VisualElement source,
             VisualElement headsTarget,
             VisualElement tailsTarget,
@@ -80,7 +80,7 @@ namespace Domains.Adventure
         }
 
         private bool CanPlay(
-            CoinFlipDto coinFlip,
+            CoinFlipCueData coinFlip,
             VisualElement source,
             VisualElement headsTarget,
             VisualElement tailsTarget)
@@ -411,10 +411,15 @@ namespace Domains.Adventure
             private int _headsIndex;
             private int _tailsIndex;
 
-            public CoinFaceLayoutCounter(CoinFlipDto coinFlip)
+            public CoinFaceLayoutCounter(CoinFlipCueData coinFlip)
             {
-                _headsCount = coinFlip.HeadsCount;
-                _tailsCount = coinFlip.TailsCount;
+                for (int i = 0; i < coinFlip.Faces.Length; i++)
+                {
+                    if (coinFlip.Faces[i] == ECoinFace.Heads)
+                        _headsCount++;
+                    else
+                        _tailsCount++;
+                }
             }
 
             public int Next(ECoinFace face)

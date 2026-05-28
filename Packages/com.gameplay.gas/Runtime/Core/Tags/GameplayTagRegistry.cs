@@ -5,94 +5,140 @@ namespace Gameplay.GAS
 {
     public static class GameplayTagRegistry
     {
-        private static readonly Dictionary<string, int> IdByName = new(StringComparer.Ordinal);
-        private static readonly List<string> Names = new();
-        private static readonly List<int> DirectParentIds = new();
-        private static readonly List<HashSet<int>> ParentIds = new();
+        private static readonly Dictionary<string, int> IdByPath = new(StringComparer.Ordinal);
+        private static readonly List<string> PathById = new();
+        private static readonly List<int> ParentIdById = new();
 
-        public static GameplayTag Request(string name)
+        private static int _nextId = 1;
+
+        public static GameplayTag Define(string path)
         {
-            return new GameplayTag(RequestId(name));
+            if (!TryNormalizePath(path, out string normalizedPath))
+                return default;
+
+            int runtimeId = GetOrCreateId(normalizedPath);
+            return new GameplayTag(normalizedPath, runtimeId);
         }
 
-        internal static int RequestId(string name)
+        public static GameplayTag ResolveDefined(string path)
         {
-            string normalizedName = NormalizeName(name);
-            if (string.IsNullOrEmpty(normalizedName))
+            if (!TryNormalizePath(path, out string normalizedPath))
+                return default;
+
+            return IdByPath.TryGetValue(normalizedPath, out int runtimeId)
+                ? new GameplayTag(normalizedPath, runtimeId)
+                : default;
+        }
+
+        public static int ResolveRuntimeId(string path)
+        {
+            if (!TryNormalizePath(path, out string normalizedPath))
                 return 0;
 
-            if (IdByName.TryGetValue(normalizedName, out int existingId))
-                return existingId;
-
-            int directParentId = RequestDirectParentId(normalizedName);
-            int id = Names.Count + 1;
-
-            IdByName.Add(normalizedName, id);
-            Names.Add(normalizedName);
-            DirectParentIds.Add(directParentId);
-            ParentIds.Add(BuildParentIds(directParentId));
-
-            return id;
+            return IdByPath.TryGetValue(normalizedPath, out int runtimeId)
+                ? runtimeId
+                : 0;
         }
 
-        public static string GetName(GameplayTag tag)
+        public static int EnsureRuntimeId(ref GameplayTag tag)
         {
-            return tag.IsValid ? Names[tag.Id - 1] : string.Empty;
+            if (tag.RuntimeId > 0)
+                return tag.RuntimeId;
+
+            int runtimeId = ResolveRuntimeId(tag.Path);
+            if (runtimeId > 0)
+                tag = tag.WithRuntimeId(runtimeId);
+
+            return runtimeId;
         }
 
         public static bool MatchesTag(GameplayTag tag, GameplayTag tagToCheck)
         {
-            if (!tag.IsValid || !tagToCheck.IsValid)
+            int tagId = EnsureRuntimeId(ref tag);
+            int tagToCheckId = EnsureRuntimeId(ref tagToCheck);
+
+            if (tagId <= 0 || tagToCheckId <= 0)
                 return false;
 
-            if (tag.Equals(tagToCheck))
+            if (tagId > ParentIdById.Count || tagToCheckId > ParentIdById.Count)
+                return false;
+
+            if (tagId == tagToCheckId)
                 return true;
 
-            return ParentIds[tag.Id - 1].Contains(tagToCheck.Id);
-        }
-
-        public static GameplayTag RequestDirectParent(GameplayTag tag)
-        {
-            if (!tag.IsValid)
-                return default;
-
-            int parentId = DirectParentIds[tag.Id - 1];
-            return parentId > 0 ? new GameplayTag(parentId) : default;
-        }
-
-        private static string NormalizeName(string name)
-        {
-            string normalizedName = name?.Trim() ?? string.Empty;
-            if (string.IsNullOrEmpty(normalizedName))
-                return string.Empty;
-
-            if (normalizedName[0] == '.' || normalizedName[normalizedName.Length - 1] == '.')
-                return string.Empty;
-
-            if (normalizedName.IndexOf("..", StringComparison.Ordinal) >= 0)
-                return string.Empty;
-
-            return normalizedName;
-        }
-
-        private static int RequestDirectParentId(string name)
-        {
-            int separatorIndex = name.LastIndexOf('.');
-            return separatorIndex < 0 ? 0 : RequestId(name.Substring(0, separatorIndex));
-        }
-
-        private static HashSet<int> BuildParentIds(int directParentId)
-        {
-            HashSet<int> parentIds = new();
-            int parentId = directParentId;
-
-            while (parentId > 0)
+            int parentId = ParentIdById[tagId - 1];
+            int remainingParents = ParentIdById.Count;
+            while (parentId > 0 && remainingParents-- > 0)
             {
-                parentIds.Add(parentId);
-                parentId = DirectParentIds[parentId - 1];
+                if (parentId > ParentIdById.Count)
+                    return false;
+
+                if (parentId == tagToCheckId)
+                    return true;
+
+                parentId = ParentIdById[parentId - 1];
             }
 
-            return parentIds;
+            return false;
+        }
+
+        public static GameplayTag GetDirectParent(GameplayTag tag)
+        {
+            int runtimeId = EnsureRuntimeId(ref tag);
+            if (runtimeId <= 0)
+                return default;
+
+            if (runtimeId > ParentIdById.Count)
+                return default;
+
+            int parentId = ParentIdById[runtimeId - 1];
+            return parentId > 0 && parentId <= PathById.Count
+                ? new GameplayTag(PathById[parentId - 1], parentId)
+                : default;
+        }
+
+        private static int GetOrCreateId(string path)
+        {
+            if (IdByPath.TryGetValue(path, out int existingId))
+                return existingId;
+
+            int parentId = ResolveParentId(path);
+            int runtimeId = _nextId++;
+            IdByPath.Add(path, runtimeId);
+            PathById.Add(path);
+            ParentIdById.Add(parentId);
+            return runtimeId;
+        }
+
+        private static int ResolveParentId(string path)
+        {
+            string parentPath = GetParentPath(path);
+            return string.IsNullOrWhiteSpace(parentPath)
+                ? 0
+                : GetOrCreateId(parentPath);
+        }
+
+        private static string GetParentPath(string path)
+        {
+            int separatorIndex = path.LastIndexOf('.');
+            return separatorIndex < 0 ? null : path.Substring(0, separatorIndex);
+        }
+
+        private static bool TryNormalizePath(string path, out string normalizedPath)
+        {
+            normalizedPath = path?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(normalizedPath))
+                return false;
+
+            if (normalizedPath.StartsWith(".", StringComparison.Ordinal) ||
+                normalizedPath.EndsWith(".", StringComparison.Ordinal) ||
+                normalizedPath.Contains("..", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

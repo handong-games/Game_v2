@@ -1,5 +1,4 @@
-﻿using Domains.Card;
-using System.Collections.Generic;
+using Domains.Card;
 using Domains.Adventure;
 using Domains.Scene;
 using Domains.View.Widgets;
@@ -7,7 +6,6 @@ using Game.Core.Managers.Dependency;
 using Game.Core.Managers.Scene;
 using Game.Core.Managers.View;
 using Game.Data;
-using Game.Generated;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.UIElements;
@@ -22,7 +20,6 @@ namespace Domains.CharacterSelect
         private const int DetailRevealDelayMs = 70;
         private const int LockedFeedbackDurationMs = 140;
         private const int CardCount = 3;
-        private const int MaxVisibleSkills = 3;
 
         private const string BlockerActiveClass = "character-select__blocker--active";
         private const string TitleVisibleClass = "character-select__header--visible";
@@ -36,12 +33,6 @@ namespace Domains.CharacterSelect
         private const string SubduedClass = "character-select__card--subdued";
         private const string LockedFeedbackLeftClass = "character-select__card--locked-feedback-left";
         private const string LockedFeedbackRightClass = "character-select__card--locked-feedback-right";
-        private const string SkillSlotVisibleClass = "character-select__skill-slot-template--visible";
-        private const string SkillHasIconClass = "skill-slot--has-icon";
-        private const string SkillHasLabelClass = "skill-slot--has-label";
-        private const string SkillTypeAttackClass = "skill-slot--type-attack";
-        private const string SkillTypeDefenseClass = "skill-slot--type-defense";
-        private const string SkillTypeUtilityClass = "skill-slot--type-utility";
 
         [Inject]
         private CharacterSelectController _controller;
@@ -57,12 +48,10 @@ namespace Domains.CharacterSelect
         private Label _detailName;
         private Label _detailHp;
         private Label _detailCoin;
+        private CharacterSelectSkillSlotGroup _skillSlotGroup;
 
         private VisualElement[] _cards;
         private CardWidget[] _cardWidgets;
-        private VisualElement[] _skillSlots;
-        private VisualElement[] _skillIcons;
-        private Label[] _skillFallbackNames;
         private EventCallback<PointerDownEvent>[] _cardPointerHandlers;
         private CharacterSelectCardViewModel[] _cardViewModels;
         private LocalizedString _localizedName;
@@ -87,6 +76,7 @@ namespace Domains.CharacterSelect
             _detailName = Root.Q<Label>("detail-name");
             _detailHp = Root.Q<Label>("detail-hp");
             _detailCoin = Root.Q<Label>("detail-coin");
+            _skillSlotGroup = Root.Q<CharacterSelectSkillSlotGroup>("skill-slot-group");
             _navigation = Root.Q<VisualElement>("navigation");
             _backButton = Root.Q<Button>("btn-back");
             _startButton = Root.Q<Button>("btn-start");
@@ -99,7 +89,6 @@ namespace Domains.CharacterSelect
             _screenRoot.RegisterCallback<TransitionEndEvent>(OnClose);
 
             CacheCards();
-            CacheSkillSlots();
             LoadCharacterCards();
             ApplyCardData();
             ResetSelectionState();
@@ -152,11 +141,9 @@ namespace Domains.CharacterSelect
             _detailName = null;
             _detailHp = null;
             _detailCoin = null;
+            _skillSlotGroup = null;
             _cards = null;
             _cardWidgets = null;
-            _skillSlots = null;
-            _skillIcons = null;
-            _skillFallbackNames = null;
             _cardPointerHandlers = null;
             _cardViewModels = null;
             _localizedName = null;
@@ -183,25 +170,11 @@ namespace Domains.CharacterSelect
             }
         }
 
-        private void CacheSkillSlots()
-        {
-            _skillSlots = new VisualElement[MaxVisibleSkills];
-            _skillIcons = new VisualElement[MaxVisibleSkills];
-            _skillFallbackNames = new Label[MaxVisibleSkills];
-
-            for (int i = 0; i < MaxVisibleSkills; i++)
-            {
-                _skillSlots[i] = Root.Q<VisualElement>($"skill-{i}");
-                _skillIcons[i] = _skillSlots[i].Q<VisualElement>("skill-slot-icon");
-                _skillFallbackNames[i] = _skillSlots[i].Q<Label>("skill-slot-fallback-name");
-            }
-        }
-
         private void LoadCharacterCards()
         {
             _cardViewModels = new CharacterSelectCardViewModel[_cards.Length];
             CharacterSelectInitialViewModel initialViewModel = _controller.CreateInitialViewModel();
-            IReadOnlyList<CharacterSelectCardViewModel> cards = initialViewModel.Cards;
+            var cards = initialViewModel.Cards;
             int count = Mathf.Min(cards.Count, _cardViewModels.Length);
             for (int i = 0; i < count; i++)
             {
@@ -234,8 +207,7 @@ namespace Domains.CharacterSelect
             _detailName.text = string.Empty;
             _detailHp.text = string.Empty;
             _detailCoin.text = string.Empty;
-
-            ResetSkillSlots();
+            _skillSlotGroup?.Bind(System.Array.Empty<CharacterSelectSkillSlotViewModel>());
 
             for (int i = 0; i < _cards.Length; i++)
             {
@@ -346,15 +318,7 @@ namespace Domains.CharacterSelect
             BindLocalizedName(card);
             _detailHp.text = $"HP {Mathf.RoundToInt(card.MaxHealth)}";
             _detailCoin.text = $"COIN {card.CoinCount}";
-
-            ResetSkillSlots();
-            if (card.Skills != null)
-            {
-                for (int i = 0; i < card.Skills.Count && i < MaxVisibleSkills; i++)
-                {
-                    BindSkillSlot(i, card.Skills[i]);
-                }
-            }
+            _skillSlotGroup?.Bind(card.Skills);
         }
 
         private void BindLocalizedName(CharacterSelectCardViewModel card)
@@ -390,54 +354,6 @@ namespace Domains.CharacterSelect
         private void SetDetailName(string localizedValue)
         {
             _detailName.text = localizedValue ?? string.Empty;
-        }
-
-        private void ResetSkillSlots()
-        {
-            for (int i = 0; i < MaxVisibleSkills; i++)
-            {
-                BindSkillSlot(i, null);
-            }
-        }
-
-        private void BindSkillSlot(int index, CharacterSkillModel skill)
-        {
-            VisualElement slot = _skillSlots[index];
-            slot.RemoveFromClassList(SkillSlotVisibleClass);
-            slot.RemoveFromClassList(SkillHasIconClass);
-            slot.RemoveFromClassList(SkillHasLabelClass);
-            slot.RemoveFromClassList(SkillTypeAttackClass);
-            slot.RemoveFromClassList(SkillTypeDefenseClass);
-            slot.RemoveFromClassList(SkillTypeUtilityClass);
-
-            _skillIcons[index].style.backgroundImage = StyleKeyword.Null;
-            _skillFallbackNames[index].text = string.Empty;
-
-            if (skill == null)
-                return;
-
-            slot.AddToClassList(SkillSlotVisibleClass);
-            slot.AddToClassList(GetSkillTypeClass(skill.SkillType));
-
-            if (skill.Icon != null)
-            {
-                slot.AddToClassList(SkillHasIconClass);
-                _skillIcons[index].style.backgroundImage = new StyleBackground(Background.FromSprite(skill.Icon));
-                return;
-            }
-
-            slot.AddToClassList(SkillHasLabelClass);
-            _skillFallbackNames[index].text = skill.Name ?? string.Empty;
-        }
-
-        private static string GetSkillTypeClass(SkillType skillType)
-        {
-            return skillType switch
-            {
-                SkillType.Defense => SkillTypeDefenseClass,
-                SkillType.Utility => SkillTypeUtilityClass,
-                _ => SkillTypeAttackClass,
-            };
         }
 
         private void TriggerLockedFeedback(int index)

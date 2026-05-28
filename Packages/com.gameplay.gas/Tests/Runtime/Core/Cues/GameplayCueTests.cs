@@ -9,7 +9,7 @@ namespace Gameplay.GAS.Tests
         public void InstantEffect_InvokesExecutedCue()
         {
             GameplayActor actor = new();
-            GameplayTag cueTag = GameplayTag.Request("GameplayCue.Damage");
+            GameplayTag cueTag = GameplayTag.Define("GameplayCue.Damage");
             GameplayEffect effect = GameplayEffect.Create();
             effect.AddGameplayCue(CreateCue(cueTag));
 
@@ -28,7 +28,7 @@ namespace Gameplay.GAS.Tests
         public void DurationEffect_InvokesOnActiveAndWhileActiveCue()
         {
             GameplayActor actor = new();
-            GameplayTag cueTag = GameplayTag.Request("GameplayCue.Buff");
+            GameplayTag cueTag = GameplayTag.Define("GameplayCue.Buff");
             GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
             effect.DurationSeconds = 3f;
@@ -50,7 +50,7 @@ namespace Gameplay.GAS.Tests
         public void RemoveActiveGameplayEffect_InvokesRemovedCue()
         {
             GameplayActor actor = new();
-            GameplayTag cueTag = GameplayTag.Request("GameplayCue.Buff");
+            GameplayTag cueTag = GameplayTag.Define("GameplayCue.Buff");
             GameplayEffect effect = GameplayEffect.Create();
             effect.DurationPolicy = GameplayEffectDurationPolicy.Infinite;
             effect.AddGameplayCue(CreateCue(cueTag));
@@ -71,7 +71,7 @@ namespace Gameplay.GAS.Tests
         public void ExecuteGameplayCue_InvokesExecutedCueWithoutEffect()
         {
             GameplayActor actor = new();
-            GameplayTag cueTag = GameplayTag.Request("GameplayCue.Click");
+            GameplayTag cueTag = GameplayTag.Define("GameplayCue.Click");
 
             GameplayCueEventData received = null;
             actor.AbilitySystem.GameplayCueReceived += cue => received = cue;
@@ -87,7 +87,7 @@ namespace Gameplay.GAS.Tests
         public void GameplayEffectCue_NormalizesLevel()
         {
             GameplayActor actor = new();
-            GameplayTag cueTag = GameplayTag.Request("GameplayCue.Level");
+            GameplayTag cueTag = GameplayTag.Define("GameplayCue.Level");
             GameplayEffect effect = GameplayEffect.Create();
             effect.AddGameplayCue(CreateCue(cueTag, 1f, 5f));
 
@@ -110,4 +110,6 @@ namespace Gameplay.GAS.Tests
         }
     }
 }
+
+
 

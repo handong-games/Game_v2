@@ -9,23 +9,25 @@ namespace Game.Data
     public abstract class CardModel<TKey> : AbstractModel<TKey>, ICardModel
         where TKey : Enum
     {
-        [SerializeField]
-        private GameplayTagReference[] _ownedTags;
-
+        [Header("Visual")]
         [SerializeField]
         private CardFaceModel _front;
 
         [SerializeField]
         private CardFaceModel _back;
 
+        [Header("Gameplay")]
         [SerializeField]
         private AbilitySetModel _abilitySet;
 
         [SerializeField]
         private AttributeSetDefaultsDefinition[] _attributeSetDefaults;
 
-        public virtual IReadOnlyList<GameplayTagReference> OwnedTags =>
-            _ownedTags ?? Array.Empty<GameplayTagReference>();
+        [SerializeField]
+        private GameplayTag[] _ownedTags;
+
+        public virtual IReadOnlyList<GameplayTag> OwnedTags =>
+            _ownedTags ?? Array.Empty<GameplayTag>();
 
         public virtual IReadOnlyList<AttributeSetDefaultsDefinition> AttributeSetDefaults =>
             _attributeSetDefaults ?? Array.Empty<AttributeSetDefaultsDefinition>();

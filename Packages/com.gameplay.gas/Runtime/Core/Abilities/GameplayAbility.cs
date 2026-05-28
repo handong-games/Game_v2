@@ -8,10 +8,26 @@ namespace Gameplay.GAS
         private readonly List<GameplayAbilityTask> _activeTasks = new();
         private readonly List<GameplayAbilityTriggerData> _abilityTriggers = new();
 
+        [SerializeField]
+        private GameplayEffect _costGameplayEffect;
+
+        [SerializeField]
+        private GameplayEffect _cooldownGameplayEffect;
+
         public GameplayTagContainer AbilityTags { get; } = new();
         public GameplayTagContainer ActivationOwnedTags { get; } = new();
-        public GameplayEffect CostGameplayEffect { get; set; }
-        public GameplayEffect CooldownGameplayEffect { get; set; }
+        public GameplayEffect CostGameplayEffect
+        {
+            get => _costGameplayEffect;
+            set => _costGameplayEffect = value;
+        }
+
+        public GameplayEffect CooldownGameplayEffect
+        {
+            get => _cooldownGameplayEffect;
+            set => _cooldownGameplayEffect = value;
+        }
+
         public IReadOnlyList<GameplayAbilityTask> ActiveTasks => _activeTasks;
         public IReadOnlyList<GameplayAbilityTriggerData> AbilityTriggers => _abilityTriggers;
 
@@ -46,7 +62,7 @@ namespace Gameplay.GAS
             GameplayAbilityActorInfo actorInfo,
             GameplayAbilityActivationInfo activationInfo)
         {
-            if (!CheckCost(handle, actorInfo, activationInfo))
+            if (!CheckCost(handle, actorInfo))
                 return false;
 
             ApplyCost(handle, actorInfo, activationInfo);
@@ -59,7 +75,7 @@ namespace Gameplay.GAS
             GameplayAbilityActivationInfo activationInfo,
             bool forceCooldown = false)
         {
-            if (!forceCooldown && !CheckCooldown(handle, actorInfo, activationInfo))
+            if (!forceCooldown && !CheckCooldown(handle, actorInfo))
                 return false;
 
             ApplyCooldown(handle, actorInfo, activationInfo);
@@ -86,8 +102,8 @@ namespace Gameplay.GAS
             GameplayAbilityActorInfo actorInfo,
             GameplayAbilityActivationInfo activationInfo)
         {
-            return CheckCost(handle, actorInfo, activationInfo) &&
-                   CheckCooldown(handle, actorInfo, activationInfo);
+            return CheckCost(handle, actorInfo) &&
+                   CheckCooldown(handle, actorInfo);
         }
 
         protected virtual void CommitExecute(
@@ -99,48 +115,62 @@ namespace Gameplay.GAS
             ApplyCooldown(handle, actorInfo, activationInfo);
         }
 
-        protected virtual bool CheckCost(
-            GameplayAbilitySpecHandle handle,
-            GameplayAbilityActorInfo actorInfo,
-            GameplayAbilityActivationInfo activationInfo)
+        public virtual GameplayEffect GetCostGameplayEffect()
         {
-            return CostGameplayEffect == null ||
+            return _costGameplayEffect;
+        }
+
+        public virtual GameplayEffect GetCooldownGameplayEffect()
+        {
+            return _cooldownGameplayEffect;
+        }
+
+        public virtual bool CheckCost(
+            GameplayAbilitySpecHandle handle,
+            GameplayAbilityActorInfo actorInfo)
+        {
+            GameplayEffect costGameplayEffect = GetCostGameplayEffect();
+            return costGameplayEffect == null ||
                    actorInfo.AbilitySystem.CanApplyAttributeModifiers(
-                       CostGameplayEffect,
+                       costGameplayEffect,
                        GetAbilityLevel(actorInfo, handle));
         }
 
-        protected virtual void ApplyCost(
+        public virtual void ApplyCost(
             GameplayAbilitySpecHandle handle,
             GameplayAbilityActorInfo actorInfo,
             GameplayAbilityActivationInfo activationInfo)
         {
-            if (CostGameplayEffect == null)
+            GameplayEffect costGameplayEffect = GetCostGameplayEffect();
+            if (costGameplayEffect == null)
                 return;
 
-            GameplayEffectSpec spec = MakeOutgoingGameplayEffectSpec(actorInfo, handle, CostGameplayEffect);
-            ApplyGameplayEffectSpecToOwner(actorInfo, spec);
+            actorInfo.AbilitySystem.ApplyGameplayEffectToSelf(
+                costGameplayEffect,
+                GetAbilityLevel(actorInfo, handle));
         }
 
-        protected virtual bool CheckCooldown(
+        public virtual bool CheckCooldown(
+            GameplayAbilitySpecHandle handle,
+            GameplayAbilityActorInfo actorInfo)
+        {
+            GameplayEffect cooldownGameplayEffect = GetCooldownGameplayEffect();
+            return cooldownGameplayEffect == null ||
+                   !actorInfo.AbilitySystem.HasAnyMatchingGameplayTags(cooldownGameplayEffect.GrantedTags);
+        }
+
+        public virtual void ApplyCooldown(
             GameplayAbilitySpecHandle handle,
             GameplayAbilityActorInfo actorInfo,
             GameplayAbilityActivationInfo activationInfo)
         {
-            return CooldownGameplayEffect == null ||
-                   !actorInfo.AbilitySystem.HasAnyMatchingGameplayTags(CooldownGameplayEffect.GrantedTags);
-        }
-
-        protected virtual void ApplyCooldown(
-            GameplayAbilitySpecHandle handle,
-            GameplayAbilityActorInfo actorInfo,
-            GameplayAbilityActivationInfo activationInfo)
-        {
-            if (CooldownGameplayEffect == null)
+            GameplayEffect cooldownGameplayEffect = GetCooldownGameplayEffect();
+            if (cooldownGameplayEffect == null)
                 return;
 
-            GameplayEffectSpec spec = MakeOutgoingGameplayEffectSpec(actorInfo, handle, CooldownGameplayEffect);
-            ApplyGameplayEffectSpecToOwner(actorInfo, spec);
+            actorInfo.AbilitySystem.ApplyGameplayEffectToSelf(
+                cooldownGameplayEffect,
+                GetAbilityLevel(actorInfo, handle));
         }
 
         protected GameplayEffectSpec MakeOutgoingGameplayEffectSpec(
@@ -223,7 +253,7 @@ namespace Gameplay.GAS
             _activeTasks.Clear();
         }
 
-        private static int GetAbilityLevel(
+        protected int GetAbilityLevel(
             GameplayAbilityActorInfo actorInfo,
             GameplayAbilitySpecHandle handle)
         {

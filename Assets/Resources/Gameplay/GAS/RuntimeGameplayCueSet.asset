@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b007b234855807b4c811af1a5907dbdf, type: 3}
+  m_Name: RuntimeGameplayCueSet
+  m_EditorClassIdentifier: com.gameplay.gas::Gameplay.GAS.GameplayCueSet
+  _cues:
+  - _cueTag:
+      _path: GameplayCue.CoinFlip
+    _notify:
+      rid: 1804468074350946646
+  - _cueTag:
+      _path: GameplayCue.CoinChange
+    _notify:
+      rid: 2074797535533309403
+  - _cueTag:
+      _path: GameplayCue.Damage
+    _notify:
+      rid: 5998176642729598609
+  references:
+    version: 2
+    RefIds:
+    - rid: 1804468074350946646
+      type: {class: CoinFlipGameplayCueNotify, ns: Domains.Adventure, asm: Assembly-CSharp}
+      data:
+        rid: 0
+    - rid: 2074797535533309403
+      type: {class: CoinChangeGameplayCueNotify, ns: Domains.Adventure, asm: Assembly-CSharp}
+      data:
+        rid: 0
+    - rid: 5998176642729598609
+      type: {class: DamageGameplayCueNotify, ns: Domains.Adventure, asm: Assembly-CSharp}
+      data:
+        rid: 0
+

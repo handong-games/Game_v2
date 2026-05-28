@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Generated;
+using Gameplay.GAS;
 using UnityEngine;
 
 namespace Game.Data
@@ -7,9 +8,9 @@ namespace Game.Data
     [CreateAssetMenu(menuName = "Game/Data/Event")]
     public sealed class EventModel : CardModel<EEvent>
     {
-        private IReadOnlyList<GameplayTagReference> _runtimeOwnedTags;
+        private IReadOnlyList<GameplayTag> _runtimeOwnedTags;
 
-        public override IReadOnlyList<GameplayTagReference> OwnedTags => _runtimeOwnedTags ??=
-            CardGameplayTags.Combine(base.OwnedTags, CardGameplayTags.KindEventName);
+        public override IReadOnlyList<GameplayTag> OwnedTags => _runtimeOwnedTags ??=
+            CardGameplayTags.Combine(base.OwnedTags, CardGameplayTags.KindEvent);
     }
 }

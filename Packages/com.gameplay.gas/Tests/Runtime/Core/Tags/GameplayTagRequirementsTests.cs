@@ -8,10 +8,10 @@ namespace Gameplay.GAS.Tests
         public void RequirementsMet_ReturnsTrue_WhenRequiredTagsExist()
         {
             GameplayTagRequirements requirements = new();
-            requirements.RequiredTags.AddTag(GameplayTag.Request("State.Vulnerable"));
+            requirements.RequiredTags.AddTag(GameplayTag.Define("State.Vulnerable"));
 
             GameplayTagContainer ownedTags = new();
-            ownedTags.AddTag(GameplayTag.Request("State.Vulnerable.Strong"));
+            ownedTags.AddTag(GameplayTag.Define("State.Vulnerable.Strong"));
 
             Assert.That(requirements.RequirementsMet(ownedTags), Is.True);
         }
@@ -20,12 +20,14 @@ namespace Gameplay.GAS.Tests
         public void RequirementsMet_ReturnsFalse_WhenBlockedTagsExist()
         {
             GameplayTagRequirements requirements = new();
-            requirements.BlockedTags.AddTag(GameplayTag.Request("State.Invulnerable"));
+            requirements.BlockedTags.AddTag(GameplayTag.Define("State.Invulnerable"));
 
             GameplayTagContainer ownedTags = new();
-            ownedTags.AddTag(GameplayTag.Request("State.Invulnerable"));
+            ownedTags.AddTag(GameplayTag.Define("State.Invulnerable"));
 
             Assert.That(requirements.RequirementsMet(ownedTags), Is.False);
         }
     }
 }
+
+

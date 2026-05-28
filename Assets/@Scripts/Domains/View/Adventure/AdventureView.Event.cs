@@ -1,5 +1,6 @@
 using Domains.Event;
 using Domains.Player;
+using UnityEngine;
 
 namespace Domains.Adventure
 {
@@ -37,12 +38,17 @@ namespace Domains.Adventure
 
         private async void OnPouchClicked()
         {
-            CoinFlipDto coinFlip = _controller.OnPouchClicked();
-            _coinStatusWidget.Reset();
-
             await _coinStatusWidget.Show();
+            _controller.OnPouchClicked();
+        }
+
+        private async Awaitable PlayCoinFlipAsync(CoinFlipCueData data)
+        {
+            if (data == null)
+                return;
+
             await _coinEffectPlayer.Play(
-                coinFlip,
+                data,
                 _pouch,
                 _coinStatusWidget.GetTarget(ECoinFace.Heads),
                 _coinStatusWidget.GetTarget(ECoinFace.Tails),
@@ -52,9 +58,22 @@ namespace Domains.Adventure
             await _endTurnWidget.Show();
         }
 
+        private async Awaitable PlayCoinChangeAsync(CoinChangeCueData data)
+        {
+            if (data == null || !data.HasEntries)
+                return;
+
+            await _coinStatusWidget.Show();
+            await _coinChangeEffectPlayer.Play(
+                data,
+                (face, delta) => _coinStatusWidget.ApplyDelta(face, delta));
+        }
+
         private void OnEndTurnClicked()
         {
             _controller.OnEndTurnClicked();
+            _coinStatusWidget.Hide();
+            _coinStatusWidget.Reset();
             _endTurnWidget.Hide();
         }
     }

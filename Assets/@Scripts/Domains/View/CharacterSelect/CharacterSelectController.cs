@@ -6,6 +6,8 @@ using Domains.Character;
 using Domains.Combat;
 using Domains.Player;
 using Domains.Scene;
+using Game.AbilitySystem.Abilities;
+using Game.AbilitySystem.Attributes;
 using Game.Core.Managers.Dependency;
 using Game.Core.Managers.Scene;
 using Game.Core.Managers.Save;
@@ -53,8 +55,16 @@ namespace Domains.CharacterSelect
                 float maxHealth = 0f;
                 _characterService.TryGetInitialAttributeValue(
                     character.Id,
-                    Game.AbilitySystem.Attributes.VitalAttributeSet.MaxHealthAttribute,
+                    VitalAttributeSet.MaxHealthAttribute,
                     out maxHealth);
+                float coinCount = 0f;
+                _characterService.TryGetInitialAttributeValue(
+                    character.Id,
+                    CombatAttributeSet.CoinCountAttribute,
+                    out coinCount);
+
+                IReadOnlyList<SkillGameplayAbility> abilities =
+                    _characterService.GetDefaultSkillAbilities(character.Id);
 
                 viewModels[i] = new CharacterSelectCardViewModel(
                     character.Id,
@@ -63,8 +73,8 @@ namespace Domains.CharacterSelect
                         isLocked ? character.Back : character.Front),
                     character.LocalizedName,
                     maxHealth,
-                    character.CoinCount,
-                    character.DefaultSkills);
+                    (int)coinCount,
+                    CreateSkillSlotViewModels(abilities));
             }
 
             return new CharacterSelectInitialViewModel(viewModels);
@@ -86,7 +96,6 @@ namespace Domains.CharacterSelect
 
             _cardService.Clear();
             _cardBoardService.Clear();
-            _combatService.Initialize();
             Card playerCard = _cardService.Create(characterModel);
             _playerService.Initialize(characterModel, adventure.Seed);
             _playerService.SetPlayerCard(playerCard);
@@ -99,6 +108,27 @@ namespace Domains.CharacterSelect
 
         public void Dispose()
         {
+        }
+
+        private static IReadOnlyList<CharacterSelectSkillSlotViewModel> CreateSkillSlotViewModels(
+            IReadOnlyList<SkillGameplayAbility> abilities)
+        {
+            if (abilities == null || abilities.Count == 0)
+                return Array.Empty<CharacterSelectSkillSlotViewModel>();
+
+            List<CharacterSelectSkillSlotViewModel> result = new(abilities.Count);
+            for (int i = 0; i < abilities.Count; i++)
+            {
+                SkillGameplayAbility ability = abilities[i];
+                if (ability == null)
+                    continue;
+
+                result.Add(new CharacterSelectSkillSlotViewModel(
+                    ability.Name,
+                    ability.Icon));
+            }
+
+            return result;
         }
     }
 }

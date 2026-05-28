@@ -14,7 +14,7 @@ namespace Domains.CharacterSelect
             LocalizedString localizedName,
             float maxHealth,
             int coinCount,
-            IReadOnlyList<CharacterSkillModel> skills)
+            IReadOnlyList<CharacterSelectSkillSlotViewModel> skills)
         {
             CharacterId = characterId;
             IsLocked = isLocked;
@@ -31,6 +31,6 @@ namespace Domains.CharacterSelect
         public LocalizedString LocalizedName { get; }
         public float MaxHealth { get; }
         public int CoinCount { get; }
-        public IReadOnlyList<CharacterSkillModel> Skills { get; }
+        public IReadOnlyList<CharacterSelectSkillSlotViewModel> Skills { get; }
     }
 }

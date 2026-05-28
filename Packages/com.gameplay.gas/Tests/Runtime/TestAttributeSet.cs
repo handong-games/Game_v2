@@ -14,3 +14,5 @@ namespace Gameplay.GAS.Tests
         public GameplayAttributeData Energy = new(0f);
     }
 }
+
+

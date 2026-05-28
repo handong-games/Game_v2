@@ -8,7 +8,7 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void WaitGameplayEvent_BroadcastsMatchingEvent()
         {
-            GameplayTag eventTag = GameplayTag.Request("Event.Attack");
+            GameplayTag eventTag = GameplayTag.Define("Event.Attack");
             GameplayActor actor = new();
             EventWaitAbility ability = ScriptableObject.CreateInstance<EventWaitAbility>();
             ability.EventTag = eventTag;
@@ -25,7 +25,7 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void WaitGameplayEvent_OnlyTriggerOnceEndsTask()
         {
-            GameplayTag eventTag = GameplayTag.Request("Event.Attack");
+            GameplayTag eventTag = GameplayTag.Define("Event.Attack");
             GameplayActor actor = new();
             EventWaitAbility ability = ScriptableObject.CreateInstance<EventWaitAbility>();
             ability.EventTag = eventTag;
@@ -45,8 +45,8 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void WaitGameplayEvent_NonExactMatchesChildTag()
         {
-            GameplayTag parentTag = GameplayTag.Request("Event.Attack");
-            GameplayTag childTag = GameplayTag.Request("Event.Attack.Light");
+            GameplayTag parentTag = GameplayTag.Define("Event.Attack");
+            GameplayTag childTag = GameplayTag.Define("Event.Attack.Light");
             GameplayActor actor = new();
             EventWaitAbility ability = ScriptableObject.CreateInstance<EventWaitAbility>();
             ability.EventTag = parentTag;
@@ -62,7 +62,7 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void EndAbility_EndsActiveTasks()
         {
-            GameplayTag eventTag = GameplayTag.Request("Event.Attack");
+            GameplayTag eventTag = GameplayTag.Define("Event.Attack");
             GameplayActor actor = new();
             EventWaitAbility ability = ScriptableObject.CreateInstance<EventWaitAbility>();
             ability.EventTag = eventTag;
@@ -121,3 +121,5 @@ namespace Gameplay.GAS.Tests
         }
     }
 }
+
+

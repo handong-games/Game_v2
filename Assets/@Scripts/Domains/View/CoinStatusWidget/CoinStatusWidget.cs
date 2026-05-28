@@ -44,13 +44,18 @@ namespace Domains.View.Widgets
 
         public void Add(ECoinFace face)
         {
+            ApplyDelta(face, 1);
+        }
+
+        public void ApplyDelta(ECoinFace face, int delta)
+        {
             if (face == ECoinFace.Heads)
             {
-                SetCount(_headsCount + 1, _tailsCount);
+                SetCount(_headsCount + delta, _tailsCount);
                 return;
             }
 
-            SetCount(_headsCount, _tailsCount + 1);
+            SetCount(_headsCount, _tailsCount + delta);
         }
 
         public VisualElement GetTarget(ECoinFace face)
@@ -79,11 +84,11 @@ namespace Domains.View.Widgets
 
         private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
-            Bind();
+            BindElements();
             Refresh();
         }
 
-        private void Bind()
+        private void BindElements()
         {
             _headsLabel = this.Q<Label>(HeadsLabelName);
             _tailsLabel = this.Q<Label>(TailsLabelName);

@@ -71,5 +71,34 @@ namespace Game.AbilitySystem.Attributes
                 data.SetCurrentValue(row.Value);
             }
         }
+
+        public void SetAttributeSetType(Type attributeSetType)
+        {
+            _attributeSetTypeName = attributeSetType?.AssemblyQualifiedName ?? string.Empty;
+        }
+
+        public void SetValue(GameplayAttribute attribute, float value)
+        {
+            Type setType = GetAttributeSetType();
+            if (attribute.AttributeSetType == null)
+                return;
+
+            if (setType == null)
+                SetAttributeSetType(attribute.AttributeSetType);
+            else if (setType != attribute.AttributeSetType)
+                return;
+
+            for (int i = 0; i < _values.Count; i++)
+            {
+                AttributeDefaultValueDefinition row = _values[i];
+                if (!string.Equals(row.AttributeFieldName, attribute.FieldName, StringComparison.Ordinal))
+                    continue;
+
+                _values[i] = new AttributeDefaultValueDefinition(attribute.FieldName, value);
+                return;
+            }
+
+            _values.Add(new AttributeDefaultValueDefinition(attribute.FieldName, value));
+        }
     }
 }

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f91f08647d2a8a4a94faf3f7ce4d11b, type: 3}
+  m_Name: Warrior_GA_Skill_BasicAttack
+  m_EditorClassIdentifier: Assembly-CSharp::Game.AbilitySystem.Abilities.Warrior.GA_Skill_BasicAttack
+  _costGameplayEffect: {fileID: 11400000, guid: 61ce2b61710d59c45bbf48465da18d08, type: 2}
+  _cooldownGameplayEffect: {fileID: 0}
+  _name:
+    m_TableReference:
+      m_TableCollectionName: SkillNames
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: skill_name_basic_attack
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  _icon: {fileID: 21300000, guid: bf2c5f3ab8004ffcaeb0304b42bc31f2, type: 3}
+  _targetType: 1
+  _damageGameplayEffect: {fileID: 11400000, guid: b3a554def1f1432db40093eb4504b9ba, type: 2}
+  references:
+    version: 2
+    RefIds: []

@@ -19,6 +19,18 @@ MonoBehaviour:
     m_Key: skill_name_basic_attack
     m_Metadata:
       m_Items: []
+  - m_Id: 930000002
+    m_Key: skill_name_warrior_strike
+    m_Metadata:
+      m_Items: []
+  - m_Id: 930000003
+    m_Key: skill_name_warrior_rally
+    m_Metadata:
+      m_Items: []
+  - m_Id: 930000004
+    m_Key: skill_name_warrior_guard
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

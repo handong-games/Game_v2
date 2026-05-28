@@ -10,6 +10,7 @@ namespace Gameplay.GAS
         public GameplayTag EventTag { get; }
         public AbilitySystemComponent Instigator { get; set; }
         public AbilitySystemComponent Target { get; set; }
+        public AbilitySystemComponent ResolvedTarget => Target ?? Instigator;
         public float EventMagnitude { get; set; }
     }
 }

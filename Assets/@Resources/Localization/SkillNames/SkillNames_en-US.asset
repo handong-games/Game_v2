@@ -22,6 +22,18 @@ MonoBehaviour:
     m_Localized: Basic Attack
     m_Metadata:
       m_Items: []
+  - m_Id: 930000002
+    m_Localized: Strike
+    m_Metadata:
+      m_Items: []
+  - m_Id: 930000003
+    m_Localized: Rally
+    m_Metadata:
+      m_Items: []
+  - m_Id: 930000004
+    m_Localized: Guard
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

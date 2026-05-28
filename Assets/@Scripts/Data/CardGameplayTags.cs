@@ -4,6 +4,7 @@ using Gameplay.GAS;
 
 namespace Game.Data
 {
+    [GameplayTagProvider]
     public static class CardGameplayTags
     {
         public const string KindPlayerName = "Card.Kind.Player";
@@ -24,23 +25,23 @@ namespace Game.Data
         public const string MonsterRankEliteName = "Monster.Rank.Elite";
         public const string MonsterRankBossName = "Monster.Rank.Boss";
 
-        public static readonly GameplayTag KindPlayer = GameplayTag.Request(KindPlayerName);
-        public static readonly GameplayTag KindMonster = GameplayTag.Request(KindMonsterName);
-        public static readonly GameplayTag KindEvent = GameplayTag.Request(KindEventName);
-        public static readonly GameplayTag KindShop = GameplayTag.Request(KindShopName);
-        public static readonly GameplayTag KindChoice = GameplayTag.Request(KindChoiceName);
-        public static readonly GameplayTag Combatant = GameplayTag.Request(CombatantName);
-        public static readonly GameplayTag Selectable = GameplayTag.Request(SelectableName);
-        public static readonly GameplayTag Targetable = GameplayTag.Request(TargetableName);
-        public static readonly GameplayTag Flippable = GameplayTag.Request(FlippableName);
-        public static readonly GameplayTag ChoiceMonster = GameplayTag.Request(ChoiceMonsterName);
-        public static readonly GameplayTag ChoiceElite = GameplayTag.Request(ChoiceEliteName);
-        public static readonly GameplayTag ChoiceBoss = GameplayTag.Request(ChoiceBossName);
-        public static readonly GameplayTag ChoiceEvent = GameplayTag.Request(ChoiceEventName);
-        public static readonly GameplayTag ChoiceShop = GameplayTag.Request(ChoiceShopName);
-        public static readonly GameplayTag MonsterRankNormal = GameplayTag.Request(MonsterRankNormalName);
-        public static readonly GameplayTag MonsterRankElite = GameplayTag.Request(MonsterRankEliteName);
-        public static readonly GameplayTag MonsterRankBoss = GameplayTag.Request(MonsterRankBossName);
+        public static readonly GameplayTag KindPlayer = GameplayTag.Define(KindPlayerName);
+        public static readonly GameplayTag KindMonster = GameplayTag.Define(KindMonsterName);
+        public static readonly GameplayTag KindEvent = GameplayTag.Define(KindEventName);
+        public static readonly GameplayTag KindShop = GameplayTag.Define(KindShopName);
+        public static readonly GameplayTag KindChoice = GameplayTag.Define(KindChoiceName);
+        public static readonly GameplayTag Combatant = GameplayTag.Define(CombatantName);
+        public static readonly GameplayTag Selectable = GameplayTag.Define(SelectableName);
+        public static readonly GameplayTag Targetable = GameplayTag.Define(TargetableName);
+        public static readonly GameplayTag Flippable = GameplayTag.Define(FlippableName);
+        public static readonly GameplayTag ChoiceMonster = GameplayTag.Define(ChoiceMonsterName);
+        public static readonly GameplayTag ChoiceElite = GameplayTag.Define(ChoiceEliteName);
+        public static readonly GameplayTag ChoiceBoss = GameplayTag.Define(ChoiceBossName);
+        public static readonly GameplayTag ChoiceEvent = GameplayTag.Define(ChoiceEventName);
+        public static readonly GameplayTag ChoiceShop = GameplayTag.Define(ChoiceShopName);
+        public static readonly GameplayTag MonsterRankNormal = GameplayTag.Define(MonsterRankNormalName);
+        public static readonly GameplayTag MonsterRankElite = GameplayTag.Define(MonsterRankEliteName);
+        public static readonly GameplayTag MonsterRankBoss = GameplayTag.Define(MonsterRankBossName);
 
         public static string GetChoiceName(EChoiceCardType choiceType)
         {
@@ -65,35 +66,35 @@ namespace Game.Data
             };
         }
 
-        public static GameplayTagReference[] CreateReferences(params string[] tagNames)
+        public static GameplayTag[] CreateTags(params string[] tagNames)
         {
-            GameplayTagReference[] references = new GameplayTagReference[tagNames.Length];
+            GameplayTag[] tags = new GameplayTag[tagNames.Length];
             for (int i = 0; i < tagNames.Length; i++)
             {
-                references[i] = new GameplayTagReference(tagNames[i]);
+                tags[i] = GameplayTag.Define(tagNames[i]);
             }
 
-            return references;
+            return tags;
         }
 
-        public static IReadOnlyList<GameplayTagReference> Combine(
-            IReadOnlyList<GameplayTagReference> source,
-            params string[] requiredTagNames)
+        public static IReadOnlyList<GameplayTag> Combine(
+            IReadOnlyList<GameplayTag> source,
+            params GameplayTag[] requiredTags)
         {
             int sourceCount = source?.Count ?? 0;
-            GameplayTagReference[] references = new GameplayTagReference[sourceCount + requiredTagNames.Length];
+            GameplayTag[] tags = new GameplayTag[sourceCount + requiredTags.Length];
 
             for (int i = 0; i < sourceCount; i++)
             {
-                references[i] = source[i];
+                tags[i] = source[i];
             }
 
-            for (int i = 0; i < requiredTagNames.Length; i++)
+            for (int i = 0; i < requiredTags.Length; i++)
             {
-                references[sourceCount + i] = new GameplayTagReference(requiredTagNames[i]);
+                tags[sourceCount + i] = requiredTags[i];
             }
 
-            return references;
+            return tags;
         }
     }
 }

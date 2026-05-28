@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.BasicCardModel
   _name: ShopChoice
   _ownedTags:
-  - _name: Card.Kind.Choice
-  - _name: Card.Selectable
-  - _name: Card.Flippable
-  - _name: Choice.Shop
+  - _path: Card.Kind.Choice
+  - _path: Card.Selectable
+  - _path: Card.Flippable
+  - _path: Choice.Shop
   _front: {fileID: 11400000, guid: a1bb220c8ae99374e8e3a73a8d4b5723, type: 2}
   _back: {fileID: 11400000, guid: a1bb220c8ae99374e8e3a73a8d4b5723, type: 2}
+

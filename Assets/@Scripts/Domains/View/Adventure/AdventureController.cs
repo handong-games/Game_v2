@@ -4,9 +4,11 @@ using Domains.Card;
 using Domains.Event;
 using Domains.Player;
 using Domains.Scene;
+using Game.AbilitySystem;
 using Game.Core.Managers.DB;
 using Game.Core.Managers.Dependency;
 using Game.Data;
+using Gameplay.GAS;
 
 namespace Domains.Adventure
 {
@@ -33,14 +35,23 @@ namespace Domains.Adventure
             UnregisterEvents();
         }
 
-        public CoinFlipDto OnPouchClicked()
+        public void OnPouchClicked()
         {
-            return _playerService.OpenPouch();
+            Card playerCard = _playerService.GetPlayerCard();
+            if (playerCard == null)
+                return;
+
+            GameplayEventData eventData = new(AbilityGameplayTags.EventCoinFlip)
+            {
+                Instigator = playerCard.AbilitySystem
+            };
+
+            playerCard.AbilitySystem.HandleGameplayEvent(eventData);
         }
 
         public AdventureInitialViewModel CreateInitialViewModel()
         {
-            return new AdventureInitialViewModel(GetSkillSlotViewModelsV2());
+            return new AdventureInitialViewModel(GetSkillSlotViewModels());
         }
 
         public void OnIntroAnimationCompleted()

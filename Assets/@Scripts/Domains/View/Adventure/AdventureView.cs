@@ -20,6 +20,7 @@ namespace Domains.Adventure
         private EndTurnWidget _endTurnWidget;
         private ArrowWidget _arrowWidget;
         private CoinEffectPlayer _coinEffectPlayer;
+        private CoinChangeEffectPlayer _coinChangeEffectPlayer;
 
         protected override void OnBind(VisualElement root)
         {
@@ -39,7 +40,10 @@ namespace Domains.Adventure
 
             _coinEffectPlayer = new CoinEffectPlayer();
             _coinEffectPlayer.Bind(_effectLayer);
+            _coinChangeEffectPlayer = new CoinChangeEffectPlayer();
 
+            CoinFlipCueEventBus.Published += OnCoinFlipCuePublished;
+            CoinChangeCueEventBus.Published += OnCoinChangeCuePublished;
             RegisterEvents();
         }
 
@@ -48,8 +52,20 @@ namespace Domains.Adventure
             ClearSkillPreview();
             ClearCards();
             UnregisterEvents();
+            CoinFlipCueEventBus.Published -= OnCoinFlipCuePublished;
+            CoinChangeCueEventBus.Published -= OnCoinChangeCuePublished;
             _coinEffectPlayer?.Clear();
             base.Dispose();
+        }
+
+        private void OnCoinFlipCuePublished(CoinFlipCueData data)
+        {
+            _ = PlayCoinFlipAsync(data);
+        }
+
+        private void OnCoinChangeCuePublished(CoinChangeCueData data)
+        {
+            _ = PlayCoinChangeAsync(data);
         }
     }
 }

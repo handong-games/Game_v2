@@ -10,14 +10,14 @@ namespace Domains.Adventure
 
     public sealed partial class AdventureController
     {
-        public IReadOnlyList<SkillSlotViewModelV2> GetSkillSlotViewModelsV2()
+        public IReadOnlyList<AdventureSkillSlotViewModel> GetSkillSlotViewModels()
         {
             Card playerCard = _playerService.GetPlayerCard();
             if (playerCard == null)
-                return System.Array.Empty<SkillSlotViewModelV2>();
+                return System.Array.Empty<AdventureSkillSlotViewModel>();
 
             GameplayTagContainer skillTags = new();
-            skillTags.AddTag(AbilityGameplayTags.Ability_Skill);
+            skillTags.AddTag(AbilityGameplayTags.AbilitySkill);
 
             List<GameplayAbilitySpecHandle> handles = new();
             playerCard.AbilitySystem.FindAllAbilitiesWithTags(
@@ -25,7 +25,7 @@ namespace Domains.Adventure
                 skillTags,
                 exactMatch: false);
 
-            List<SkillSlotViewModelV2> viewModels = new(handles.Count);
+            List<AdventureSkillSlotViewModel> viewModels = new(handles.Count);
             for (int i = 0; i < handles.Count; i++)
             {
                 GameplayAbilitySpecHandle handle = handles[i];
@@ -35,7 +35,7 @@ namespace Domains.Adventure
                 if (spec.Ability is not SkillGameplayAbility skillAbility)
                     continue;
 
-                viewModels.Add(new SkillSlotViewModelV2(
+                viewModels.Add(new AdventureSkillSlotViewModel(
                     skillAbility.Name,
                     skillAbility.Icon,
                     handle,

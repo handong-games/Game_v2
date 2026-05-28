@@ -12,7 +12,7 @@ namespace Game.Data
 
             for (int i = 0; i < model.OwnedTags.Count; i++)
             {
-                if (model.OwnedTags[i].Tag.MatchesTag(tag))
+                if (model.OwnedTags[i].MatchesTag(tag))
                     return true;
             }
 
@@ -26,7 +26,7 @@ namespace Game.Data
 
             for (int i = 0; i < model.OwnedTags.Count; i++)
             {
-                if (model.OwnedTags[i].Tag.MatchesTagExact(tag))
+                if (model.OwnedTags[i].MatchesTagExact(tag))
                     return true;
             }
 

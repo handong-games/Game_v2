@@ -1,11 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Gameplay.GAS
 {
+    [Serializable]
     public sealed class GameplayTagContainer : IEnumerable<GameplayTag>
     {
-        private readonly HashSet<GameplayTag> _tags = new();
+        [SerializeField]
+        private List<GameplayTag> _tags = new();
 
         public int Count => _tags.Count;
         public bool IsEmpty => _tags.Count == 0;
@@ -17,16 +21,10 @@ namespace Gameplay.GAS
 
         public void AddTag(GameplayTag tag)
         {
-            if (tag.IsValid)
-                _tags.Add(tag);
-        }
-
-        public void AddTag(string tagName)
-        {
-            if (string.IsNullOrWhiteSpace(tagName))
+            if (!tag.IsValid || _tags.Contains(tag))
                 return;
 
-            AddTag(GameplayTag.Request(tagName));
+            _tags.Add(tag);
         }
 
         public void Remove(GameplayTag tag)
@@ -41,9 +39,12 @@ namespace Gameplay.GAS
 
         public void AppendTags(GameplayTagContainer other)
         {
-            foreach (GameplayTag tag in other._tags)
+            if (other == null)
+                return;
+
+            for (int i = 0; i < other._tags.Count; i++)
             {
-                AddTag(tag);
+                AddTag(other._tags[i]);
             }
         }
 
@@ -54,9 +55,12 @@ namespace Gameplay.GAS
 
         public bool HasTag(GameplayTag tag)
         {
-            foreach (GameplayTag ownedTag in _tags)
+            if (!tag.IsValid || _tags.Count == 0)
+                return false;
+
+            for (int i = 0; i < _tags.Count; i++)
             {
-                if (ownedTag.MatchesTag(tag))
+                if (_tags[i].MatchesTag(tag))
                     return true;
             }
 
@@ -65,14 +69,23 @@ namespace Gameplay.GAS
 
         public bool HasTagExact(GameplayTag tag)
         {
+            if (!tag.IsValid)
+                return false;
+
             return _tags.Contains(tag);
         }
 
         public bool HasAny(GameplayTagContainer other)
         {
-            foreach (GameplayTag tag in other._tags)
+            if (other == null || _tags.Count == 0 || other._tags.Count == 0)
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            for (int i = 0; i < other._tags.Count; i++)
             {
-                if (HasTag(tag))
+                if (HasTag(other._tags[i]))
                     return true;
             }
 
@@ -81,9 +94,15 @@ namespace Gameplay.GAS
 
         public bool HasAnyExact(GameplayTagContainer other)
         {
-            foreach (GameplayTag tag in other._tags)
+            if (other == null || _tags.Count == 0 || other._tags.Count == 0)
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            for (int i = 0; i < other._tags.Count; i++)
             {
-                if (HasTagExact(tag))
+                if (HasTagExact(other._tags[i]))
                     return true;
             }
 
@@ -92,9 +111,18 @@ namespace Gameplay.GAS
 
         public bool HasAll(GameplayTagContainer other)
         {
-            foreach (GameplayTag tag in other._tags)
+            if (other == null || other._tags.Count == 0)
+                return true;
+
+            if (_tags.Count == 0)
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            for (int i = 0; i < other._tags.Count; i++)
             {
-                if (!HasTag(tag))
+                if (!HasTag(other._tags[i]))
                     return false;
             }
 
@@ -103,9 +131,18 @@ namespace Gameplay.GAS
 
         public bool HasAllExact(GameplayTagContainer other)
         {
-            foreach (GameplayTag tag in other._tags)
+            if (other == null || other._tags.Count == 0)
+                return true;
+
+            if (_tags.Count == 0)
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            for (int i = 0; i < other._tags.Count; i++)
             {
-                if (!HasTagExact(tag))
+                if (!HasTagExact(other._tags[i]))
                     return false;
             }
 

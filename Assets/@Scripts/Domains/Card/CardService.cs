@@ -103,10 +103,10 @@ namespace Domains.Card
 
         private static void ApplyOwnedTags(Card card, ICardModel model)
         {
-            IReadOnlyList<GameplayTagReference> ownedTags = model.OwnedTags;
+            IReadOnlyList<GameplayTag> ownedTags = model.OwnedTags;
             for (int i = 0; i < ownedTags.Count; i++)
             {
-                GameplayTag tag = ownedTags[i].Tag;
+                GameplayTag tag = ownedTags[i];
                 if (tag.IsValid)
                     card.AbilitySystem.OwnedTags.AddTag(tag);
             }
@@ -114,10 +114,10 @@ namespace Domains.Card
 
         private static void RemoveOwnedTags(Card card, ICardModel model)
         {
-            IReadOnlyList<GameplayTagReference> ownedTags = model.OwnedTags;
+            IReadOnlyList<GameplayTag> ownedTags = model.OwnedTags;
             for (int i = 0; i < ownedTags.Count; i++)
             {
-                GameplayTag tag = ownedTags[i].Tag;
+                GameplayTag tag = ownedTags[i];
                 if (tag.IsValid)
                     card.AbilitySystem.OwnedTags.RemoveTag(tag);
             }

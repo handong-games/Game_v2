@@ -8,9 +8,9 @@ namespace Gameplay.GAS.Tests
         public void HasTag_ReturnsTrue_ForParentTag()
         {
             GameplayTagContainer container = new();
-            container.Add(GameplayTag.Request("Status.Poison.Strong"));
+            container.Add(GameplayTag.Define("Status.Poison.Strong"));
 
-            Assert.That(container.HasTag(GameplayTag.Request("Status.Poison")), Is.True);
+            Assert.That(container.HasTag(GameplayTag.Define("Status.Poison")), Is.True);
         }
 
         [Test]
@@ -18,10 +18,10 @@ namespace Gameplay.GAS.Tests
         {
             GameplayTagContainer container = new();
 
-            container.AddTag("Ability.Skill.Warrior.BasicAttack");
+            container.AddTag(GameplayTag.Define("Ability.Skill.Warrior.BasicAttack"));
 
             Assert.That(
-                container.HasTagExact(GameplayTag.Request("Ability.Skill.Warrior.BasicAttack")),
+                container.HasTagExact(GameplayTag.Define("Ability.Skill.Warrior.BasicAttack")),
                 Is.True);
         }
 
@@ -29,12 +29,12 @@ namespace Gameplay.GAS.Tests
         public void HasAll_ReturnsTrue_WhenAllRequiredTagsMatch()
         {
             GameplayTagContainer ownedTags = new();
-            ownedTags.Add(GameplayTag.Request("Ability.Attack.Melee"));
-            ownedTags.Add(GameplayTag.Request("Element.Fire"));
+            ownedTags.Add(GameplayTag.Define("Ability.Attack.Melee"));
+            ownedTags.Add(GameplayTag.Define("Element.Fire"));
 
             GameplayTagContainer requiredTags = new();
-            requiredTags.Add(GameplayTag.Request("Ability.Attack"));
-            requiredTags.Add(GameplayTag.Request("Element.Fire"));
+            requiredTags.Add(GameplayTag.Define("Ability.Attack"));
+            requiredTags.Add(GameplayTag.Define("Element.Fire"));
 
             Assert.That(ownedTags.HasAll(requiredTags), Is.True);
         }
@@ -43,11 +43,11 @@ namespace Gameplay.GAS.Tests
         public void HasAny_ReturnsTrue_WhenOneRequiredTagMatches()
         {
             GameplayTagContainer ownedTags = new();
-            ownedTags.Add(GameplayTag.Request("State.Silenced"));
+            ownedTags.Add(GameplayTag.Define("State.Silenced"));
 
             GameplayTagContainer blockedTags = new();
-            blockedTags.Add(GameplayTag.Request("State.Stunned"));
-            blockedTags.Add(GameplayTag.Request("State.Silenced"));
+            blockedTags.Add(GameplayTag.Define("State.Stunned"));
+            blockedTags.Add(GameplayTag.Define("State.Silenced"));
 
             Assert.That(ownedTags.HasAny(blockedTags), Is.True);
         }
@@ -56,19 +56,19 @@ namespace Gameplay.GAS.Tests
         public void HasTagExact_ReturnsFalse_ForParentTag()
         {
             GameplayTagContainer container = new();
-            container.AddTag(GameplayTag.Request("Status.Poison.Strong"));
+            container.AddTag(GameplayTag.Define("Status.Poison.Strong"));
 
-            Assert.That(container.HasTagExact(GameplayTag.Request("Status.Poison")), Is.False);
+            Assert.That(container.HasTagExact(GameplayTag.Define("Status.Poison")), Is.False);
         }
 
         [Test]
         public void HasAnyExact_ReturnsFalse_ForParentTag()
         {
             GameplayTagContainer ownedTags = new();
-            ownedTags.AddTag(GameplayTag.Request("Status.Poison.Strong"));
+            ownedTags.AddTag(GameplayTag.Define("Status.Poison.Strong"));
 
             GameplayTagContainer tagsToCheck = new();
-            tagsToCheck.AddTag(GameplayTag.Request("Status.Poison"));
+            tagsToCheck.AddTag(GameplayTag.Define("Status.Poison"));
 
             Assert.That(ownedTags.HasAnyExact(tagsToCheck), Is.False);
         }
@@ -77,7 +77,7 @@ namespace Gameplay.GAS.Tests
         public void HasAll_ReturnsTrue_ForEmptyContainer()
         {
             GameplayTagContainer ownedTags = new();
-            ownedTags.AddTag(GameplayTag.Request("Status.Poison"));
+            ownedTags.AddTag(GameplayTag.Define("Status.Poison"));
 
             GameplayTagContainer emptyTags = new();
 
@@ -89,7 +89,7 @@ namespace Gameplay.GAS.Tests
         public void HasAny_ReturnsFalse_ForEmptyContainer()
         {
             GameplayTagContainer ownedTags = new();
-            ownedTags.AddTag(GameplayTag.Request("Status.Poison"));
+            ownedTags.AddTag(GameplayTag.Define("Status.Poison"));
 
             GameplayTagContainer emptyTags = new();
 
@@ -98,3 +98,5 @@ namespace Gameplay.GAS.Tests
         }
     }
 }
+
+

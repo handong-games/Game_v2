@@ -61,7 +61,7 @@ namespace Gameplay.GAS
                     continue;
 
                 bool matches = exactMatch
-                    ? ability.AbilityTags.HasAnyExact(tags)
+                    ? ability.AbilityTags.HasAll(tags)
                     : ability.AbilityTags.HasAny(tags);
 
                 if (matches)
@@ -76,9 +76,6 @@ namespace Gameplay.GAS
 
             GameplayAbilityActivationInfo activationInfo = GameplayAbilityActivationInfo.Default;
             if (!spec.Ability.CanActivateAbility(handle, ActorInfo))
-                return false;
-
-            if (!spec.Ability.CommitAbility(handle, ActorInfo, activationInfo))
                 return false;
 
             spec.Ability.ActivateAbility(handle, ActorInfo, activationInfo, null);
@@ -128,7 +125,9 @@ namespace Gameplay.GAS
             if (!cueTag.IsValid)
                 return;
 
-            GameplayCueReceived?.Invoke(new GameplayCueEventData(this, cueTag, eventType, parameters));
+            GameplayCueEventData eventData = new(this, cueTag, eventType, parameters);
+            GameplayCueManager.Instance.HandleGameplayCue(eventData);
+            GameplayCueReceived?.Invoke(eventData);
         }
 
         public void AddAttributeSet(AttributeSet attributeSet)
@@ -175,6 +174,23 @@ namespace Gameplay.GAS
             GameplayEffectContext context = spec.Context ?? new GameplayEffectContext(this, target);
             GameplayEffectSpec targetSpec = spec.WithContext(context.WithTarget(target));
             return target.ApplyGameplayEffectSpecToSelf(targetSpec);
+        }
+
+        public ActiveGameplayEffect ApplyGameplayEffectToSelf(
+            GameplayEffect effect,
+            int level = 1)
+        {
+            GameplayEffectSpec spec = MakeOutgoingSpec(effect, level);
+            return ApplyGameplayEffectSpecToSelf(spec);
+        }
+
+        public ActiveGameplayEffect ApplyGameplayEffectToTarget(
+            GameplayEffect effect,
+            AbilitySystemComponent target,
+            int level = 1)
+        {
+            GameplayEffectSpec spec = MakeOutgoingSpec(effect, level);
+            return ApplyGameplayEffectSpecToTarget(spec, target);
         }
 
         public ActiveGameplayEffect ApplyGameplayEffectSpecToSelf(GameplayEffectSpec spec)
@@ -250,9 +266,6 @@ namespace Gameplay.GAS
                 return false;
 
             if (!spec.Ability.CanActivateAbility(handle, ActorInfo))
-                return false;
-
-            if (!spec.Ability.CommitAbility(handle, ActorInfo, activationInfo))
                 return false;
 
             spec.Ability.ActivateAbility(handle, ActorInfo, activationInfo, eventData);
@@ -435,6 +448,8 @@ namespace Gameplay.GAS
 
         private void ApplyInstantModifiers(GameplayEffectSpec spec, int stackCount = 1)
         {
+            spec.ClearModifiedAttributes();
+
             for (int stackIndex = 0; stackIndex < stackCount; stackIndex++)
             {
                 IReadOnlyList<GameplayModifier> modifiers = spec.Effect.Modifiers;
@@ -452,6 +467,9 @@ namespace Gameplay.GAS
 
                     GameplayEffectModCallbackData callbackData = new(spec, evaluatedData, this);
                     ApplyModToAttribute(evaluatedData.Attribute, evaluatedData.Operation, evaluatedData.Magnitude);
+                    spec.AddOrAccumulateModifiedAttribute(
+                        evaluatedData.Attribute,
+                        evaluatedData.Magnitude);
                     attributeSet.PostGameplayEffectExecute(callbackData);
                 }
             }
@@ -649,13 +667,15 @@ namespace Gameplay.GAS
             GameplayEffectContext context,
             GameplayCueEvent eventType)
         {
+            GameplayEffectContext cueContext = BuildCueContext(spec, context);
             IReadOnlyList<GameplayEffectCue> cues = spec.Effect.GameplayCues;
             for (int i = 0; i < cues.Count; i++)
             {
                 GameplayEffectCue cue = cues[i];
                 GameplayCueParameters parameters = new(
-                    context,
+                    cueContext,
                     cue.NormalizeLevel(spec.Level),
+                    spec.Level,
                     spec.Level,
                     spec.Level);
 
@@ -664,6 +684,20 @@ namespace Gameplay.GAS
                     InvokeGameplayCueEvent(tag, eventType, parameters);
                 }
             }
+        }
+
+        private GameplayEffectContext BuildCueContext(
+            GameplayEffectSpec spec,
+            GameplayEffectContext context)
+        {
+            GameplayEffectContext baseContext = context ?? new GameplayEffectContext(this, this);
+            if (spec.ModifiedAttributes.Count == 0)
+                return baseContext;
+
+            return new GameplayEffectContext(
+                baseContext.Source ?? this,
+                baseContext.Target ?? this,
+                spec.ModifiedAttributes);
         }
 
         private void ApplyGrantedTags(GameplayTagContainer grantedTags)
@@ -729,7 +763,7 @@ namespace Gameplay.GAS
 
         private static GameplayTag GetDirectParentTag(GameplayTag tag)
         {
-            return tag.RequestDirectParent();
+            return tag.GetDirectParent();
         }
     }
 }

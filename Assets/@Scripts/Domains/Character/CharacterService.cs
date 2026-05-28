@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.AbilitySystem.Abilities;
 using Game.AbilitySystem.Attributes;
 using Game.Core.Managers.DB;
 using Game.Core.Managers.Dependency;
@@ -28,6 +29,24 @@ namespace Domains.Character
         {
             CharacterModel character = Get(id);
             return TryGetInitialAttributeValue(character, attribute, out value);
+        }
+
+        public IReadOnlyList<SkillGameplayAbility> GetDefaultSkillAbilities(ECharacter id)
+        {
+            CharacterModel character = Get(id);
+            if (character?.AbilitySet?.Abilities == null)
+                return System.Array.Empty<SkillGameplayAbility>();
+
+            List<SkillGameplayAbility> result = new();
+            IReadOnlyList<GameplayAbility> abilities = character.AbilitySet.Abilities;
+
+            for (int i = 0; i < abilities.Count; i++)
+            {
+                if (abilities[i] is SkillGameplayAbility skillAbility)
+                    result.Add(skillAbility);
+            }
+
+            return result;
         }
 
         private static bool TryGetInitialAttributeValue(

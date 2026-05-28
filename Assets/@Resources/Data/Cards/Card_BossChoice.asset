@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.BasicCardModel
   _name: BossChoice
   _ownedTags:
-  - _name: Card.Kind.Choice
-  - _name: Card.Selectable
-  - _name: Card.Flippable
-  - _name: Choice.Boss
+  - _path: Card.Kind.Choice
+  - _path: Card.Selectable
+  - _path: Card.Flippable
+  - _path: Choice.Boss
   _front: {fileID: 11400000, guid: a8360cb8779e5f743ae97921529cd907, type: 2}
   _back: {fileID: 11400000, guid: a8360cb8779e5f743ae97921529cd907, type: 2}
+

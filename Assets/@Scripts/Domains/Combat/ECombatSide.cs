@@ -2,7 +2,8 @@ namespace Domains.Combat
 {
     public enum ECombatSide
     {
-        Player,
-        Enemy,
+        Player = 0,
+        Enemy = 1,
+        Count = 2,
     }
 }

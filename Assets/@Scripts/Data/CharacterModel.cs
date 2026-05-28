@@ -1,48 +1,26 @@
 using System.Collections.Generic;
 using Game.Generated;
+using Gameplay.GAS;
 using UnityEngine;
 using UnityEngine.Localization;
 
 namespace Game.Data
 {
     [CreateAssetMenu(menuName = "Game/Data/Character")]
-    public sealed class CharacterModel : CardModel<ECharacter>, ICombatModel
+    public sealed class CharacterModel : CardModel<ECharacter>
     {
-        private IReadOnlyList<GameplayTagReference> _runtimeOwnedTags;
+        private IReadOnlyList<GameplayTag> _runtimeOwnedTags;
 
+        [Header("Visual")]
         [SerializeField]
         private LocalizedString _localizedName;
 
-        [SerializeField]
-        private Sprite _portrait;
-
-        [SerializeField]
-        private int _coinCount;
-
-        [SerializeField]
-        private int _maxHp;
-
-        [SerializeField]
-        private int _defaultSkillSlotCount = 4;
-
-        [SerializeField]
-        private int _maxSkillSlotCount = 8;
-
-        [SerializeField]
-        private CharacterSkillModel[] _defaultSkills;
-
         public LocalizedString LocalizedName => _localizedName;
-        public Sprite Portrait => _portrait;
-        public override IReadOnlyList<GameplayTagReference> OwnedTags => _runtimeOwnedTags ??=
+        public override IReadOnlyList<GameplayTag> OwnedTags => _runtimeOwnedTags ??=
             CardGameplayTags.Combine(
                 base.OwnedTags,
-                CardGameplayTags.KindPlayerName,
-                CardGameplayTags.CombatantName,
-                CardGameplayTags.TargetableName);
-        public int CoinCount => _coinCount;
-        public int MaxHp => _maxHp;
-        public int DefaultSkillSlotCount => _defaultSkillSlotCount;
-        public int MaxSkillSlotCount => _maxSkillSlotCount;
-        public IReadOnlyList<CharacterSkillModel> DefaultSkills => _defaultSkills;
+                CardGameplayTags.KindPlayer,
+                CardGameplayTags.Combatant,
+                CardGameplayTags.Targetable);
     }
 }

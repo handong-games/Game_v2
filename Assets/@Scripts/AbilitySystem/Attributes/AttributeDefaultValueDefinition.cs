@@ -6,6 +6,16 @@ namespace Game.AbilitySystem.Attributes
     [Serializable]
     public sealed class AttributeDefaultValueDefinition
     {
+        public AttributeDefaultValueDefinition()
+        {
+        }
+
+        public AttributeDefaultValueDefinition(string attributeFieldName, float value)
+        {
+            _attributeFieldName = attributeFieldName;
+            _value = value;
+        }
+
         [SerializeField]
         private string _attributeFieldName;
 

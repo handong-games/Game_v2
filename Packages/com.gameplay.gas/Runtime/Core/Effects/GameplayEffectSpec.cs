@@ -7,6 +7,7 @@ namespace Gameplay.GAS
         private readonly Dictionary<GameplayTag, float> _setByCallerMagnitudes = new();
         private readonly Dictionary<GameplayEffectAttributeCaptureDefinition, GameplayEffectAttributeCaptureSpec>
             _capturedAttributes = new();
+        private readonly List<GameplayEffectModifiedAttributeData> _modifiedAttributes = new();
 
         public GameplayEffectSpec(GameplayEffect effect, GameplayEffectContext context = null, int level = 1)
         {
@@ -18,6 +19,7 @@ namespace Gameplay.GAS
         public GameplayEffect Effect { get; }
         public GameplayEffectContext Context { get; }
         public int Level { get; }
+        public IReadOnlyList<GameplayEffectModifiedAttributeData> ModifiedAttributes => _modifiedAttributes;
 
         public void SetSetByCallerMagnitude(GameplayTag tag, float magnitude)
         {
@@ -122,7 +124,43 @@ namespace Gameplay.GAS
                 spec._capturedAttributes.Add(capturedAttribute.Key, capturedAttribute.Value);
             }
 
+            spec._modifiedAttributes.AddRange(_modifiedAttributes);
+
             return spec;
+        }
+
+        public GameplayEffectModifiedAttributeData? GetModifiedAttribute(GameplayAttribute attribute)
+        {
+            for (int i = 0; i < _modifiedAttributes.Count; i++)
+            {
+                GameplayEffectModifiedAttributeData modifiedAttribute = _modifiedAttributes[i];
+                if (modifiedAttribute.Attribute.Equals(attribute))
+                    return modifiedAttribute;
+            }
+
+            return null;
+        }
+
+        public void AddOrAccumulateModifiedAttribute(GameplayAttribute attribute, float magnitude)
+        {
+            for (int i = 0; i < _modifiedAttributes.Count; i++)
+            {
+                GameplayEffectModifiedAttributeData modifiedAttribute = _modifiedAttributes[i];
+                if (!modifiedAttribute.Attribute.Equals(attribute))
+                    continue;
+
+                _modifiedAttributes[i] = new GameplayEffectModifiedAttributeData(
+                    modifiedAttribute.Attribute,
+                    modifiedAttribute.TotalMagnitude + magnitude);
+                return;
+            }
+
+            _modifiedAttributes.Add(new GameplayEffectModifiedAttributeData(attribute, magnitude));
+        }
+
+        public void ClearModifiedAttributes()
+        {
+            _modifiedAttributes.Clear();
         }
     }
 }

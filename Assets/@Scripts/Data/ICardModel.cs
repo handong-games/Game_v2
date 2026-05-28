@@ -6,7 +6,7 @@ namespace Game.Data
 {
     public interface ICardModel
     {
-        IReadOnlyList<GameplayTagReference> OwnedTags { get; }
+        IReadOnlyList<GameplayTag> OwnedTags { get; }
         IReadOnlyList<AttributeSetDefaultsDefinition> AttributeSetDefaults { get; }
         AbilitySetModel AbilitySet { get; }
         CardFaceModel Front { get; }

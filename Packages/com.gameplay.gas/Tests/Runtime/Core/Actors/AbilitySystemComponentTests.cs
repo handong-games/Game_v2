@@ -73,7 +73,7 @@ namespace Gameplay.GAS.Tests
         public void TryActivateAbility_CommitsCostAndCooldownBeforeActivation()
         {
             GameplayAttribute energy = TestAttributeSet.EnergyAttribute;
-            GameplayTag cooldown = GameplayTag.Request("Cooldown.Fireball");
+            GameplayTag cooldown = GameplayTag.Define("Cooldown.Fireball");
             GameplayActor actor = new();
             TestAttributeSet attributes = new();
             attributes.AddAttribute(energy, 10f);
@@ -126,7 +126,7 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void TryActivateAbility_ReturnsFalse_WhenCooldownTagIsOwned()
         {
-            GameplayTag cooldown = GameplayTag.Request("Cooldown.Fireball");
+            GameplayTag cooldown = GameplayTag.Define("Cooldown.Fireball");
             GameplayActor actor = new();
             GameplayEffect cooldownEffect = GameplayEffect.Create();
             cooldownEffect.DurationPolicy = GameplayEffectDurationPolicy.Duration;
@@ -149,7 +149,7 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void HandleGameplayEvent_ActivatesAbilityWithMatchingTrigger()
         {
-            GameplayTag eventTag = GameplayTag.Request("Event.Skill.Confirmed");
+            GameplayTag eventTag = GameplayTag.Define("Event.Skill.Confirmed");
             GameplayActor actor = new();
             EventTriggeredAbility ability = ScriptableObject.CreateInstance<EventTriggeredAbility>();
             ability.AddGameplayEventTrigger(eventTag);
@@ -164,8 +164,8 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void HandleGameplayEvent_ActivatesParentTriggerForChildEvent()
         {
-            GameplayTag parentTag = GameplayTag.Request("Event.Skill");
-            GameplayTag childTag = GameplayTag.Request("Event.Skill.Confirmed");
+            GameplayTag parentTag = GameplayTag.Define("Event.Skill");
+            GameplayTag childTag = GameplayTag.Define("Event.Skill.Confirmed");
             GameplayActor actor = new();
             EventTriggeredAbility ability = ScriptableObject.CreateInstance<EventTriggeredAbility>();
             ability.AddGameplayEventTrigger(parentTag);
@@ -181,7 +181,7 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void HandleGameplayEvent_PassesPayloadToActivatedAbility()
         {
-            GameplayTag eventTag = GameplayTag.Request("Event.Damage");
+            GameplayTag eventTag = GameplayTag.Define("Event.Damage");
             GameplayActor instigator = new();
             GameplayActor target = new();
             EventTriggeredAbility ability = ScriptableObject.CreateInstance<EventTriggeredAbility>();
@@ -206,7 +206,7 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void HandleGameplayEvent_DoesNotActivate_WhenShouldRespondReturnsFalse()
         {
-            GameplayTag eventTag = GameplayTag.Request("Event.Skill.Confirmed");
+            GameplayTag eventTag = GameplayTag.Define("Event.Skill.Confirmed");
             GameplayActor actor = new();
             EventTriggeredAbility ability = ScriptableObject.CreateInstance<EventTriggeredAbility>();
             ability.ShouldRespondValue = false;
@@ -224,19 +224,44 @@ namespace Gameplay.GAS.Tests
         {
             GameplayActor actor = new();
             GameplayTagContainer tags = new();
-            tags.AddTag(GameplayTag.Request("Ability.Skill"));
+            tags.AddTag(GameplayTag.Define("Ability.Skill"));
 
             TaggedAbility matchingAbility = ScriptableObject.CreateInstance<TaggedAbility>();
-            matchingAbility.AbilityTags.AddTag(GameplayTag.Request("Ability.Skill.Attack"));
+            matchingAbility.AbilityTags.AddTag(GameplayTag.Define("Ability.Skill.Attack"));
 
             TaggedAbility nonMatchingAbility = ScriptableObject.CreateInstance<TaggedAbility>();
-            nonMatchingAbility.AbilityTags.AddTag(GameplayTag.Request("Ability.Passive"));
+            nonMatchingAbility.AbilityTags.AddTag(GameplayTag.Define("Ability.Passive"));
 
             GameplayAbilitySpecHandle matchingHandle = actor.AbilitySystem.GiveAbility(matchingAbility);
             actor.AbilitySystem.GiveAbility(nonMatchingAbility);
 
             List<GameplayAbilitySpecHandle> handles = new();
             actor.AbilitySystem.FindAllAbilitiesWithTags(handles, tags, exactMatch: false);
+
+            Assert.That(handles.Count, Is.EqualTo(1));
+            Assert.That(handles[0], Is.EqualTo(matchingHandle));
+        }
+
+        [Test]
+        public void FindAllAbilitiesWithTags_ExactMatchRequiresAllTags()
+        {
+            GameplayActor actor = new();
+            GameplayTagContainer tags = new();
+            tags.AddTag(GameplayTag.Define("Ability.Skill"));
+            tags.AddTag(GameplayTag.Define("Element.Fire"));
+
+            TaggedAbility matchingAbility = ScriptableObject.CreateInstance<TaggedAbility>();
+            matchingAbility.AbilityTags.AddTag(GameplayTag.Define("Ability.Skill.Attack"));
+            matchingAbility.AbilityTags.AddTag(GameplayTag.Define("Element.Fire"));
+
+            TaggedAbility partialAbility = ScriptableObject.CreateInstance<TaggedAbility>();
+            partialAbility.AbilityTags.AddTag(GameplayTag.Define("Ability.Skill.Attack"));
+
+            GameplayAbilitySpecHandle matchingHandle = actor.AbilitySystem.GiveAbility(matchingAbility);
+            actor.AbilitySystem.GiveAbility(partialAbility);
+
+            List<GameplayAbilitySpecHandle> handles = new();
+            actor.AbilitySystem.FindAllAbilitiesWithTags(handles, tags);
 
             Assert.That(handles.Count, Is.EqualTo(1));
             Assert.That(handles[0], Is.EqualTo(matchingHandle));
@@ -324,5 +349,7 @@ namespace Gameplay.GAS.Tests
         }
     }
 }
+
+
 
 

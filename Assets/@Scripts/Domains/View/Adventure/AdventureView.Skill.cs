@@ -10,18 +10,18 @@ namespace Domains.Adventure
 {
     public sealed partial class AdventureView
     {
-        private IReadOnlyList<SkillSlotViewModelV2> _skillSlots = Array.Empty<SkillSlotViewModelV2>();
-        private SkillSlotGroup _skillSlotGroup;
+        private IReadOnlyList<AdventureSkillSlotViewModel> _skillSlots = Array.Empty<AdventureSkillSlotViewModel>();
+        private AdventureSkillSlotGroup _skillSlotGroup;
         private VisualElement _targetingEventRoot;
         private GameplayAbilitySpecHandle _activeSkillHandle = GameplayAbilitySpecHandle.Invalid;
         private int _activeSkillIndex = -1;
         private bool IsSkillTargetingActive { get; set; }
 
-        private void BindSkillSlots(IReadOnlyList<SkillSlotViewModelV2> skillSlots)
+        private void BindSkillSlots(IReadOnlyList<AdventureSkillSlotViewModel> skillSlots)
         {
-            _skillSlots = skillSlots ?? Array.Empty<SkillSlotViewModelV2>();
+            _skillSlots = skillSlots ?? Array.Empty<AdventureSkillSlotViewModel>();
             _targetingEventRoot = Root.Q<VisualElement>("adventure-root") ?? Root;
-            _skillSlotGroup = Root.Q<SkillSlotGroup>("skill-slot-group");
+            _skillSlotGroup = Root.Q<AdventureSkillSlotGroup>("skill-slot-group");
             _skillSlotGroup.Bind(_skillSlots);
 
             _skillSlotGroup.SelectionChanged -= OnSkillSlotSelectionChanged;
@@ -33,7 +33,7 @@ namespace Domains.Adventure
             return _skillSlotGroup.Show();
         }
 
-        private void OnSkillSlotSelectionChanged(int selectedIndex, SkillSlotButton selectedButton)
+        private void OnSkillSlotSelectionChanged(int selectedIndex, SkillSlotWidget selectedButton)
         {
             if (selectedIndex < 0)
             {
@@ -41,7 +41,7 @@ namespace Domains.Adventure
                 return;
             }
 
-            if (!TryGetSkillSlot(selectedIndex, out SkillSlotViewModelV2 skillSlot))
+            if (!TryGetSkillSlot(selectedIndex, out AdventureSkillSlotViewModel skillSlot))
             {
                 ClearSkillPreview();
                 return;
@@ -68,7 +68,7 @@ namespace Domains.Adventure
             SetHoveredCard(null);
         }
 
-        private void BeginTargetingSkill(SkillSlotButton selectedButton)
+        private void BeginTargetingSkill(SkillSlotWidget selectedButton)
         {
             if (selectedButton == null)
             {
@@ -110,7 +110,7 @@ namespace Domains.Adventure
             evt.StopPropagation();
         }
 
-        private bool TryGetSkillSlot(int index, out SkillSlotViewModelV2 skillSlot)
+        private bool TryGetSkillSlot(int index, out AdventureSkillSlotViewModel skillSlot)
         {
             skillSlot = default;
 

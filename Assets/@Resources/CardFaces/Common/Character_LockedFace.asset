@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: Character_LockedFace
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.LockedCardFaceModel
   _frameTag:
-    _name: 
+    _path: 
+

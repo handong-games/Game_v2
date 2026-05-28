@@ -7,51 +7,63 @@ namespace Gameplay.GAS.Tests
         [Test]
         public void MatchesTag_ReturnsTrue_ForExactTag()
         {
-            GameplayTag tag = GameplayTag.Request("Status.Poison");
+            GameplayTag tag = GameplayTag.Define("Status.Poison");
 
-            Assert.That(tag.MatchesTag(GameplayTag.Request("Status.Poison")), Is.True);
+            Assert.That(tag.MatchesTag(GameplayTag.Define("Status.Poison")), Is.True);
         }
 
         [Test]
         public void MatchesTag_ReturnsTrue_ForParentTag()
         {
-            GameplayTag tag = GameplayTag.Request("Status.Poison.Strong");
+            GameplayTag tag = GameplayTag.Define("Status.Poison.Strong");
 
-            Assert.That(tag.MatchesTag(GameplayTag.Request("Status.Poison")), Is.True);
-            Assert.That(tag.MatchesTag(GameplayTag.Request("Status")), Is.True);
+            Assert.That(tag.MatchesTag(GameplayTag.Define("Status.Poison")), Is.True);
+            Assert.That(tag.MatchesTag(GameplayTag.Define("Status")), Is.True);
+        }
+
+        [Test]
+        public void MatchesTag_ReturnsTrue_WhenChildTagIsDefinedBeforeParentTag()
+        {
+            GameplayTag tag = GameplayTag.Define("Regression.Child.Leaf");
+
+            Assert.That(tag.MatchesTag(GameplayTag.Define("Regression.Child")), Is.True);
+            Assert.That(tag.MatchesTag(GameplayTag.Define("Regression")), Is.True);
         }
 
         [Test]
         public void MatchesTag_ReturnsFalse_ForSiblingTag()
         {
-            GameplayTag tag = GameplayTag.Request("Status.Poison");
+            GameplayTag tag = GameplayTag.Define("Status.Poison");
 
-            Assert.That(tag.MatchesTag(GameplayTag.Request("Status.Burn")), Is.False);
+            Assert.That(tag.MatchesTag(GameplayTag.Define("Status.Burn")), Is.False);
         }
 
         [Test]
         public void Request_ReturnsSameTag_ForSameName()
         {
-            GameplayTag first = GameplayTag.Request("Ability.Attack");
-            GameplayTag second = GameplayTag.Request("Ability.Attack");
+            GameplayTag first = GameplayTag.Define("Ability.Attack");
+            GameplayTag second = GameplayTag.Define("Ability.Attack");
 
             Assert.That(first, Is.EqualTo(second));
         }
 
         [Test]
-        public void RequestDirectParent_ReturnsImmediateParentTag()
+        public void GetDirectParent_ReturnsImmediateParentTag()
         {
-            GameplayTag tag = GameplayTag.Request("Ability.Attack.Light");
+            GameplayTag tag = GameplayTag.Define("Ability.Attack.Light");
 
-            Assert.That(tag.RequestDirectParent(), Is.EqualTo(GameplayTag.Request("Ability.Attack")));
+            Assert.That(tag.GetDirectParent(), Is.EqualTo(GameplayTag.Define("Ability.Attack")));
         }
 
         [Test]
         public void ToString_ReturnsRegisteredName()
         {
-            GameplayTag tag = GameplayTag.Request("GameplayEvent.Skill.Confirmed");
+            GameplayTag tag = GameplayTag.Define("GameplayEvent.Skill.Confirmed");
 
             Assert.That(tag.ToString(), Is.EqualTo("GameplayEvent.Skill.Confirmed"));
         }
     }
 }
+
+
+

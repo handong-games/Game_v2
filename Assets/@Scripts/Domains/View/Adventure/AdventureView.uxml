@@ -41,7 +41,7 @@
                 <ui:VisualElement name="adventure-coin-status-area" class="adventure-view__coin-status-area" picking-mode="Ignore">
                     <ui:Instance template="CoinStatusWidgetTemplate" name="adventure-coin-status-widget-template" class="adventure-view__coin-status-widget" picking-mode="Ignore"/>
                 </ui:VisualElement>
-                <widgets:SkillSlotGroup name="skill-slot-group" class="adventure-view__skill-slot-widget skill-slot-group ui-transition--hidden ui-transition--from-bottom" focusable="false"/>
+                <widgets:AdventureSkillSlotGroup name="skill-slot-group" class="adventure-view__skill-slot-widget skill-slot-group ui-transition--hidden ui-transition--from-bottom" focusable="false"/>
             </ui:VisualElement>
             <ui:Instance template="EndTurnWidgetTemplate" name="adventure-end-turn-widget-template" class="adventure-view__end-turn-widget"/>
             <ui:VisualElement name="adventure-hud-top-layer" class="adventure-view__hud-top-layer">

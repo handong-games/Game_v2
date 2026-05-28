@@ -7,9 +7,12 @@ namespace Game.AbilitySystem.Abilities.Warrior
     [CreateAssetMenu(menuName = "Game/AbilitySystem/Abilities/Warrior/GA Skill BasicAttack")]
     public sealed class GA_Skill_BasicAttack : SkillGameplayAbility
     {
+        [SerializeField]
+        private GameplayEffect _damageGameplayEffect;
+
         public GA_Skill_BasicAttack()
         {
-            AbilityTags.AddTag(AbilityGameplayTags.Ability_Skill_Warrior_BasicAttack);
+            AbilityTags.AddTag(AbilityGameplayTags.AbilitySkillWarriorBasicAttack);
         }
 
         public override void ActivateAbility(
@@ -18,7 +21,23 @@ namespace Game.AbilitySystem.Abilities.Warrior
             GameplayAbilityActivationInfo activationInfo,
             GameplayEventData triggerEventData)
         {
-            
+            if (!CheckCost(handle, actorInfo))
+                return;
+
+            AbilitySystemComponent target = triggerEventData?.ResolvedTarget;
+            if (target == null)
+                return;
+
+            if (!CommitAbilityCost(handle, actorInfo, activationInfo))
+                return;
+
+            if (_damageGameplayEffect == null)
+                return;
+
+            actorInfo.AbilitySystem.ApplyGameplayEffectToTarget(
+                _damageGameplayEffect,
+                target,
+                GetAbilityLevel(actorInfo, handle));
         }
     }
 }

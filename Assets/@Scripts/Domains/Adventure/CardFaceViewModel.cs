@@ -13,9 +13,9 @@ namespace Game.Data
     public abstract class CardFaceViewModel : ScriptableObject
     {
         [SerializeField]
-        private GameplayTagReference _frameTag;
+        private GameplayTag _frameTag;
 
         public abstract ECardFaceType FaceType { get; }
-        public GameplayTag FrameTag => _frameTag.Tag;
+        public GameplayTag FrameTag => _frameTag;
     }
 }

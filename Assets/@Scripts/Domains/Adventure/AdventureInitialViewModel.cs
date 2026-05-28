@@ -5,11 +5,11 @@ namespace Domains.Adventure
 {
     public sealed class AdventureInitialViewModel
     {
-        public AdventureInitialViewModel(IReadOnlyList<SkillSlotViewModelV2> skillSlots)
+        public AdventureInitialViewModel(IReadOnlyList<AdventureSkillSlotViewModel> skillSlots)
         {
             SkillSlots = skillSlots;
         }
 
-        public IReadOnlyList<SkillSlotViewModelV2> SkillSlots { get; }
+        public IReadOnlyList<AdventureSkillSlotViewModel> SkillSlots { get; }
     }
 }

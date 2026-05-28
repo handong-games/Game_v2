@@ -1,4 +1,4 @@
-﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:l="UnityEngine.Localization" editor-extension-mode="False">
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:l="UnityEngine.Localization" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
     <ui:Template name="CardTemplate" src="project://database/Assets/@Scripts/Domains/View/Common/CardWidget.uxml?fileID=9197481963319205126&amp;guid=5a79bce03ca747d697ab7b08aef8611e&amp;type=3#CardWidget"/>
     <ui:Template name="SkillSlotTemplate" src="project://database/Assets/@Scripts/Domains/View/Common/SkillSlotWidget.uxml?fileID=9197481963319205126&amp;guid=d575c97a498c46cea091d4ee11171754&amp;type=3#SkillSlotWidget"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Common/Screen.uss?fileID=7433441132597879392&amp;guid=c1e5869491c34e1980a912a5e6dce02e&amp;type=3#Screen"/>
@@ -7,6 +7,7 @@
     <Style src="project://database/Assets/@Scripts/Domains/View/Card/LockedCardFaceWidget/LockedCardFaceWidget.uss?fileID=7433441132597879392&amp;guid=a76c4ac5dec44fdf98b6f3cc0123eeee&amp;type=3#LockedCardFaceWidget"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Card/ChoiceCardFaceWidget/ChoiceCardFaceWidget.uss?fileID=7433441132597879392&amp;guid=9a6a9176167349ea8d6b85bad1a57d7a&amp;type=3#ChoiceCardFaceWidget"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Common/SkillSlot.uss?fileID=7433441132597879392&amp;guid=8f25d5bef5b1460e9bea30776411bb68&amp;type=3#SkillSlot"/>
+    <Style src="project://database/Assets/@Scripts/Domains/View/SkillSlotWidget/SkillSlotWidget.uss?fileID=7433441132597879392&amp;guid=039fd3eb84c843318eec327c094d35f6&amp;type=3#SkillSlotWidget"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/CharacterSelect/CharacterSelectView.uss?fileID=7433441132597879392&amp;guid=209eff3511affe34d8cb065070e66bd0&amp;type=3#CharacterSelectView"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/CharacterSelect/CharacterSelectView.Animation.uss?fileID=7433441132597879392&amp;guid=00b61629233bbc84c95373d9dc5f421c&amp;type=3#CharacterSelectView.Animation"/>
     <ui:VisualElement class="screen">
@@ -40,11 +41,7 @@
                             <ui:Label name="detail-hp" text="" class="character-select__detail-value"/>
                             <ui:Label name="detail-coin" text="" class="character-select__detail-value"/>
                         </ui:VisualElement>
-                        <ui:VisualElement name="skill-list" class="character-select__detail-skills">
-                            <ui:Instance template="SkillSlotTemplate" name="skill-0" class="character-select__skill-slot-template"/>
-                            <ui:Instance template="SkillSlotTemplate" name="skill-1" class="character-select__skill-slot-template"/>
-                            <ui:Instance template="SkillSlotTemplate" name="skill-2" class="character-select__skill-slot-template"/>
-                        </ui:VisualElement>
+                        <widgets:CharacterSelectSkillSlotGroup name="skill-slot-group" class="character-select__detail-skills skill-slot-group"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="navigation" class="character-select__navigation">

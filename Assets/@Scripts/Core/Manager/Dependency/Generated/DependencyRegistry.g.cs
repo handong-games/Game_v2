@@ -33,6 +33,7 @@ namespace Game.Core.Managers.Dependency.Generated
             new(typeof(global::Domains.Character.CharacterService), true, null),
             new(typeof(global::Domains.CharacterSelect.CharacterSelectController), false, "TitleScene"),
             new(typeof(global::Domains.Combat.CombatService), true, null),
+            new(typeof(global::Domains.Monster.MonsterService), true, null),
             new(typeof(global::Domains.Player.PlayerService), true, null),
             new(typeof(global::Game.Core.Managers.Save.AudioSettingsState), true, null),
             new(typeof(global::Game.Core.Managers.Save.GraphicSettingsState), true, null),
