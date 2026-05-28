@@ -20,8 +20,8 @@ namespace Gameplay.GAS
         public float PeriodElapsedSeconds { get; private set; }
 
         public bool IsExpired =>
-            Spec.Effect.DurationPolicy == GameplayEffectDurationPolicy.Duration &&
-            ElapsedSeconds >= Spec.Effect.DurationSeconds;
+            Spec.Definition.DurationPolicy == GameplayEffectDurationPolicy.Duration &&
+            ElapsedSeconds >= Spec.Definition.DurationSeconds;
 
         public int Tick(float deltaSeconds)
         {
@@ -35,7 +35,7 @@ namespace Gameplay.GAS
 
         public bool TryAddStack()
         {
-            int stackLimitCount = Spec.Effect.StackLimitCount;
+            int stackLimitCount = Spec.Definition.StackLimitCount;
             if (stackLimitCount > 0 && StackCount >= stackLimitCount)
                 return false;
 
@@ -61,10 +61,10 @@ namespace Gameplay.GAS
 
         private float GetPeriodDeltaSeconds(float deltaSeconds)
         {
-            if (Spec.Effect.DurationPolicy != GameplayEffectDurationPolicy.Duration)
+            if (Spec.Definition.DurationPolicy != GameplayEffectDurationPolicy.Duration)
                 return deltaSeconds;
 
-            float remainingSeconds = Spec.Effect.DurationSeconds - ElapsedSeconds;
+            float remainingSeconds = Spec.Definition.DurationSeconds - ElapsedSeconds;
             if (remainingSeconds <= 0f)
                 return 0f;
 
@@ -73,15 +73,15 @@ namespace Gameplay.GAS
 
         private int TickPeriod(float deltaSeconds)
         {
-            if (!Spec.Effect.IsPeriodic)
+            if (!Spec.Definition.IsPeriodic)
                 return 0;
 
             PeriodElapsedSeconds += deltaSeconds;
 
             int tickCount = 0;
-            while (PeriodElapsedSeconds >= Spec.Effect.PeriodSeconds)
+            while (PeriodElapsedSeconds >= Spec.Definition.PeriodSeconds)
             {
-                PeriodElapsedSeconds -= Spec.Effect.PeriodSeconds;
+                PeriodElapsedSeconds -= Spec.Definition.PeriodSeconds;
                 tickCount++;
             }
 

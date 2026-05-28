@@ -133,7 +133,7 @@ namespace Gameplay.GAS
 
             if (normalizedPath.StartsWith(".", StringComparison.Ordinal) ||
                 normalizedPath.EndsWith(".", StringComparison.Ordinal) ||
-                normalizedPath.Contains("..", StringComparison.Ordinal))
+                normalizedPath.IndexOf("..", StringComparison.Ordinal) >= 0)
             {
                 return false;
             }

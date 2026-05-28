@@ -10,6 +10,7 @@ namespace Gameplay.GAS
             MagnitudeType = GameplayModifierMagnitudeType.Fixed;
             SetByCallerTag = default;
             AttributeBasedMagnitude = default;
+            ModifierMagnitude = GameplayEffectModifierMagnitude.Fixed(magnitude);
         }
 
         public GameplayModifier(GameplayAttribute attribute, GameplayModifierOperation operation, GameplayTag setByCallerTag)
@@ -20,6 +21,7 @@ namespace Gameplay.GAS
             MagnitudeType = GameplayModifierMagnitudeType.SetByCaller;
             SetByCallerTag = setByCallerTag;
             AttributeBasedMagnitude = default;
+            ModifierMagnitude = GameplayEffectModifierMagnitude.SetByCaller(setByCallerTag);
         }
 
         public GameplayModifier(
@@ -33,6 +35,25 @@ namespace Gameplay.GAS
             MagnitudeType = GameplayModifierMagnitudeType.AttributeBased;
             SetByCallerTag = default;
             AttributeBasedMagnitude = attributeBasedMagnitude;
+            ModifierMagnitude = GameplayEffectModifierMagnitude.AttributeBased(attributeBasedMagnitude);
+        }
+
+        public GameplayModifier(
+            GameplayAttribute attribute,
+            GameplayModifierOperation operation,
+            GameplayEffectModifierMagnitude modifierMagnitude)
+        {
+            Attribute = attribute;
+            Operation = operation;
+
+            ModifierMagnitude = modifierMagnitude ?? GameplayEffectModifierMagnitude.Fixed(0f);
+            MagnitudeType = ModifierMagnitude.MagnitudeType;
+            Magnitude = ModifierMagnitude.FixedMagnitude;
+            SetByCallerTag = ModifierMagnitude.SetByCallerTag;
+            AttributeBasedMagnitude = ModifierMagnitude.TryGetAttributeBasedMagnitude(
+                out GameplayAttributeBasedFloat attributeBasedMagnitude)
+                ? attributeBasedMagnitude
+                : default;
         }
 
         public GameplayAttribute Attribute { get; }
@@ -41,5 +62,6 @@ namespace Gameplay.GAS
         public GameplayModifierMagnitudeType MagnitudeType { get; }
         public GameplayTag SetByCallerTag { get; }
         public GameplayAttributeBasedFloat AttributeBasedMagnitude { get; }
+        public GameplayEffectModifierMagnitude ModifierMagnitude { get; }
     }
 }

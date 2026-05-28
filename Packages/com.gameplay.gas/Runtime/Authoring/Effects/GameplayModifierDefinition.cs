@@ -18,10 +18,22 @@ namespace Gameplay.GAS
         [SerializeField]
         private float _fixedMagnitude;
 
+        [SerializeField]
+        private GameplayModifierMagnitudeType _magnitudeType = GameplayModifierMagnitudeType.Fixed;
+
+        [SerializeField]
+        private GameplayTag _setByCallerTag;
+
+        [SerializeField]
+        private GameplayAttributeBasedFloatDefinition _attributeBasedMagnitude = new();
+
         public string AttributeSetTypeName => _attributeSetTypeName;
         public string AttributeFieldName => _attributeFieldName;
         public GameplayModifierOperation Operation => _operation;
         public float FixedMagnitude => _fixedMagnitude;
+        public GameplayModifierMagnitudeType MagnitudeType => _magnitudeType;
+        public GameplayTag SetByCallerTag => _setByCallerTag;
+        public GameplayAttributeBasedFloatDefinition AttributeBasedMagnitude => _attributeBasedMagnitude;
 
         public bool TryBuild(out GameplayModifier modifier)
         {
@@ -44,8 +56,25 @@ namespace Gameplay.GAS
             if (!attribute.IsValid)
                 return false;
 
-            modifier = new GameplayModifier(attribute, _operation, _fixedMagnitude);
+            GameplayEffectModifierMagnitude magnitude = BuildMagnitude();
+            modifier = new GameplayModifier(attribute, _operation, magnitude);
             return true;
+        }
+
+        private GameplayEffectModifierMagnitude BuildMagnitude()
+        {
+            switch (_magnitudeType)
+            {
+                case GameplayModifierMagnitudeType.SetByCaller:
+                    return GameplayEffectModifierMagnitude.SetByCaller(_setByCallerTag);
+                case GameplayModifierMagnitudeType.AttributeBased:
+                    return _attributeBasedMagnitude != null &&
+                           _attributeBasedMagnitude.TryBuild(out GameplayAttributeBasedFloat attributeBasedMagnitude)
+                        ? GameplayEffectModifierMagnitude.AttributeBased(attributeBasedMagnitude)
+                        : GameplayEffectModifierMagnitude.Fixed(0f);
+                default:
+                    return GameplayEffectModifierMagnitude.Fixed(_fixedMagnitude);
+            }
         }
     }
 }

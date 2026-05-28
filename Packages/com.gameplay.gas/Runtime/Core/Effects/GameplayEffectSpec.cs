@@ -8,18 +8,27 @@ namespace Gameplay.GAS
         private readonly Dictionary<GameplayEffectAttributeCaptureDefinition, GameplayEffectAttributeCaptureSpec>
             _capturedAttributes = new();
         private readonly List<GameplayEffectModifiedAttributeData> _modifiedAttributes = new();
+        private readonly List<GameplayModifierSpec> _modifierSpecs = new();
 
         public GameplayEffectSpec(GameplayEffect effect, GameplayEffectContext context = null, int level = 1)
         {
-            Effect = effect;
+            Definition = effect;
             Context = context;
             Level = level;
         }
 
-        public GameplayEffect Effect { get; }
+        public GameplayEffect Definition { get; }
+        public GameplayEffect Effect => Definition;
         public GameplayEffectContext Context { get; }
         public int Level { get; }
+        public int StackCount { get; private set; } = 1;
         public IReadOnlyList<GameplayEffectModifiedAttributeData> ModifiedAttributes => _modifiedAttributes;
+        public IReadOnlyList<GameplayModifierSpec> Modifiers => _modifierSpecs;
+
+        public void SetStackCount(int stackCount)
+        {
+            StackCount = stackCount < 1 ? 1 : stackCount;
+        }
 
         public void SetSetByCallerMagnitude(GameplayTag tag, float magnitude)
         {
@@ -35,6 +44,36 @@ namespace Gameplay.GAS
         public float GetSetByCallerMagnitude(GameplayTag tag, float defaultValue = 0f)
         {
             return TryGetSetByCallerMagnitude(tag, out float magnitude) ? magnitude : defaultValue;
+        }
+
+        public void SetupAttributeCaptureDefinitions(
+            List<GameplayEffectAttributeCaptureDefinition> definitions)
+        {
+            if (definitions == null || Definition == null)
+                return;
+
+            IReadOnlyList<GameplayModifier> modifiers = Definition.Modifiers;
+            for (int i = 0; i < modifiers.Count; i++)
+            {
+                modifiers[i].ModifierMagnitude?.GetAttributeCaptureDefinitions(definitions);
+            }
+
+            IReadOnlyList<GameplayEffectExecutionDefinition> executionDefinitions =
+                Definition.ExecutionDefinitions;
+            for (int i = 0; i < executionDefinitions.Count; i++)
+            {
+                executionDefinitions[i].GetAttributeCaptureDefinitions(definitions);
+            }
+        }
+
+        public void CaptureDataFromSource()
+        {
+            CaptureAttributeData(GameplayEffectAttributeCaptureSource.Source);
+        }
+
+        public void CaptureDataFromTarget()
+        {
+            CaptureAttributeData(GameplayEffectAttributeCaptureSource.Target);
         }
 
         public void CaptureAttribute(
@@ -110,9 +149,55 @@ namespace Gameplay.GAS
             return true;
         }
 
+        public void CalculateModifierMagnitudes()
+        {
+            _modifierSpecs.Clear();
+
+            if (Definition == null)
+                return;
+
+            IReadOnlyList<GameplayModifier> modifiers = Definition.Modifiers;
+            for (int i = 0; i < modifiers.Count; i++)
+            {
+                GameplayModifier modifier = modifiers[i];
+                if (!modifier.Attribute.IsValid)
+                    continue;
+
+                float magnitude = TryCalculateModifierMagnitude(modifier, out float calculatedMagnitude)
+                    ? calculatedMagnitude
+                    : 0f;
+
+                _modifierSpecs.Add(new GameplayModifierSpec(modifier, magnitude));
+            }
+        }
+
+        public bool TryCalculateModifierMagnitude(
+            GameplayModifier modifier,
+            out float magnitude)
+        {
+            if (modifier.ModifierMagnitude != null)
+                return modifier.ModifierMagnitude.TryCalculateMagnitude(this, out magnitude);
+
+            switch (modifier.MagnitudeType)
+            {
+                case GameplayModifierMagnitudeType.SetByCaller:
+                    magnitude = GetSetByCallerMagnitude(modifier.SetByCallerTag);
+                    return true;
+                case GameplayModifierMagnitudeType.AttributeBased:
+                    return AttemptCalculateAttributeBasedMagnitude(
+                        modifier.AttributeBasedMagnitude,
+                        out magnitude);
+                default:
+                    magnitude = modifier.Magnitude;
+                    return true;
+            }
+        }
+
         public GameplayEffectSpec WithContext(GameplayEffectContext context)
         {
-            GameplayEffectSpec spec = new(Effect, context, Level);
+            GameplayEffectSpec spec = new(Definition, context, Level);
+            spec.SetStackCount(StackCount);
+
             foreach (KeyValuePair<GameplayTag, float> setByCallerMagnitude in _setByCallerMagnitudes)
             {
                 spec._setByCallerMagnitudes.Add(setByCallerMagnitude.Key, setByCallerMagnitude.Value);
@@ -161,6 +246,26 @@ namespace Gameplay.GAS
         public void ClearModifiedAttributes()
         {
             _modifiedAttributes.Clear();
+        }
+
+        private void CaptureAttributeData(GameplayEffectAttributeCaptureSource captureSource)
+        {
+            AbilitySystemComponent component = captureSource == GameplayEffectAttributeCaptureSource.Source
+                ? Context?.Source
+                : Context?.Target;
+
+            if (component == null)
+                return;
+
+            List<GameplayEffectAttributeCaptureDefinition> definitions = new();
+            SetupAttributeCaptureDefinitions(definitions);
+
+            for (int i = 0; i < definitions.Count; i++)
+            {
+                GameplayEffectAttributeCaptureDefinition definition = definitions[i];
+                if (definition.Source == captureSource && definition.Snapshot)
+                    CaptureAttribute(definition, component);
+            }
         }
     }
 }

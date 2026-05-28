@@ -9,20 +9,20 @@ namespace Gameplay.GAS
         private readonly Dictionary<GameplayTag, List<GameplayAbilitySpecHandle>> _gameplayEventTriggeredAbilities =
             new();
         private readonly List<AttributeSet> _attributeSets = new();
-        private readonly List<ActiveGameplayEffect> _activeEffects = new();
+        private readonly ActiveGameplayEffectsContainer _activeGameplayEffects;
         private int _nextAbilityHandle = 1;
-        private int _nextEffectHandle = 1;
 
         public AbilitySystemComponent(GameplayActor owner)
         {
             Owner = owner;
             ActorInfo = new GameplayAbilityActorInfo(owner, this);
+            _activeGameplayEffects = new ActiveGameplayEffectsContainer(this);
         }
 
         public GameplayActor Owner { get; }
         public GameplayAbilityActorInfo ActorInfo { get; }
         public GameplayTagCountContainer OwnedTags { get; } = new();
-        public IReadOnlyList<ActiveGameplayEffect> ActiveEffects => _activeEffects;
+        public IReadOnlyList<ActiveGameplayEffect> ActiveEffects => _activeGameplayEffects.ActiveEffects;
         public event Action<GameplayEventData> GameplayEventReceived;
         public event Action<GameplayCueEventData> GameplayCueReceived;
 
@@ -163,7 +163,7 @@ namespace Gameplay.GAS
         {
             GameplayEffectContext context = new(this, null);
             GameplayEffectSpec spec = new(effect, context, level);
-            CaptureSnapshotAttributes(spec, GameplayEffectAttributeCaptureSource.Source);
+            spec.CaptureDataFromSource();
             return spec;
         }
 
@@ -195,63 +195,7 @@ namespace Gameplay.GAS
 
         public ActiveGameplayEffect ApplyGameplayEffectSpecToSelf(GameplayEffectSpec spec)
         {
-            GameplayEffectContext context = CreateSelfApplicationContext(spec);
-            GameplayEffectSpec runtimeSpec = ReferenceEquals(spec.Context, context) ? spec : spec.WithContext(context);
-            CaptureSnapshotAttributes(runtimeSpec, GameplayEffectAttributeCaptureSource.Source);
-            CaptureSnapshotAttributes(runtimeSpec, GameplayEffectAttributeCaptureSource.Target);
-
-            if (!CanApplyGameplayEffect(runtimeSpec.Effect))
-            {
-                return new ActiveGameplayEffect(
-                    ActiveGameplayEffectHandle.Invalid,
-                    runtimeSpec,
-                    context);
-            }
-
-            if (runtimeSpec.Effect.DurationPolicy == GameplayEffectDurationPolicy.Instant)
-            {
-                ApplyInstantModifiers(runtimeSpec);
-                InvokeGameplayCues(runtimeSpec, context, GameplayCueEvent.Executed);
-                return new ActiveGameplayEffect(
-                    new ActiveGameplayEffectHandle(_nextEffectHandle++),
-                    runtimeSpec,
-                    context);
-            }
-
-            if (TryApplyStack(runtimeSpec, context, out ActiveGameplayEffect stackedEffect))
-                return stackedEffect;
-
-            ActiveGameplayEffect activeEffect = new(new ActiveGameplayEffectHandle(_nextEffectHandle++), runtimeSpec, context);
-
-            ApplyGrantedTags(runtimeSpec.Effect.GrantedTags);
-            _activeEffects.Add(activeEffect);
-            InvokeGameplayCues(runtimeSpec, context, GameplayCueEvent.OnActive);
-            InvokeGameplayCues(runtimeSpec, context, GameplayCueEvent.WhileActive);
-
-            if (runtimeSpec.Effect.IsPeriodic)
-            {
-                if (runtimeSpec.Effect.ExecutePeriodicEffectOnApplication)
-                    ApplyInstantModifiers(runtimeSpec);
-            }
-            else
-            {
-                RecalculateModifiedAttributes(runtimeSpec.Effect.Modifiers);
-            }
-
-            return activeEffect;
-        }
-
-        private GameplayEffectContext CreateSelfApplicationContext(GameplayEffectSpec spec)
-        {
-            if (spec.Context == null)
-                return new GameplayEffectContext(this, this);
-
-            if (spec.Context.Source != null && spec.Context.Target != null)
-                return spec.Context;
-
-            return new GameplayEffectContext(
-                spec.Context.Source ?? this,
-                spec.Context.Target ?? this);
+            return _activeGameplayEffects.ApplyGameplayEffectSpec(spec);
         }
 
         public bool TriggerAbilityFromGameplayEvent(
@@ -274,7 +218,11 @@ namespace Gameplay.GAS
 
         public bool CanApplyGameplayEffect(GameplayEffect effect)
         {
-            return effect.ApplicationTagRequirements.RequirementsMet(OwnedTags);
+            if (effect == null)
+                return true;
+
+            GameplayEffectSpec spec = new(effect, new GameplayEffectContext(this, this));
+            return effect.CanApply(spec, this);
         }
 
         public bool HasAnyMatchingGameplayTags(GameplayTagContainer tags)
@@ -287,23 +235,27 @@ namespace Gameplay.GAS
             if (effect == null)
                 return true;
 
-            if (!CanApplyGameplayEffect(effect))
+            GameplayEffectSpec spec = MakeOutgoingSpec(effect, level)
+                .WithContext(new GameplayEffectContext(this, this));
+            spec.CaptureDataFromTarget();
+            spec.CalculateModifierMagnitudes();
+
+            if (!effect.CanApply(spec, this))
                 return false;
 
-            GameplayEffectSpec spec = MakeOutgoingSpec(effect, level);
-            IReadOnlyList<GameplayModifier> modifiers = effect.Modifiers;
+            IReadOnlyList<GameplayModifierSpec> modifiers = spec.Modifiers;
             for (int i = 0; i < modifiers.Count; i++)
             {
-                GameplayModifier modifier = modifiers[i];
+                GameplayModifierSpec modifierSpec = modifiers[i];
+                GameplayModifier modifier = modifierSpec.Modifier;
                 if (!TryGetAttributeData(modifier.Attribute, out GameplayAttributeData data))
                     return false;
 
-                float magnitude = ResolveModifierMagnitude(modifier, spec);
                 float nextValue = modifier.Operation switch
                 {
-                    GameplayModifierOperation.Add => data.CurrentValue + magnitude,
-                    GameplayModifierOperation.Multiply => data.CurrentValue * magnitude,
-                    GameplayModifierOperation.Override => magnitude,
+                    GameplayModifierOperation.Add => data.CurrentValue + modifierSpec.EvaluatedMagnitude,
+                    GameplayModifierOperation.Multiply => data.CurrentValue * modifierSpec.EvaluatedMagnitude,
+                    GameplayModifierOperation.Override => modifierSpec.EvaluatedMagnitude,
                     _ => data.CurrentValue
                 };
 
@@ -316,269 +268,68 @@ namespace Gameplay.GAS
 
         public bool RemoveActiveGameplayEffect(ActiveGameplayEffectHandle handle)
         {
-            for (int i = 0; i < _activeEffects.Count; i++)
-            {
-                ActiveGameplayEffect activeEffect = _activeEffects[i];
-                if (!activeEffect.Handle.Equals(handle))
-                    continue;
-
-                RemoveGrantedTags(activeEffect.Spec.Effect.GrantedTags);
-                _activeEffects.RemoveAt(i);
-                InvokeGameplayCues(activeEffect.Spec, activeEffect.Context, GameplayCueEvent.Removed);
-
-                if (!activeEffect.Spec.Effect.IsPeriodic)
-                    RecalculateModifiedAttributes(activeEffect.Spec.Effect.Modifiers);
-
-                return true;
-            }
-
-            return false;
+            return _activeGameplayEffects.RemoveActiveGameplayEffect(handle);
         }
 
         public void TickActiveGameplayEffects(float deltaSeconds)
         {
-            for (int i = _activeEffects.Count - 1; i >= 0; i--)
-            {
-                ActiveGameplayEffect activeEffect = _activeEffects[i];
-                int periodTickCount = activeEffect.Tick(deltaSeconds);
-                for (int j = 0; j < periodTickCount; j++)
-                {
-                    ApplyInstantModifiers(activeEffect.Spec, activeEffect.StackCount);
-                }
-
-                if (activeEffect.IsExpired)
-                    ExpireActiveGameplayEffect(activeEffect);
-            }
+            _activeGameplayEffects.Tick(deltaSeconds);
         }
 
-        private bool TryApplyStack(
+        internal GameplayEffectContext CreateSelfApplicationContext(GameplayEffectSpec spec)
+        {
+            if (spec.Context == null)
+                return new GameplayEffectContext(this, this);
+
+            if (spec.Context.Source != null && spec.Context.Target != null)
+                return spec.Context;
+
+            return new GameplayEffectContext(
+                spec.Context.Source ?? this,
+                spec.Context.Target ?? this);
+        }
+
+        internal void InvokeGameplayCues(
             GameplayEffectSpec spec,
             GameplayEffectContext context,
-            out ActiveGameplayEffect activeEffect)
+            GameplayCueEvent eventType)
         {
-            activeEffect = null;
-
-            if (spec.Effect.StackingType == GameplayEffectStackingType.None)
-                return false;
-
-            if (!TryFindStackingActiveEffect(spec.Effect, context, out activeEffect))
-                return false;
-
-            int previousStackCount = activeEffect.StackCount;
-            if (!activeEffect.TryAddStack())
-                return true;
-
-            if (spec.Effect.StackDurationRefreshPolicy ==
-                GameplayEffectStackingDurationPolicy.RefreshOnSuccessfulApplication)
+            GameplayEffectContext cueContext = BuildCueContext(spec, context);
+            IReadOnlyList<GameplayEffectCue> cues = spec.Definition.GameplayCues;
+            for (int i = 0; i < cues.Count; i++)
             {
-                activeEffect.ResetDuration();
-            }
+                GameplayEffectCue cue = cues[i];
+                GameplayCueParameters parameters = new(
+                    cueContext,
+                    cue.NormalizeLevel(spec.Level),
+                    spec.Level,
+                    spec.Level,
+                    spec.Level);
 
-            if (spec.Effect.StackPeriodResetPolicy ==
-                GameplayEffectStackingPeriodPolicy.ResetOnSuccessfulApplication)
-            {
-                activeEffect.ResetPeriod();
-            }
-
-            if (spec.Effect.IsPeriodic)
-            {
-                if (spec.Effect.ExecutePeriodicEffectOnApplication)
-                    ApplyInstantModifiers(activeEffect.Spec, activeEffect.StackCount);
-            }
-            else if (activeEffect.StackCount != previousStackCount)
-            {
-                RecalculateModifiedAttributes(spec.Effect.Modifiers);
-            }
-
-            return true;
-        }
-
-        private bool TryFindStackingActiveEffect(
-            GameplayEffect effect,
-            GameplayEffectContext context,
-            out ActiveGameplayEffect activeEffect)
-        {
-            for (int i = 0; i < _activeEffects.Count; i++)
-            {
-                activeEffect = _activeEffects[i];
-                if (!ReferenceEquals(activeEffect.Spec.Effect, effect))
-                    continue;
-
-                if (effect.StackingType == GameplayEffectStackingType.AggregateByTarget)
-                    return true;
-
-                if (effect.StackingType == GameplayEffectStackingType.AggregateBySource &&
-                    ReferenceEquals(activeEffect.Context.Source, context.Source))
+                foreach (GameplayTag tag in cue.GameplayCueTags)
                 {
-                    return true;
+                    InvokeGameplayCueEvent(tag, eventType, parameters);
                 }
             }
-
-            activeEffect = null;
-            return false;
         }
 
-        private void ExpireActiveGameplayEffect(ActiveGameplayEffect activeEffect)
+        internal void ApplyGrantedTags(GameplayTagContainer grantedTags)
         {
-            GameplayEffect effect = activeEffect.Spec.Effect;
-            if (activeEffect.StackCount > 1)
+            foreach (GameplayTag tag in grantedTags)
             {
-                switch (effect.StackExpirationPolicy)
-                {
-                    case GameplayEffectStackingExpirationPolicy.RemoveSingleStackAndRefreshDuration:
-                        activeEffect.RemoveStack();
-                        activeEffect.ResetDuration();
-                        if (!effect.IsPeriodic)
-                            RecalculateModifiedAttributes(effect.Modifiers);
-                        return;
-                    case GameplayEffectStackingExpirationPolicy.RefreshDuration:
-                        activeEffect.ResetDuration();
-                        return;
-                }
+                OwnedTags.AddTag(tag);
             }
-
-            if (effect.StackExpirationPolicy == GameplayEffectStackingExpirationPolicy.RefreshDuration)
-            {
-                activeEffect.ResetDuration();
-                return;
-            }
-
-            RemoveActiveGameplayEffect(activeEffect.Handle);
         }
 
-        private void ApplyInstantModifiers(GameplayEffectSpec spec, int stackCount = 1)
+        internal void RemoveGrantedTags(GameplayTagContainer grantedTags)
         {
-            spec.ClearModifiedAttributes();
-
-            for (int stackIndex = 0; stackIndex < stackCount; stackIndex++)
+            foreach (GameplayTag tag in grantedTags)
             {
-                IReadOnlyList<GameplayModifier> modifiers = spec.Effect.Modifiers;
-                for (int i = 0; i < modifiers.Count; i++)
-                {
-                    GameplayModifier modifier = modifiers[i];
-                    float magnitude = ResolveModifierMagnitude(modifier, spec);
-                    GameplayModifierEvaluatedData evaluatedData = new(
-                        modifier.Attribute,
-                        modifier.Operation,
-                        magnitude);
-
-                    if (!TryGetAttributeStorage(modifier.Attribute, out AttributeSet attributeSet, out _))
-                        continue;
-
-                    GameplayEffectModCallbackData callbackData = new(spec, evaluatedData, this);
-                    ApplyModToAttribute(evaluatedData.Attribute, evaluatedData.Operation, evaluatedData.Magnitude);
-                    spec.AddOrAccumulateModifiedAttribute(
-                        evaluatedData.Attribute,
-                        evaluatedData.Magnitude);
-                    attributeSet.PostGameplayEffectExecute(callbackData);
-                }
-            }
-
-            ApplyExecutions(spec, stackCount);
-        }
-
-        private void ApplyExecutions(GameplayEffectSpec spec, int stackCount)
-        {
-            IReadOnlyList<GameplayEffectExecution> executions = spec.Effect.Executions;
-            for (int i = 0; i < executions.Count; i++)
-            {
-                GameplayEffectExecutionParameters parameters = new(spec, stackCount);
-                GameplayEffectExecutionOutput output = new();
-                executions[i].Execute(parameters, output);
-                ApplyEvaluatedModifiers(output.Modifiers);
+                OwnedTags.RemoveTag(tag);
             }
         }
 
-        private void CaptureSnapshotAttributes(
-            GameplayEffectSpec spec,
-            GameplayEffectAttributeCaptureSource captureSource)
-        {
-            AbilitySystemComponent component = captureSource == GameplayEffectAttributeCaptureSource.Source
-                ? spec.Context?.Source
-                : spec.Context?.Target;
-
-            if (component == null)
-                return;
-
-            List<GameplayEffectAttributeCaptureDefinition> definitions = new();
-            IReadOnlyList<GameplayModifier> modifiers = spec.Effect.Modifiers;
-            for (int i = 0; i < modifiers.Count; i++)
-            {
-                GameplayModifier modifier = modifiers[i];
-                if (modifier.MagnitudeType == GameplayModifierMagnitudeType.AttributeBased &&
-                    modifier.AttributeBasedMagnitude.IsValid)
-                {
-                    definitions.Add(modifier.AttributeBasedMagnitude.CaptureDefinition);
-                }
-            }
-
-            IReadOnlyList<GameplayEffectExecution> executions = spec.Effect.Executions;
-            for (int i = 0; i < executions.Count; i++)
-            {
-                executions[i].GetAttributeCaptureDefinitions(definitions);
-            }
-
-            for (int i = 0; i < definitions.Count; i++)
-            {
-                GameplayEffectAttributeCaptureDefinition definition = definitions[i];
-                if (definition.Source == captureSource && definition.Snapshot)
-                    spec.CaptureAttribute(definition, component);
-            }
-        }
-
-        private void ApplyEvaluatedModifiers(IReadOnlyList<GameplayModifierEvaluatedData> modifiers)
-        {
-            for (int i = 0; i < modifiers.Count; i++)
-            {
-                GameplayModifierEvaluatedData modifier = modifiers[i];
-                if (!TryGetAttributeStorage(modifier.Attribute, out AttributeSet attributeSet, out _))
-                    continue;
-
-                GameplayEffectModCallbackData callbackData = new(
-                    null,
-                    modifier,
-                    this);
-
-                ApplyModToAttribute(modifier.Attribute, modifier.Operation, modifier.Magnitude);
-                attributeSet.PostGameplayEffectExecute(callbackData);
-            }
-        }
-
-        private void RecalculateModifiedAttributes(IReadOnlyList<GameplayModifier> modifiers)
-        {
-            for (int i = 0; i < modifiers.Count; i++)
-            {
-                RecalculateAttribute(modifiers[i].Attribute);
-            }
-        }
-
-        private void RecalculateAttribute(GameplayAttribute attribute)
-        {
-            if (!TryGetAttributeStorage(attribute, out _, out GameplayAttributeData data))
-                return;
-
-            GameplayAttributeAggregator aggregator = new();
-            for (int i = 0; i < _activeEffects.Count; i++)
-            {
-                if (_activeEffects[i].Spec.Effect.IsPeriodic)
-                    continue;
-
-                IReadOnlyList<GameplayModifier> modifiers = _activeEffects[i].Spec.Effect.Modifiers;
-                for (int j = 0; j < modifiers.Count; j++)
-                {
-                    GameplayModifier modifier = modifiers[j];
-                    if (modifier.Attribute.Equals(attribute))
-                    {
-                        float magnitude = ResolveModifierMagnitude(modifier, _activeEffects[i].Spec);
-                        aggregator.AddModifier(modifier, magnitude, _activeEffects[i].StackCount);
-                    }
-                }
-            }
-
-            InternalUpdateNumericalAttribute(attribute, aggregator.Evaluate(data.BaseValue));
-        }
-
-        private void ApplyModToAttribute(
+        internal void ApplyModToAttribute(
             GameplayAttribute attribute,
             GameplayModifierOperation modifierOperation,
             float modifierMagnitude)
@@ -598,21 +349,7 @@ namespace Gameplay.GAS
             SetAttributeBaseValue(attribute, newBaseValue);
         }
 
-        private void SetAttributeBaseValue(
-            GameplayAttribute attribute,
-            float newBaseValue)
-        {
-            if (!TryGetAttributeStorage(attribute, out AttributeSet attributeSet, out GameplayAttributeData data))
-                return;
-
-            float oldBaseValue = data.BaseValue;
-            attributeSet.PreAttributeBaseChange(attribute, ref newBaseValue);
-            data.SetBaseValue(newBaseValue);
-            RecalculateAttribute(attribute);
-            attributeSet.PostAttributeBaseChange(attribute, oldBaseValue, data.BaseValue);
-        }
-
-        private void InternalUpdateNumericalAttribute(
+        internal void InternalUpdateNumericalAttribute(
             GameplayAttribute attribute,
             float newCurrentValue)
         {
@@ -625,7 +362,7 @@ namespace Gameplay.GAS
             attributeSet.PostAttributeChange(attribute, oldCurrentValue, data.CurrentValue);
         }
 
-        private bool TryGetAttributeStorage(
+        internal bool TryGetAttributeStorage(
             GameplayAttribute attribute,
             out AttributeSet attributeSet,
             out GameplayAttributeData data)
@@ -645,45 +382,18 @@ namespace Gameplay.GAS
             return false;
         }
 
-        private static float ResolveModifierMagnitude(GameplayModifier modifier, GameplayEffectSpec spec)
+        private void SetAttributeBaseValue(
+            GameplayAttribute attribute,
+            float newBaseValue)
         {
-            switch (modifier.MagnitudeType)
-            {
-                case GameplayModifierMagnitudeType.SetByCaller:
-                    return spec.GetSetByCallerMagnitude(modifier.SetByCallerTag);
-                case GameplayModifierMagnitudeType.AttributeBased:
-                    return spec.AttemptCalculateAttributeBasedMagnitude(
-                        modifier.AttributeBasedMagnitude,
-                        out float magnitude)
-                        ? magnitude
-                        : 0f;
-                default:
-                    return modifier.Magnitude;
-            }
-        }
+            if (!TryGetAttributeStorage(attribute, out AttributeSet attributeSet, out GameplayAttributeData data))
+                return;
 
-        private void InvokeGameplayCues(
-            GameplayEffectSpec spec,
-            GameplayEffectContext context,
-            GameplayCueEvent eventType)
-        {
-            GameplayEffectContext cueContext = BuildCueContext(spec, context);
-            IReadOnlyList<GameplayEffectCue> cues = spec.Effect.GameplayCues;
-            for (int i = 0; i < cues.Count; i++)
-            {
-                GameplayEffectCue cue = cues[i];
-                GameplayCueParameters parameters = new(
-                    cueContext,
-                    cue.NormalizeLevel(spec.Level),
-                    spec.Level,
-                    spec.Level,
-                    spec.Level);
-
-                foreach (GameplayTag tag in cue.GameplayCueTags)
-                {
-                    InvokeGameplayCueEvent(tag, eventType, parameters);
-                }
-            }
+            float oldBaseValue = data.BaseValue;
+            attributeSet.PreAttributeBaseChange(attribute, ref newBaseValue);
+            data.SetBaseValue(newBaseValue);
+            _activeGameplayEffects.RecalculateAttribute(attribute);
+            attributeSet.PostAttributeBaseChange(attribute, oldBaseValue, data.BaseValue);
         }
 
         private GameplayEffectContext BuildCueContext(
@@ -698,22 +408,6 @@ namespace Gameplay.GAS
                 baseContext.Source ?? this,
                 baseContext.Target ?? this,
                 spec.ModifiedAttributes);
-        }
-
-        private void ApplyGrantedTags(GameplayTagContainer grantedTags)
-        {
-            foreach (GameplayTag tag in grantedTags)
-            {
-                OwnedTags.AddTag(tag);
-            }
-        }
-
-        private void RemoveGrantedTags(GameplayTagContainer grantedTags)
-        {
-            foreach (GameplayTag tag in grantedTags)
-            {
-                OwnedTags.RemoveTag(tag);
-            }
         }
 
         private void RegisterAbilityTriggers(GameplayAbilitySpec spec)

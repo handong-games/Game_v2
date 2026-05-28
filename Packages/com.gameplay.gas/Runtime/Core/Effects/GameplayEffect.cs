@@ -10,6 +10,12 @@ namespace Gameplay.GAS
         private List<GameplayModifierDefinition> _modifiers = new();
 
         [SerializeField]
+        private List<GameplayEffectExecutionDefinition> _executionDefinitions = new();
+
+        [SerializeField]
+        private List<GameplayEffectComponent> _components = new();
+
+        [SerializeField]
         private List<GameplayEffectCueDefinition> _gameplayCues = new();
 
         [SerializeField]
@@ -44,7 +50,10 @@ namespace Gameplay.GAS
 
         private readonly List<GameplayModifier> _runtimeModifiers = new();
         private readonly List<GameplayModifier> _resolvedModifiers = new();
-        private readonly List<GameplayEffectExecution> _executions = new();
+        private readonly List<GameplayEffectExecutionDefinition> _runtimeExecutionDefinitions = new();
+        private readonly List<GameplayEffectExecutionDefinition> _resolvedExecutionDefinitions = new();
+        private readonly List<GameplayEffectComponent> _runtimeComponents = new();
+        private readonly List<GameplayEffectComponent> _resolvedComponents = new();
         private readonly List<GameplayEffectCue> _runtimeGameplayCues = new();
         private readonly List<GameplayEffectCue> _resolvedGameplayCues = new();
 
@@ -57,7 +66,23 @@ namespace Gameplay.GAS
             }
         }
 
-        public IReadOnlyList<GameplayEffectExecution> Executions => _executions;
+        public IReadOnlyList<GameplayEffectExecutionDefinition> ExecutionDefinitions
+        {
+            get
+            {
+                RebuildExecutionDefinitions();
+                return _resolvedExecutionDefinitions;
+            }
+        }
+
+        public IReadOnlyList<GameplayEffectComponent> Components
+        {
+            get
+            {
+                RebuildComponents();
+                return _resolvedComponents;
+            }
+        }
 
         public IReadOnlyList<GameplayEffectCue> GameplayCues
         {
@@ -70,6 +95,7 @@ namespace Gameplay.GAS
 
         public GameplayTagContainer GrantedTags { get; } = new();
         public GameplayTagRequirements ApplicationTagRequirements { get; } = new();
+
         public GameplayEffectDurationPolicy DurationPolicy
         {
             get => _durationPolicy;
@@ -137,16 +163,86 @@ namespace Gameplay.GAS
                 _runtimeModifiers.Add(modifier);
         }
 
-        public void AddExecution(GameplayEffectExecution execution)
+        public void AddExecution(GameplayEffectExecutionDefinition executionDefinition)
         {
-            if (execution != null)
-                _executions.Add(execution);
+            if (executionDefinition?.Calculation != null)
+                _runtimeExecutionDefinitions.Add(executionDefinition);
+        }
+
+        public void AddComponent(GameplayEffectComponent component)
+        {
+            if (component != null)
+                _runtimeComponents.Add(component);
         }
 
         public void AddGameplayCue(GameplayEffectCue cue)
         {
             if (cue != null)
                 _runtimeGameplayCues.Add(cue);
+        }
+
+        public bool CanApply(GameplayEffectSpec spec, AbilitySystemComponent target)
+        {
+            if (target == null)
+                return false;
+
+            if (!ApplicationTagRequirements.RequirementsMet(target.OwnedTags))
+                return false;
+
+            IReadOnlyList<GameplayEffectComponent> components = Components;
+            for (int i = 0; i < components.Count; i++)
+            {
+                GameplayEffectComponent component = components[i];
+                if (component != null && !component.CanGameplayEffectApply(spec, target))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public void OnActiveGameplayEffectAdded(
+            ActiveGameplayEffect activeEffect,
+            AbilitySystemComponent target)
+        {
+            IReadOnlyList<GameplayEffectComponent> components = Components;
+            for (int i = 0; i < components.Count; i++)
+            {
+                components[i]?.OnActiveGameplayEffectAdded(activeEffect, target);
+            }
+        }
+
+        public void OnGameplayEffectExecuted(
+            GameplayEffectSpec spec,
+            GameplayEffectExecutionOutput output,
+            AbilitySystemComponent target)
+        {
+            IReadOnlyList<GameplayEffectComponent> components = Components;
+            for (int i = 0; i < components.Count; i++)
+            {
+                components[i]?.OnGameplayEffectExecuted(spec, output, target);
+            }
+        }
+
+        public void OnGameplayEffectApplied(
+            GameplayEffectSpec spec,
+            AbilitySystemComponent target)
+        {
+            IReadOnlyList<GameplayEffectComponent> components = Components;
+            for (int i = 0; i < components.Count; i++)
+            {
+                components[i]?.OnGameplayEffectApplied(spec, target);
+            }
+        }
+
+        public void OnGameplayEffectRemoved(
+            ActiveGameplayEffect activeEffect,
+            AbilitySystemComponent target)
+        {
+            IReadOnlyList<GameplayEffectComponent> components = Components;
+            for (int i = 0; i < components.Count; i++)
+            {
+                components[i]?.OnGameplayEffectRemoved(activeEffect, target);
+            }
         }
 
         private void RebuildModifiers()
@@ -161,6 +257,33 @@ namespace Gameplay.GAS
             }
 
             _resolvedModifiers.AddRange(_runtimeModifiers);
+        }
+
+        private void RebuildExecutionDefinitions()
+        {
+            _resolvedExecutionDefinitions.Clear();
+
+            for (int i = 0; i < _executionDefinitions.Count; i++)
+            {
+                GameplayEffectExecutionDefinition executionDefinition = _executionDefinitions[i];
+                if (executionDefinition?.Calculation != null)
+                    _resolvedExecutionDefinitions.Add(executionDefinition);
+            }
+
+            _resolvedExecutionDefinitions.AddRange(_runtimeExecutionDefinitions);
+        }
+
+        private void RebuildComponents()
+        {
+            _resolvedComponents.Clear();
+
+            for (int i = 0; i < _components.Count; i++)
+            {
+                if (_components[i] != null)
+                    _resolvedComponents.Add(_components[i]);
+            }
+
+            _resolvedComponents.AddRange(_runtimeComponents);
         }
 
         private void RebuildGameplayCues()

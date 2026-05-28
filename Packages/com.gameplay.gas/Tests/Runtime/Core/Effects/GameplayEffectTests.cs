@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Gameplay.GAS.Tests
 {
@@ -230,7 +231,8 @@ namespace Gameplay.GAS.Tests
             target.AbilitySystem.AddAttributeSet(targetAttributes);
 
             GameplayEffect effect = GameplayEffect.Create();
-            effect.AddExecution(new SourceAttackDamageExecution(attack, health));
+            effect.AddExecution(GameplayEffectExecutionDefinition.Create(
+                CreateSourceAttackDamageExecution(attack, health)));
 
             GameplayEffectSpec spec = source.AbilitySystem.MakeOutgoingSpec(effect);
             source.AbilitySystem.ApplyGameplayEffectSpecToTarget(spec, target.AbilitySystem);
@@ -250,7 +252,8 @@ namespace Gameplay.GAS.Tests
             actor.AbilitySystem.AddAttributeSet(attributes);
 
             GameplayEffect effect = GameplayEffect.Create();
-            effect.AddExecution(new SetByCallerDamageExecution(health, damageTag));
+            effect.AddExecution(GameplayEffectExecutionDefinition.Create(
+                CreateSetByCallerDamageExecution(health, damageTag)));
 
             GameplayEffectSpec spec = new(effect);
             spec.SetSetByCallerMagnitude(damageTag, 8f);
@@ -270,7 +273,8 @@ namespace Gameplay.GAS.Tests
             actor.AbilitySystem.AddAttributeSet(attributes);
 
             GameplayEffect effect = GameplayEffect.Create();
-            effect.AddExecution(new TargetPercentDamageExecution(health, 0.1f));
+            effect.AddExecution(GameplayEffectExecutionDefinition.Create(
+                CreateTargetPercentDamageExecution(health, 0.1f)));
 
             GameplayEffectSpec spec = actor.AbilitySystem.MakeOutgoingSpec(effect);
             actor.AbilitySystem.ApplyGameplayEffectSpecToSelf(spec);
@@ -294,7 +298,8 @@ namespace Gameplay.GAS.Tests
             target.AbilitySystem.AddAttributeSet(targetAttributes);
 
             GameplayEffect effect = GameplayEffect.Create();
-            effect.AddExecution(new CapturedSourceAttackDamageExecution(attack, health, true));
+            effect.AddExecution(GameplayEffectExecutionDefinition.Create(
+                CreateCapturedSourceAttackDamageExecution(attack, health, true)));
 
             GameplayEffectSpec spec = source.AbilitySystem.MakeOutgoingSpec(effect);
             sourceAttributes.GetAttributeData(attack).SetCurrentValue(20f);
@@ -318,7 +323,8 @@ namespace Gameplay.GAS.Tests
             target.AbilitySystem.AddAttributeSet(targetAttributes);
 
             GameplayEffect effect = GameplayEffect.Create();
-            effect.AddExecution(new CapturedSourceAttackDamageExecution(attack, health, false));
+            effect.AddExecution(GameplayEffectExecutionDefinition.Create(
+                CreateCapturedSourceAttackDamageExecution(attack, health, false)));
 
             GameplayEffectSpec spec = source.AbilitySystem.MakeOutgoingSpec(effect);
             sourceAttributes.GetAttributeData(attack).SetCurrentValue(20f);
@@ -940,12 +946,53 @@ namespace Gameplay.GAS.Tests
             Assert.That(attributes.GetAttributeData(health).BaseValue, Is.EqualTo(40f));
         }
 
-        private sealed class SourceAttackDamageExecution : GameplayEffectExecution
+        private static SourceAttackDamageExecution CreateSourceAttackDamageExecution(
+            GameplayAttribute attackAttribute,
+            GameplayAttribute healthAttribute)
         {
-            private readonly GameplayAttribute _attackAttribute;
-            private readonly GameplayAttribute _healthAttribute;
+            SourceAttackDamageExecution execution =
+                ScriptableObject.CreateInstance<SourceAttackDamageExecution>();
+            execution.Initialize(attackAttribute, healthAttribute);
+            return execution;
+        }
 
-            public SourceAttackDamageExecution(
+        private static CapturedSourceAttackDamageExecution CreateCapturedSourceAttackDamageExecution(
+            GameplayAttribute attackAttribute,
+            GameplayAttribute healthAttribute,
+            bool snapshot)
+        {
+            CapturedSourceAttackDamageExecution execution =
+                ScriptableObject.CreateInstance<CapturedSourceAttackDamageExecution>();
+            execution.Initialize(attackAttribute, healthAttribute, snapshot);
+            return execution;
+        }
+
+        private static SetByCallerDamageExecution CreateSetByCallerDamageExecution(
+            GameplayAttribute healthAttribute,
+            GameplayTag damageTag)
+        {
+            SetByCallerDamageExecution execution =
+                ScriptableObject.CreateInstance<SetByCallerDamageExecution>();
+            execution.Initialize(healthAttribute, damageTag);
+            return execution;
+        }
+
+        private static TargetPercentDamageExecution CreateTargetPercentDamageExecution(
+            GameplayAttribute healthAttribute,
+            float ratio)
+        {
+            TargetPercentDamageExecution execution =
+                ScriptableObject.CreateInstance<TargetPercentDamageExecution>();
+            execution.Initialize(healthAttribute, ratio);
+            return execution;
+        }
+
+        private sealed class SourceAttackDamageExecution : GameplayEffectExecutionCalculation
+        {
+            private GameplayAttribute _attackAttribute;
+            private GameplayAttribute _healthAttribute;
+
+            public void Initialize(
                 GameplayAttribute attackAttribute,
                 GameplayAttribute healthAttribute)
             {
@@ -972,12 +1019,12 @@ namespace Gameplay.GAS.Tests
             }
         }
 
-        private sealed class CapturedSourceAttackDamageExecution : GameplayEffectExecution
+        private sealed class CapturedSourceAttackDamageExecution : GameplayEffectExecutionCalculation
         {
-            private readonly GameplayEffectAttributeCaptureDefinition _attackDefinition;
-            private readonly GameplayAttribute _healthAttribute;
+            private GameplayEffectAttributeCaptureDefinition _attackDefinition;
+            private GameplayAttribute _healthAttribute;
 
-            public CapturedSourceAttackDamageExecution(
+            public void Initialize(
                 GameplayAttribute attackAttribute,
                 GameplayAttribute healthAttribute,
                 bool snapshot)
@@ -1009,12 +1056,12 @@ namespace Gameplay.GAS.Tests
             }
         }
 
-        private sealed class SetByCallerDamageExecution : GameplayEffectExecution
+        private sealed class SetByCallerDamageExecution : GameplayEffectExecutionCalculation
         {
-            private readonly GameplayAttribute _healthAttribute;
-            private readonly GameplayTag _damageTag;
+            private GameplayAttribute _healthAttribute;
+            private GameplayTag _damageTag;
 
-            public SetByCallerDamageExecution(GameplayAttribute healthAttribute, GameplayTag damageTag)
+            public void Initialize(GameplayAttribute healthAttribute, GameplayTag damageTag)
             {
                 _healthAttribute = healthAttribute;
                 _damageTag = damageTag;
@@ -1032,12 +1079,12 @@ namespace Gameplay.GAS.Tests
             }
         }
 
-        private sealed class TargetPercentDamageExecution : GameplayEffectExecution
+        private sealed class TargetPercentDamageExecution : GameplayEffectExecutionCalculation
         {
-            private readonly GameplayAttribute _healthAttribute;
-            private readonly float _ratio;
+            private GameplayAttribute _healthAttribute;
+            private float _ratio;
 
-            public TargetPercentDamageExecution(GameplayAttribute healthAttribute, float ratio)
+            public void Initialize(GameplayAttribute healthAttribute, float ratio)
             {
                 _healthAttribute = healthAttribute;
                 _ratio = ratio;

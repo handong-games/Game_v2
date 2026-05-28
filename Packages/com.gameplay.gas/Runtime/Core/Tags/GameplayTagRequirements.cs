@@ -1,9 +1,19 @@
+using System;
+using UnityEngine;
+
 namespace Gameplay.GAS
 {
+    [Serializable]
     public sealed class GameplayTagRequirements
     {
-        public GameplayTagContainer RequiredTags { get; } = new();
-        public GameplayTagContainer BlockedTags { get; } = new();
+        [SerializeField]
+        private GameplayTagContainer _requiredTags = new();
+
+        [SerializeField]
+        private GameplayTagContainer _blockedTags = new();
+
+        public GameplayTagContainer RequiredTags => _requiredTags;
+        public GameplayTagContainer BlockedTags => _blockedTags;
 
         public bool IsEmpty => RequiredTags.Count == 0 && BlockedTags.Count == 0;
 

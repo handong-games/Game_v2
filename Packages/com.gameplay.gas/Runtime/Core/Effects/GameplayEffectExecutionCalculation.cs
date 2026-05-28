@@ -1,8 +1,9 @@
+using System.Collections.Generic;
+using UnityEngine;
+
 namespace Gameplay.GAS
 {
-    using System.Collections.Generic;
-
-    public abstract class GameplayEffectExecution
+    public abstract class GameplayEffectExecutionCalculation : ScriptableObject
     {
         public virtual void GetAttributeCaptureDefinitions(
             List<GameplayEffectAttributeCaptureDefinition> definitions)

@@ -63,7 +63,12 @@ namespace Gameplay.GAS
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(AttributeSetType, StringComparer.Ordinal.GetHashCode(FieldName ?? string.Empty));
+            unchecked
+            {
+                int hashCode = AttributeSetType != null ? AttributeSetType.GetHashCode() : 0;
+                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(FieldName ?? string.Empty);
+                return hashCode;
+            }
         }
 
         public override string ToString()

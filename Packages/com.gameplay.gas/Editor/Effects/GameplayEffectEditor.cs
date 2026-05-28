@@ -15,6 +15,10 @@ namespace Gameplay.GAS.Editor
             EditorGUILayout.Space(8f);
             DrawList("_modifiers", "Modifiers", "Add Modifier", "Remove Last Modifier");
             EditorGUILayout.Space(8f);
+            DrawList("_executionDefinitions", "Executions", "Add Execution", "Remove Last Execution");
+            EditorGUILayout.Space(8f);
+            DrawList("_components", "Components", "Add Component", "Remove Last Component");
+            EditorGUILayout.Space(8f);
             DrawList("_gameplayCues", "Gameplay Cues", "Add Gameplay Cue", "Remove Last Gameplay Cue");
 
             serializedObject.ApplyModifiedProperties();

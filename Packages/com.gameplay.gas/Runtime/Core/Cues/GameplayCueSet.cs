@@ -21,7 +21,8 @@ namespace Gameplay.GAS
                 if (cue == null || !cue.IsValid)
                     continue;
 
-                _cueDataMap.TryAdd(cue.CueTag, i);
+                if (!_cueDataMap.ContainsKey(cue.CueTag))
+                    _cueDataMap.Add(cue.CueTag, i);
             }
         }
 

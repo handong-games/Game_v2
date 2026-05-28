@@ -22,30 +22,42 @@ namespace Gameplay.GAS.Editor
             SerializedProperty operationProperty =
                 property.FindPropertyRelative("_operation");
 
-            SerializedProperty fixedMagnitudeProperty =
-                property.FindPropertyRelative("_fixedMagnitude");
+            SerializedProperty magnitudeTypeProperty =
+                property.FindPropertyRelative("_magnitudeType");
 
             EditorGUI.BeginProperty(position, label, property);
 
-            position = EditorGUI.PrefixLabel(
-                position,
+            Rect firstLine = new(
+                position.x,
+                position.y,
+                position.width,
+                EditorGUIUtility.singleLineHeight);
+            Rect secondLine = new(
+                position.x,
+                firstLine.yMax + Spacing,
+                position.width,
+                GetMagnitudeHeight(property, magnitudeTypeProperty));
+
+            firstLine = EditorGUI.PrefixLabel(
+                firstLine,
                 GUIUtility.GetControlID(FocusType.Passive),
                 label);
 
             int previousIndent = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
 
-            float columnWidth = (position.width - Spacing * 3f) / 4f;
+            float columnWidth = (firstLine.width - Spacing * 3f) / 4f;
 
-            Rect attributeSetRect = new(position.x, position.y, columnWidth, position.height);
-            Rect attributeRect = new(attributeSetRect.xMax + Spacing, position.y, columnWidth, position.height);
-            Rect operationRect = new(attributeRect.xMax + Spacing, position.y, columnWidth, position.height);
-            Rect magnitudeRect = new(operationRect.xMax + Spacing, position.y, columnWidth, position.height);
+            Rect attributeSetRect = new(firstLine.x, firstLine.y, columnWidth, firstLine.height);
+            Rect attributeRect = new(attributeSetRect.xMax + Spacing, firstLine.y, columnWidth, firstLine.height);
+            Rect operationRect = new(attributeRect.xMax + Spacing, firstLine.y, columnWidth, firstLine.height);
+            Rect magnitudeTypeRect = new(operationRect.xMax + Spacing, firstLine.y, columnWidth, firstLine.height);
 
             DrawAttributeSetPopup(attributeSetRect, attributeSetTypeNameProperty);
             DrawAttributePopup(attributeRect, attributeSetTypeNameProperty.stringValue, attributeFieldNameProperty);
             EditorGUI.PropertyField(operationRect, operationProperty, GUIContent.none);
-            EditorGUI.PropertyField(magnitudeRect, fixedMagnitudeProperty, GUIContent.none);
+            EditorGUI.PropertyField(magnitudeTypeRect, magnitudeTypeProperty, GUIContent.none);
+            DrawMagnitude(secondLine, property, magnitudeTypeProperty);
 
             EditorGUI.indentLevel = previousIndent;
             EditorGUI.EndProperty();
@@ -53,7 +65,57 @@ namespace Gameplay.GAS.Editor
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return EditorGUIUtility.singleLineHeight;
+            SerializedProperty magnitudeTypeProperty =
+                property.FindPropertyRelative("_magnitudeType");
+
+            return EditorGUIUtility.singleLineHeight +
+                   Spacing +
+                   GetMagnitudeHeight(property, magnitudeTypeProperty);
+        }
+
+        private static void DrawMagnitude(
+            Rect rect,
+            SerializedProperty property,
+            SerializedProperty magnitudeTypeProperty)
+        {
+            GameplayModifierMagnitudeType magnitudeType =
+                (GameplayModifierMagnitudeType)magnitudeTypeProperty.enumValueIndex;
+
+            switch (magnitudeType)
+            {
+                case GameplayModifierMagnitudeType.SetByCaller:
+                    EditorGUI.PropertyField(
+                        rect,
+                        property.FindPropertyRelative("_setByCallerTag"),
+                        GUIContent.none);
+                    break;
+                case GameplayModifierMagnitudeType.AttributeBased:
+                    EditorGUI.PropertyField(
+                        rect,
+                        property.FindPropertyRelative("_attributeBasedMagnitude"),
+                        GUIContent.none);
+                    break;
+                default:
+                    EditorGUI.PropertyField(
+                        rect,
+                        property.FindPropertyRelative("_fixedMagnitude"),
+                        GUIContent.none);
+                    break;
+            }
+        }
+
+        private static float GetMagnitudeHeight(
+            SerializedProperty property,
+            SerializedProperty magnitudeTypeProperty)
+        {
+            GameplayModifierMagnitudeType magnitudeType =
+                (GameplayModifierMagnitudeType)magnitudeTypeProperty.enumValueIndex;
+
+            return magnitudeType == GameplayModifierMagnitudeType.AttributeBased
+                ? EditorGUI.GetPropertyHeight(
+                    property.FindPropertyRelative("_attributeBasedMagnitude"),
+                    includeChildren: true)
+                : EditorGUIUtility.singleLineHeight;
         }
 
         private static void DrawAttributeSetPopup(Rect rect, SerializedProperty property)

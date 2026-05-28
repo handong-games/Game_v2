@@ -9,15 +9,23 @@ namespace Gameplay.GAS
 
         public void AddModifier(GameplayModifier modifier, float magnitude, int stackCount = 1)
         {
+            AddModifier(modifier.Operation, magnitude, stackCount);
+        }
+
+        public void AddModifier(
+            GameplayModifierOperation operation,
+            float magnitude,
+            int stackCount = 1)
+        {
             for (int i = 0; i < stackCount; i++)
             {
-                AddModifierOnce(modifier, magnitude);
+                AddModifierOnce(operation, magnitude);
             }
         }
 
-        private void AddModifierOnce(GameplayModifier modifier, float magnitude)
+        private void AddModifierOnce(GameplayModifierOperation operation, float magnitude)
         {
-            switch (modifier.Operation)
+            switch (operation)
             {
                 case GameplayModifierOperation.Add:
                     _additiveMagnitude += magnitude;
