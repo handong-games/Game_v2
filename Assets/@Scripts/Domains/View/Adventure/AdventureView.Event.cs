@@ -12,6 +12,7 @@ namespace Domains.Adventure
             AdventureEvents.CardsDrawn += OnCardsDrawn;
             AdventureEvents.BoardChanged += OnBoardChanged;
             AdventureEvents.TurnBannerRequested += OnTurnBannerRequested;
+            AdventureEvents.EnemyTurnBannerRequested += OnEnemyTurnBannerRequested;
             _pouch.Clicked += OnPouchClicked;
             _endTurnWidget.Clicked += OnEndTurnClicked;
         }
@@ -22,6 +23,7 @@ namespace Domains.Adventure
             AdventureEvents.CardsDrawn -= OnCardsDrawn;
             AdventureEvents.BoardChanged -= OnBoardChanged;
             AdventureEvents.TurnBannerRequested -= OnTurnBannerRequested;
+            AdventureEvents.EnemyTurnBannerRequested -= OnEnemyTurnBannerRequested;
             _pouch.Clicked -= OnPouchClicked;
             _endTurnWidget.Clicked -= OnEndTurnClicked;
         }
@@ -33,6 +35,12 @@ namespace Domains.Adventure
 
         private async void OnTurnBannerRequested()
         {
+            await PlayTurnBannerAnimation();
+        }
+
+        private async void OnEnemyTurnBannerRequested()
+        {
+            _controller.OnEnemyTurnCompleted();
             await PlayTurnBannerAnimation();
         }
 
@@ -69,12 +77,15 @@ namespace Domains.Adventure
                 (face, delta) => _coinStatusWidget.ApplyDelta(face, delta));
         }
 
-        private void OnEndTurnClicked()
+        private async void OnEndTurnClicked()
         {
-            _controller.OnEndTurnClicked();
             _coinStatusWidget.Hide();
             _coinStatusWidget.Reset();
             _endTurnWidget.Hide();
+
+            await PlayEnemyTurnBannerAnimation();
+
+            _controller.OnEndTurnClicked();
         }
     }
 }

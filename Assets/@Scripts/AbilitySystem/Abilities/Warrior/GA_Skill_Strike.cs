@@ -18,6 +18,7 @@ namespace Game.AbilitySystem.Abilities.Warrior
             GameplayAbilityActivationInfo activationInfo,
             GameplayEventData triggerEventData)
         {
+            base.ActivateAbility(handle, actorInfo, activationInfo, triggerEventData);
         }
     }
 }

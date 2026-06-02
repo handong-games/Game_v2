@@ -1,4 +1,6 @@
 using Gameplay.GAS;
+using System;
+using Game.AbilitySystem.Abilities;
 using Game.Core.Managers.View;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -16,7 +18,11 @@ namespace Domains.View.Widgets
         private VisualElement _iconElement;
         private Label _fallbackNameLabel;
         private IReadOnlySkillSlotViewModel _pendingViewModel;
+        private AdventureSkillSlotViewModel? _adventureSkillSlot;
         private bool _hasPendingViewModel;
+        private bool _isAvailable = true;
+
+        public event Action<SkillSlotWidget, bool> AvailableChanged;
 
         public SkillSlotWidget()
         {
@@ -24,6 +30,7 @@ namespace Domains.View.Widgets
             focusable = false;
             AddToClassList("skill-slot-widget");
             RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
 
             EnsureTemplate();
             _slotTemplate?.CloneTree(this);
@@ -31,15 +38,57 @@ namespace Domains.View.Widgets
 
         public void Bind(IReadOnlySkillSlotViewModel viewModel)
         {
+            if (_adventureSkillSlot.HasValue)
+            {
+                SkillGameplayAbility previousSkillAbility = _adventureSkillSlot.Value.SkillAbility;
+                if (previousSkillAbility != null)
+                    previousSkillAbility.ActivationStateChanged -= OnActivationStateChanged;
+            }
+
+            _adventureSkillSlot = null;
+
             _pendingViewModel = viewModel;
             _hasPendingViewModel = true;
             ApplyBinding();
+
+            if (viewModel is not AdventureSkillSlotViewModel adventureSkillSlot)
+            {
+                SetAvailable(true);
+                return;
+            }
+
+            _adventureSkillSlot = adventureSkillSlot;
+            SetAvailable(false);
+
+            if (adventureSkillSlot.SkillAbility != null)
+                adventureSkillSlot.SkillAbility.ActivationStateChanged += OnActivationStateChanged;
+        }
+
+        public void Unbind()
+        {
+            if (_adventureSkillSlot.HasValue)
+            {
+                SkillGameplayAbility skillAbility = _adventureSkillSlot.Value.SkillAbility;
+                if (skillAbility != null)
+                    skillAbility.ActivationStateChanged -= OnActivationStateChanged;
+            }
+
+            _adventureSkillSlot = null;
+            _pendingViewModel = null;
+            _hasPendingViewModel = false;
+            userData = null;
+            SetAvailable(true);
         }
 
         private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
             _iconElement = this.Q<VisualElement>("skill-slot-icon");
             _fallbackNameLabel = this.Q<Label>("skill-slot-fallback-name");
+        }
+
+        private void OnDetachedFromPanel(DetachFromPanelEvent evt)
+        {
+            Unbind();
         }
 
         private void ApplyBinding()
@@ -71,6 +120,21 @@ namespace Domains.View.Widgets
                 AddToClassList("skill-slot--has-label");
                 _fallbackNameLabel.text = _pendingViewModel?.Name?.GetLocalizedString() ?? string.Empty;
             }
+        }
+
+        private void OnActivationStateChanged(bool canActivate)
+        {
+            SetAvailable(canActivate);
+        }
+
+        private void SetAvailable(bool canActivate)
+        {
+            if (_isAvailable == canActivate)
+                return;
+
+            _isAvailable = canActivate;
+            SetEnabled(canActivate);
+            AvailableChanged?.Invoke(this, canActivate);
         }
 
         private static void EnsureTemplate()

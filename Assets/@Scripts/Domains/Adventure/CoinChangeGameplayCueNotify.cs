@@ -31,13 +31,13 @@ namespace Domains.Adventure
             {
                 GameplayEffectModifiedAttributeData modifiedAttribute = modifiedAttributes[i];
 
-                if (modifiedAttribute.Attribute.Equals(CombatAttributeSet.CoinHeadsAttribute))
+                if (modifiedAttribute.Attribute.Equals(CostAttributeSet.CoinHeadsAttribute))
                 {
                     entries.Add(new CoinChangeCueEntry(
                         ECoinFace.Heads,
                         Mathf.RoundToInt(modifiedAttribute.TotalMagnitude)));
                 }
-                else if (modifiedAttribute.Attribute.Equals(CombatAttributeSet.CoinTailsAttribute))
+                else if (modifiedAttribute.Attribute.Equals(CostAttributeSet.CoinTailsAttribute))
                 {
                     entries.Add(new CoinChangeCueEntry(
                         ECoinFace.Tails,

@@ -6,8 +6,7 @@ using UnityEngine;
 
 namespace Game.Data
 {
-    public abstract class CardModel<TKey> : AbstractModel<TKey>, ICardModel
-        where TKey : Enum
+    public abstract class CardModelBase : AbstractModel
     {
         [Header("Visual")]
         [SerializeField]
@@ -17,6 +16,7 @@ namespace Game.Data
         private CardFaceModel _back;
 
         [Header("Gameplay")]
+        // Default abilities granted when a card is created. Combat-only abilities are granted by CombatCardAbilityTable.
         [SerializeField]
         private AbilitySetModel _abilitySet;
 
@@ -34,5 +34,20 @@ namespace Game.Data
         public virtual AbilitySetModel AbilitySet => _abilitySet;
         public virtual CardFaceModel Front => _front;
         public virtual CardFaceModel Back => _back;
+    }
+
+    public abstract class CardModel<TKey> : CardModelBase, IKeyAssignable<TKey>
+        where TKey : Enum
+    {
+        [NonSerialized]
+        private TKey _id;
+
+        public TKey Id => _id;
+        public override ModelKey ModelKey => new(typeof(TKey), Convert.ToInt32(_id));
+
+        public void SetId(TKey id)
+        {
+            _id = id;
+        }
     }
 }

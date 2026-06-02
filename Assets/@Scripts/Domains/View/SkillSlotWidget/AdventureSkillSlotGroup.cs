@@ -43,7 +43,10 @@ namespace Domains.View.Widgets
                 slot.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
 
                 if (!visible)
+                {
+                    slot.Unbind();
                     continue;
+                }
 
                 slot.Bind(skillSlots[i]);
             }
@@ -80,6 +83,31 @@ namespace Domains.View.Widgets
             return _slots[selectedIndex];
         }
 
+        private void OnSlotPointerDown(PointerDownEvent evt)
+        {
+            if (evt.button != (int)MouseButton.LeftMouse)
+                return;
+
+            if (evt.currentTarget is not SkillSlotWidget selectedButton)
+                return;
+
+            int selectedIndex = _slots.IndexOf(selectedButton);
+            if (selectedIndex < 0)
+                return;
+
+            if (!selectedButton.enabledInHierarchy)
+            {
+                evt.StopImmediatePropagation();
+                return;
+            }
+
+            int currentIndex = FindSelectedIndex(value);
+            int nextIndex = currentIndex == selectedIndex && allowEmptySelection ? -1 : selectedIndex;
+            value = CreateSelectionState(nextIndex);
+
+            evt.StopImmediatePropagation();
+        }
+
         private static int FindSelectedIndex(ToggleButtonGroupState state)
         {
             for (int i = 0; i < state.length; i++)
@@ -91,15 +119,39 @@ namespace Domains.View.Widgets
             return -1;
         }
 
+        private ToggleButtonGroupState CreateSelectionState(int selectedIndex)
+        {
+            ulong mask = selectedIndex < 0 ? 0ul : 1ul << selectedIndex;
+            return new ToggleButtonGroupState(mask, _slots.Count);
+        }
+
         private void EnsureSlotCount(int count)
         {
             while (_slots.Count < count)
             {
                 SkillSlotWidget slot = new();
                 slot.AddToClassList("skill-slot-group__slot");
+                slot.RegisterCallback<PointerDownEvent>(OnSlotPointerDown, TrickleDown.TrickleDown);
+                slot.AvailableChanged += OnSlotAvailableChanged;
                 _slots.Add(slot);
                 Add(slot);
             }
+        }
+
+        private void OnSlotAvailableChanged(SkillSlotWidget slot, bool isAvailable)
+        {
+            if (isAvailable)
+                return;
+
+            int slotIndex = _slots.IndexOf(slot);
+            if (slotIndex < 0)
+                return;
+
+            int selectedIndex = FindSelectedIndex(value);
+            if (selectedIndex != slotIndex)
+                return;
+
+            value = CreateSelectionState(-1);
         }
 
         private void SetHidden()

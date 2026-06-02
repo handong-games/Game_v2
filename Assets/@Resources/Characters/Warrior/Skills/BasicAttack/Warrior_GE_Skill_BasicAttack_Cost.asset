@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Warrior_GE_Skill_BasicAttack_Cost
   m_EditorClassIdentifier: com.gameplay.gas::Gameplay.GAS.GameplayEffect
   _modifiers:
-  - _attributeSetTypeName: Game.AbilitySystem.Attributes.CombatAttributeSet, Assembly-CSharp,
+  - _attributeSetTypeName: Game.AbilitySystem.Attributes.CostAttributeSet, Assembly-CSharp,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     _attributeFieldName: CoinHeads
     _operation: 0

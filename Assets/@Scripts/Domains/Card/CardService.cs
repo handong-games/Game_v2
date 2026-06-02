@@ -13,7 +13,7 @@ namespace Domains.Card
         private readonly Dictionary<uint, Card> _cards = new();
         private uint _nextCardId = 1;
 
-        public Card Create(ICardModel model)
+        public Card Create(CardModelBase model)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
@@ -27,7 +27,7 @@ namespace Domains.Card
             return card;
         }
 
-        public void Replace(uint cardId, ICardModel model, ECardFace face)
+        public void Replace(uint cardId, CardModelBase model, ECardFace face)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
@@ -101,7 +101,7 @@ namespace Domains.Card
             }
         }
 
-        private static void ApplyOwnedTags(Card card, ICardModel model)
+        private static void ApplyOwnedTags(Card card, CardModelBase model)
         {
             IReadOnlyList<GameplayTag> ownedTags = model.OwnedTags;
             for (int i = 0; i < ownedTags.Count; i++)
@@ -112,7 +112,7 @@ namespace Domains.Card
             }
         }
 
-        private static void RemoveOwnedTags(Card card, ICardModel model)
+        private static void RemoveOwnedTags(Card card, CardModelBase model)
         {
             IReadOnlyList<GameplayTag> ownedTags = model.OwnedTags;
             for (int i = 0; i < ownedTags.Count; i++)

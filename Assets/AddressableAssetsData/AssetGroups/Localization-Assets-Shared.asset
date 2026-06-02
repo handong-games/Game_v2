@@ -15,6 +15,12 @@ MonoBehaviour:
   m_GroupName: Localization-Assets-Shared
   m_GUID: 02025ffae5732354d8d8b94f53c4bd7b
   m_SerializeEntries:
+  - m_GUID: 48a8f9d3e32f468f920cc04601de90ea
+    m_Address: Assets/@Resources/Localization/AdventureView/AdventureView Shared
+      Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1a0454840a4eac045bd7630833dd0c7c
     m_Address: Assets/@Resources/Localization/SkillNames/SkillNames Shared Data.asset
     m_ReadOnly: 1

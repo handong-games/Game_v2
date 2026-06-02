@@ -16,6 +16,7 @@ namespace Domains.Event
         public static Action<IReadOnlyList<AdventureCardViewModel>> BoardChanged;
         public static Action CardDealCompleted;
         public static Action TurnBannerRequested;
+        public static Action EnemyTurnBannerRequested;
         public static Action StageCompleted;
     }
 }

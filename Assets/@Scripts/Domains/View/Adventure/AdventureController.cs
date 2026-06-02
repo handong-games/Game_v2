@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Domains.Card;
+using Domains.Combat;
 using Domains.Event;
 using Domains.Player;
 using Domains.Scene;
@@ -22,6 +23,7 @@ namespace Domains.Adventure
         [Inject] private CardDeckService _cardDeckService;
         [Inject] private CardService _cardService;
         [Inject] private CardBoardService _cardBoardService;
+        [Inject] private CombatService _combatService;
 
         public void StartAdventure()
         {
@@ -54,6 +56,13 @@ namespace Domains.Adventure
             return new AdventureInitialViewModel(GetSkillSlotViewModels());
         }
 
+        public CombatTurnViewModel GetCombatTurnViewModel()
+        {
+            return new CombatTurnViewModel(
+                _combatService.CurrentSide,
+                _combatService.RoundNumber);
+        }
+
         public void OnIntroAnimationCompleted()
         {
             InitStage();
@@ -64,7 +73,7 @@ namespace Domains.Adventure
             if (!_cardService.TryGet(cardId, out Card card))
                 return;
 
-            if (!_cardDeckService.TryResolveChoice(card.Model, out ICardModel resolvedModel))
+            if (!_cardDeckService.TryResolveChoice(card.Model, out CardModelBase resolvedModel))
                 return;
 
             _cardService.Replace(cardId, resolvedModel, CardViewModelFactory.GetDefaultFace(resolvedModel));
@@ -75,6 +84,12 @@ namespace Domains.Adventure
 
         public void OnEndTurnClicked()
         {
+            _combatService.NextTurn();
+        }
+
+        public void OnEnemyTurnCompleted()
+        {
+            _combatService.NextTurn();
         }
 
         private void RegisterEvents()
@@ -118,7 +133,7 @@ namespace Domains.Adventure
                 ? currentStageDto.DrawCount - 1
                 : currentStageDto.DrawCount;
 
-            IReadOnlyList<ICardModel> models = _cardDeckService.DrawCards(drawCount);
+            IReadOnlyList<CardModelBase> models = _cardDeckService.DrawCards(drawCount);
             for (int i = 0; i < models.Count; i++)
             {
                 cards.Add(_cardService.Create(models[i]));
@@ -130,6 +145,7 @@ namespace Domains.Adventure
                 _cardBoardService.PlaceCard(GetZone(cards[i].Model), cards[i].CardId);
             }
 
+            ReadyCombat(cards);
             AdventureEvents.CardsDrawn?.Invoke(CreateBoardCards());
         }
 
@@ -139,7 +155,7 @@ namespace Domains.Adventure
 
             List<Card> cards = new();
 
-            IReadOnlyList<ICardModel> models = _cardDeckService.DrawCards(currentStageDto.DrawCount);
+            IReadOnlyList<CardModelBase> models = _cardDeckService.DrawCards(currentStageDto.DrawCount);
             for (int i = 0; i < models.Count; i++)
             {
                 cards.Add(_cardService.Create(models[i]));
@@ -183,11 +199,30 @@ namespace Domains.Adventure
             return cards;
         }
 
-        private static ECardZone GetZone(ICardModel model)
+        private static ECardZone GetZone(CardModelBase model)
         {
             return model is CharacterModel
                 ? ECardZone.Left
                 : ECardZone.Right;
+        }
+
+        private void ReadyCombat(IReadOnlyList<Card> cards)
+        {
+            List<CombatCard> combatCards = new(cards.Count);
+            for (int i = 0; i < cards.Count; i++)
+            {
+                Card card = cards[i];
+                combatCards.Add(new CombatCard(card, GetCombatSide(card.Model)));
+            }
+
+            _combatService.ReadyCombat(combatCards);
+        }
+
+        private static ECombatSide GetCombatSide(CardModelBase model)
+        {
+            return model is CharacterModel
+                ? ECombatSide.Player
+                : ECombatSide.Enemy;
         }
     }
 }

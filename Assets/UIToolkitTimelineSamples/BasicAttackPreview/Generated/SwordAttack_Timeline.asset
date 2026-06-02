@@ -1,0 +1,168 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f97b83b52ee4e3f885444f1d33c2cae, type: 3}
+  m_Name: SwordAttack_Timeline
+  m_EditorClassIdentifier: com.uitoolkit.timeline::UIToolkit.Timeline.TimelineAsset
+  _authoring:
+    _previewTree: {fileID: 9197481963319205126, guid: 90854546acb24298bc5153bde7e1b156, type: 3}
+    _previewTargetName: attack-card
+    _tracks:
+    - _property: 0
+      _clips:
+      - _startMs: 0
+        _durationMs: 100
+        _from: {x: 0, y: 0}
+        _to: {x: -12, y: -2}
+        _easing: 2
+      - _startMs: 100
+        _durationMs: 38
+        _from: {x: -12, y: -2}
+        _to: {x: 46, y: -10}
+        _easing: 1
+      - _startMs: 138
+        _durationMs: 30
+        _from: {x: 46, y: -10}
+        _to: {x: 46, y: -10}
+        _easing: 0
+      - _startMs: 168
+        _durationMs: 132
+        _from: {x: 46, y: -10}
+        _to: {x: 0, y: 0}
+        _easing: 2
+    - _property: 1
+      _clips:
+      - _startMs: 0
+        _durationMs: 100
+        _from: {x: 1, y: 1}
+        _to: {x: 0.97, y: 1.03}
+        _easing: 2
+      - _startMs: 100
+        _durationMs: 38
+        _from: {x: 0.97, y: 1.03}
+        _to: {x: 1.08, y: 0.93}
+        _easing: 1
+      - _startMs: 138
+        _durationMs: 30
+        _from: {x: 1.08, y: 0.93}
+        _to: {x: 1.08, y: 0.93}
+        _easing: 0
+      - _startMs: 168
+        _durationMs: 132
+        _from: {x: 1.08, y: 0.93}
+        _to: {x: 1, y: 1}
+        _easing: 2
+    - _property: 2
+      _clips:
+      - _startMs: 0
+        _durationMs: 100
+        _from: {x: 0, y: 0}
+        _to: {x: -5, y: 0}
+        _easing: 2
+      - _startMs: 100
+        _durationMs: 38
+        _from: {x: -5, y: 0}
+        _to: {x: 10, y: 0}
+        _easing: 1
+      - _startMs: 138
+        _durationMs: 30
+        _from: {x: 10, y: 0}
+        _to: {x: 10, y: 0}
+        _easing: 0
+      - _startMs: 168
+        _durationMs: 132
+        _from: {x: 10, y: 0}
+        _to: {x: 0, y: 0}
+        _easing: 2
+    _notifies:
+    - _timeMs: 138
+      _definition: {fileID: 11400000, guid: 82fe22afda9f48618ba48487020ae7fb, type: 2}
+  _validationMessages: []
+  _runtime:
+    _valueClips:
+    - _property: 0
+      _startMs: 0
+      _durationMs: 100
+      _from: {x: 0, y: 0}
+      _to: {x: -12, y: -2}
+      _easing: 2
+    - _property: 0
+      _startMs: 100
+      _durationMs: 38
+      _from: {x: -12, y: -2}
+      _to: {x: 46, y: -10}
+      _easing: 1
+    - _property: 0
+      _startMs: 138
+      _durationMs: 30
+      _from: {x: 46, y: -10}
+      _to: {x: 46, y: -10}
+      _easing: 0
+    - _property: 0
+      _startMs: 168
+      _durationMs: 132
+      _from: {x: 46, y: -10}
+      _to: {x: 0, y: 0}
+      _easing: 2
+    - _property: 1
+      _startMs: 0
+      _durationMs: 100
+      _from: {x: 1, y: 1}
+      _to: {x: 0.97, y: 1.03}
+      _easing: 2
+    - _property: 1
+      _startMs: 100
+      _durationMs: 38
+      _from: {x: 0.97, y: 1.03}
+      _to: {x: 1.08, y: 0.93}
+      _easing: 1
+    - _property: 1
+      _startMs: 138
+      _durationMs: 30
+      _from: {x: 1.08, y: 0.93}
+      _to: {x: 1.08, y: 0.93}
+      _easing: 0
+    - _property: 1
+      _startMs: 168
+      _durationMs: 132
+      _from: {x: 1.08, y: 0.93}
+      _to: {x: 1, y: 1}
+      _easing: 2
+    - _property: 2
+      _startMs: 0
+      _durationMs: 100
+      _from: {x: 0, y: 0}
+      _to: {x: -5, y: 0}
+      _easing: 2
+    - _property: 2
+      _startMs: 100
+      _durationMs: 38
+      _from: {x: -5, y: 0}
+      _to: {x: 10, y: 0}
+      _easing: 1
+    - _property: 2
+      _startMs: 138
+      _durationMs: 30
+      _from: {x: 10, y: 0}
+      _to: {x: 10, y: 0}
+      _easing: 0
+    - _property: 2
+      _startMs: 168
+      _durationMs: 132
+      _from: {x: 10, y: 0}
+      _to: {x: 0, y: 0}
+      _easing: 2
+    _notifyTable:
+    - {fileID: 11400000, guid: 82fe22afda9f48618ba48487020ae7fb, type: 2}
+    _events:
+    - _timeMs: 138
+      _op: 0
+      _operand: 0

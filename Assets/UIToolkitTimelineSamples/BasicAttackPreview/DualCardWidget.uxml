@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="CardWidget.uss" />
+    <ui:VisualElement name="sample-root" class="sample-dual-root">
+        <ui:VisualElement name="attacker-card" class="sample-card">
+            <ui:Label name="attacker-title" class="sample-title" text="Attacker" />
+            <ui:Label name="attacker-body" class="sample-body" text="Attack Timeline" />
+        </ui:VisualElement>
+        <ui:VisualElement name="composition-gap" class="sample-composition-gap" />
+        <ui:VisualElement name="target-card" class="sample-card">
+            <ui:Label name="target-title" class="sample-title" text="Target" />
+            <ui:Label name="target-body" class="sample-body" text="Hit Timeline" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

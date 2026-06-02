@@ -27,6 +27,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - AdventureScene
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4f941e3c7d3044c6a32f2737e4ecf117
+    m_Address: CombatCardAbilityTable
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ModelTable
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8cc49f14f9a04d24b9c87ad4a30b7e1a
     m_Address: CharacterTable
     m_ReadOnly: 0

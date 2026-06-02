@@ -4,17 +4,10 @@ namespace Game.AbilitySystem.Attributes
 {
     public sealed class CombatAttributeSet : AttributeSet
     {
-        public static readonly GameplayAttribute CoinCountAttribute =
-            GameplayAttribute.Create<CombatAttributeSet>(nameof(CoinCount));
-        public static readonly GameplayAttribute CoinHeadsAttribute =
-            GameplayAttribute.Create<CombatAttributeSet>(nameof(CoinHeads));
-        public static readonly GameplayAttribute CoinTailsAttribute =
-            GameplayAttribute.Create<CombatAttributeSet>(nameof(CoinTails));
+        public static readonly GameplayAttribute PhysicalAttackAttribute =
+            GameplayAttribute.Create<CombatAttributeSet>(nameof(PhysicalAttack));
 
         [AttributeDefaultValue]
-        public GameplayAttributeData CoinCount = new(0f);
-
-        public GameplayAttributeData CoinHeads = new(0f);
-        public GameplayAttributeData CoinTails = new(0f);
+        public GameplayAttributeData PhysicalAttack = new(0f);
     }
 }

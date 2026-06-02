@@ -60,7 +60,7 @@ namespace Domains.CharacterSelect
                 float coinCount = 0f;
                 _characterService.TryGetInitialAttributeValue(
                     character.Id,
-                    CombatAttributeSet.CoinCountAttribute,
+                    CostAttributeSet.CoinCountAttribute,
                     out coinCount);
 
                 IReadOnlyList<SkillGameplayAbility> abilities =

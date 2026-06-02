@@ -1,0 +1,45 @@
+.sample-root {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(28, 30, 34);
+}
+
+.sample-dual-root {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(28, 30, 34);
+}
+
+.sample-card {
+    width: 180px;
+    height: 252px;
+    padding: 14px;
+    border-radius: 8px;
+    border-width: 2px;
+    border-color: rgb(118, 142, 161);
+    background-color: rgb(39, 47, 54);
+    align-items: center;
+    justify-content: center;
+    translate: 0 0;
+    scale: 1 1;
+    rotate: 0deg;
+}
+
+.sample-title {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(238, 242, 244);
+    margin-bottom: 12px;
+}
+
+.sample-body {
+    font-size: 14px;
+    color: rgb(182, 199, 208);
+}
+
+.sample-composition-gap {
+    width: 80px;
+}

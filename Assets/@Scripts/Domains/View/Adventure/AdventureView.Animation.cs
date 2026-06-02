@@ -1,4 +1,5 @@
 using UnityEngine;
+using Domains.Combat;
 using Game.Core.Managers.View;
 
 namespace Domains.Adventure
@@ -25,7 +26,7 @@ namespace Domains.Adventure
             PrepareCardDeckIntro();
 
             ViewTransitionTimeline timeline = new ViewTransitionTimeline()
-                .Run(0, () => _banner.PresentRegion("지역", "전투 지역"))
+                .Run(0, _banner.PresentConfiguredRegion)
                 .Play(1700, _resourceStatusBar, ResourceStatusBarEnterClass)
                 .Play(2050, _progressBar, ProgressBarEnterClass)
                 .Play(2300, _progressBarTrackFill, ProgressBarTrackFillEnterClass)
@@ -38,14 +39,20 @@ namespace Domains.Adventure
 
         private async Awaitable PlayTurnBannerAnimation()
         {
+            CombatTurnViewModel turn = _controller.GetCombatTurnViewModel();
             ViewTransitionTimeline timeline = new ViewTransitionTimeline();
 
             timeline
-                .Run(0, () => _banner.PresentTurn("1 턴"))
+                .Run(0, () => _banner.PresentPlayerTurn(turn.TurnNumber))
                 .Run(20, _cardDealer.ShowHealthWidgetsAsync)
                 .Run(TurnBannerExitStartMs, _pouch.Show);
 
             await ViewTransitionManager.Instance.Play(timeline);
+        }
+
+        private Awaitable PlayEnemyTurnBannerAnimation()
+        {
+            return _banner.PresentEnemyTurn();
         }
 
         private void PrepareResourceStatusBarIntro()

@@ -12,7 +12,7 @@ namespace Domains.Adventure
     [Dependency]
     public sealed class CardDeckService : IDisposable
     {
-        private readonly List<ICardModel> _deck = new();
+        private readonly List<CardModelBase> _deck = new();
         private readonly List<MonsterModel> _remainingMonsterPool = new();
         private readonly List<EventModel> _remainingEventPool = new();
 
@@ -35,9 +35,9 @@ namespace Domains.Adventure
             BuildDeck();
         }
 
-        public IReadOnlyList<ICardModel> DrawCards(uint count)
+        public IReadOnlyList<CardModelBase> DrawCards(uint count)
         {
-            List<ICardModel> models = new();
+            List<CardModelBase> models = new();
 
             int drawCount = (int)Math.Min(count, (uint)(_deck.Count - _drawIndex));
             for (int i = 0; i < drawCount; i++)
@@ -49,7 +49,7 @@ namespace Domains.Adventure
             return models;
         }
 
-        public bool TryResolveChoice(ICardModel model, out ICardModel resolvedModel)
+        public bool TryResolveChoice(CardModelBase model, out CardModelBase resolvedModel)
         {
             resolvedModel = null;
             if (!model.TryGetChoiceType(out EChoiceCardType choiceType))
@@ -93,7 +93,7 @@ namespace Domains.Adventure
         {
             _deck.Add(TakeFirstMonster());
 
-            List<ICardModel> choiceCards = BuildChoiceCards();
+            List<CardModelBase> choiceCards = BuildChoiceCards();
             Shuffle(choiceCards);
 
             for (int i = 0; i < choiceCards.Count; i++)
@@ -104,9 +104,9 @@ namespace Domains.Adventure
             _deck.Add(GetRequiredCard(CurrentCardDeck.BossChoiceCard, "boss choice card"));
         }
 
-        private List<ICardModel> BuildChoiceCards()
+        private List<CardModelBase> BuildChoiceCards()
         {
-            List<ICardModel> choiceCards = new();
+            List<CardModelBase> choiceCards = new();
 
             for (uint i = 0; i < CurrentCardDeck.MonsterCardCount; i++)
             {
@@ -126,7 +126,7 @@ namespace Domains.Adventure
             return choiceCards;
         }
 
-        private ICardModel GetRequiredCard(ICardModel card, string label)
+        private CardModelBase GetRequiredCard(CardModelBase card, string label)
         {
             if (card == null)
                 throw new InvalidOperationException($"{CurrentCardDeck.Name} requires {label}.");
@@ -144,7 +144,7 @@ namespace Domains.Adventure
             return monster;
         }
 
-        private ICardModel ResolveChoiceCard(EChoiceCardType choiceType)
+        private CardModelBase ResolveChoiceCard(EChoiceCardType choiceType)
         {
             switch (choiceType)
             {
@@ -202,7 +202,7 @@ namespace Domains.Adventure
             return stageEvent;
         }
 
-        private void Shuffle(List<ICardModel> cards)
+        private void Shuffle(List<CardModelBase> cards)
         {
             for (int i = cards.Count - 1; i > 0; i--)
             {

@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05819aca2ae045c790d08c5bc8f79af3, type: 3}
+  m_Name: PhysicalDamageExecution
+  m_EditorClassIdentifier: Assembly-CSharp::Game.AbilitySystem.Effects.PhysicalDamageExecutionCalculation
+  _coefficient: 1
+  _flatBonus: 0
+  _minimumDamage: 0

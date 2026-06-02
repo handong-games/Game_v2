@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using Game.Core.Managers.View;
 using UnityEngine;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 using UnityEngine.UIElements;
 
 namespace Domains.View.Widgets
@@ -21,9 +24,58 @@ namespace Domains.View.Widgets
         private Label _regionName;
         private Label _turnText;
 
+        [UxmlAttribute("turn-table")]
+        public string TurnTable { get; set; }
+
+        [UxmlAttribute("player-turn-key")]
+        public string PlayerTurnKey { get; set; }
+
+        [UxmlAttribute("enemy-turn-key")]
+        public string EnemyTurnKey { get; set; }
+
+        [UxmlAttribute("region-table")]
+        public string RegionTable { get; set; }
+
+        [UxmlAttribute("region-kicker-key")]
+        public string RegionKickerKey { get; set; }
+
+        [UxmlAttribute("region-name-key")]
+        public string RegionNameKey { get; set; }
+
         public Banner()
         {
             RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
+        }
+
+        public Awaitable PresentConfiguredRegion()
+        {
+            LocalizedString kicker = new(RegionTable, RegionKickerKey);
+            LocalizedString regionName = new(RegionTable, RegionNameKey);
+
+            return PresentRegion(
+                GetLocalizedText(kicker),
+                GetLocalizedText(regionName));
+        }
+
+        public Awaitable PresentPlayerTurn(int turnNumber)
+        {
+            LocalizedString turnText = new(TurnTable, PlayerTurnKey);
+            string format = GetLocalizedText(turnText);
+
+            string formattedText = LocalizationSettings.StringDatabase.SmartFormatter.Format(
+                format,
+                new Dictionary<string, object>
+                {
+                    ["turnNumber"] = turnNumber,
+                });
+
+            return PresentTurn(formattedText);
+        }
+
+        public Awaitable PresentEnemyTurn()
+        {
+            LocalizedString turnText = new(TurnTable, EnemyTurnKey);
+            return PresentTurn(GetLocalizedText(turnText));
         }
 
         public async Awaitable PresentRegion(string kicker, string regionName)
@@ -57,6 +109,13 @@ namespace Domains.View.Widgets
             _regionKicker = this.Q<Label>(RegionKickerName);
             _regionName = this.Q<Label>(RegionNameName);
             _turnText = this.Q<Label>(TurnTextName);
+        }
+
+        private static string GetLocalizedText(LocalizedString localizedString)
+        {
+            return localizedString == null || localizedString.IsEmpty
+                ? string.Empty
+                : localizedString.GetLocalizedString();
         }
 
         private void SetMode(string enabledClass, string disabledClass)

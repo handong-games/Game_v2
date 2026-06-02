@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using Domains.Card;
 using Domains.View.Widgets;
+using Gameplay.GAS;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
 
 namespace Domains.Adventure
 {
+    using CardActor = global::Domains.Card.Card;
+
     public sealed class CardDealer
     {
         private const int MaxCardCount = 3;
@@ -22,6 +25,7 @@ namespace Domains.Adventure
         private readonly Dictionary<VisualElement, uint> _cardIdsByElement = new();
         private readonly Dictionary<uint, VisualElement> _cardElementsById = new();
         private readonly Dictionary<uint, CombatCardWidget> _cardWidgetsById = new();
+        private readonly Dictionary<VisualElement, CardActor> _cardActorsByElement = new();
 
         private VisualElement _cardDeck;
         private VisualElement _cardBoard;
@@ -67,7 +71,7 @@ namespace Domains.Adventure
             card.Bind(cardViewModel.Card, cardViewModel.AbilitySystem);
             _cards.Add(cardAnchor);
             cards.Add(cardAnchor);
-            RegisterCard(cardAnchor, card, cardViewModel.CardId);
+            RegisterCard(cardAnchor, card, cardViewModel.CardId, cardViewModel.AbilitySystem);
 
             await Awaitable.NextFrameAsync();
 
@@ -147,7 +151,11 @@ namespace Domains.Adventure
 
         public void Clear()
         {
-            UnbindCards();
+            for (int i = _cards.Count - 1; i >= 0; i--)
+            {
+                UnregisterCard(_cards[i]);
+            }
+
             _leftArea?.Clear();
             _rightArea?.Clear();
             _cards.Clear();
@@ -156,6 +164,7 @@ namespace Domains.Adventure
             _cardIdsByElement.Clear();
             _cardElementsById.Clear();
             _cardWidgetsById.Clear();
+            _cardActorsByElement.Clear();
         }
 
         private VisualElement GetArea(ECardZone zone)
@@ -220,17 +229,33 @@ namespace Domains.Adventure
             onCompleted?.Invoke();
         }
 
-        private void RegisterCard(VisualElement card, CombatCardWidget cardWidget, uint cardId)
+        private void RegisterCard(
+            VisualElement card,
+            CombatCardWidget cardWidget,
+            uint cardId,
+            AbilitySystemComponent abilitySystem)
         {
             _cardIdsByElement.Add(card, cardId);
             _cardElementsById.Add(cardId, card);
             _cardWidgetsById.Add(cardId, cardWidget);
+
+            if (abilitySystem?.Owner is CardActor cardActor)
+            {
+                cardActor.Timeline.Bind(card);
+                _cardActorsByElement.Add(card, cardActor);
+            }
         }
 
         private void UnregisterCard(VisualElement card)
         {
             if (!_cardIdsByElement.Remove(card, out uint cardId))
                 return;
+
+            if (_cardActorsByElement.Remove(card, out CardActor cardActor) &&
+                cardActor.Timeline.IsBound)
+            {
+                cardActor.Timeline.Release(card);
+            }
 
             _cardElementsById.Remove(cardId);
             if (_cardWidgetsById.TryGetValue(cardId, out CombatCardWidget cardWidget))
@@ -356,7 +381,11 @@ namespace Domains.Adventure
                 cardWidget.Bind(cardViewModel.Card, cardViewModel.AbilitySystem);
                 _cards.Add(cardAnchor);
                 cardElements.Add(cardAnchor);
-                RegisterCard(cardAnchor, cardWidget, cardViewModel.CardId);
+                RegisterCard(
+                    cardAnchor,
+                    cardWidget,
+                    cardViewModel.CardId,
+                    cardViewModel.AbilitySystem);
                 cardAnchor.pickingMode = PickingMode.Position;
                 zoneIndex++;
             }

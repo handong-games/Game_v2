@@ -5,7 +5,7 @@ namespace Game.Data
 {
     public static class CardModelTagExtensions
     {
-        public static bool HasOwnedTag(this ICardModel model, GameplayTag tag)
+        public static bool HasOwnedTag(this CardModelBase model, GameplayTag tag)
         {
             if (model == null || !tag.IsValid)
                 return false;
@@ -19,7 +19,7 @@ namespace Game.Data
             return false;
         }
 
-        public static bool HasOwnedTagExact(this ICardModel model, GameplayTag tag)
+        public static bool HasOwnedTagExact(this CardModelBase model, GameplayTag tag)
         {
             if (model == null || !tag.IsValid)
                 return false;
@@ -33,7 +33,7 @@ namespace Game.Data
             return false;
         }
 
-        public static bool TryGetChoiceType(this ICardModel model, out EChoiceCardType choiceType)
+        public static bool TryGetChoiceType(this CardModelBase model, out EChoiceCardType choiceType)
         {
             if (model.HasOwnedTagExact(CardGameplayTags.ChoiceMonster))
             {

@@ -19,9 +19,11 @@
                     <ui:Label name="btn-new-game-label" text="New Game" picking-mode="Ignore" class="title-screen__menu-label">
                         <Bindings>
                             <l:LocalizedString property="text" table="TitleView" entry="menu_new_game"/>
-                            <l:LocalizedFont property="style.unityFontDefinition" table="FontAssets" entry="UIToolkitFont"/>
                         </Bindings>
                     </ui:Label>
+                    <Bindings>
+                        <l:LocalizedString property="text" table="TitleView" entry="menu_new_game"/>
+                    </Bindings>
                 </ui:Button>
                 <ui:Button name="btn-settings" class="title-screen__menu-button">
                     <ui:Label name="btn-settings-label" text="Settings" picking-mode="Ignore" class="title-screen__menu-label">

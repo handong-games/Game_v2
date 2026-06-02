@@ -21,7 +21,7 @@ namespace Game.AbilitySystem.Abilities
             GameplayAbilityActivationInfo activationInfo,
             GameplayEventData triggerEventData)
         {
-            CombatAttributeSet combatSet = actorInfo.AbilitySystem.GetSet<CombatAttributeSet>();
+            CostAttributeSet combatSet = actorInfo.AbilitySystem.GetSet<CostAttributeSet>();
             if (combatSet == null)
                 return;
 
@@ -41,8 +41,8 @@ namespace Game.AbilitySystem.Abilities
                     tails++;
             }
 
-            SetAttributeValue(combatSet.CoinHeads, heads);
-            SetAttributeValue(combatSet.CoinTails, tails);
+            SetCurrentAttributeValue(combatSet.CoinHeads, heads);
+            SetCurrentAttributeValue(combatSet.CoinTails, tails);
 
             GameplayEffectContext context = new(
                 actorInfo.AbilitySystem,
@@ -63,9 +63,8 @@ namespace Game.AbilitySystem.Abilities
             return Random.value < 0.5f;
         }
 
-        private static void SetAttributeValue(GameplayAttributeData data, float value)
+        private static void SetCurrentAttributeValue(GameplayAttributeData data, float value)
         {
-            data.SetBaseValue(value);
             data.SetCurrentValue(value);
         }
     }

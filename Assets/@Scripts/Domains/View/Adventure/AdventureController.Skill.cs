@@ -39,7 +39,8 @@ namespace Domains.Adventure
                     skillAbility.Name,
                     skillAbility.Icon,
                     handle,
-                    skillAbility.TargetType));
+                    skillAbility.TargetType,
+                    skillAbility));
             }
 
             return viewModels;

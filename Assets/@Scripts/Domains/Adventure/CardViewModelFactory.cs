@@ -12,7 +12,7 @@ namespace Domains.Adventure
             return Create(card.Model, card.Face);
         }
 
-        public static CardViewModel Create(ICardModel model, ECardFace face)
+        public static CardViewModel Create(CardModelBase model, ECardFace face)
         {
             return new CardViewModel(
                 face,
@@ -20,7 +20,7 @@ namespace Domains.Adventure
                 CardFaceViewModelFactory.Create(model.Back));
         }
 
-        public static ECardFace GetDefaultFace(ICardModel model)
+        public static ECardFace GetDefaultFace(CardModelBase model)
         {
             if (model.HasOwnedTagExact(CardGameplayTags.KindChoice))
                 return ECardFace.Back;

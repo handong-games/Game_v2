@@ -33,6 +33,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Locale-ja-JP
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: be50e7956399498d9cb034e0c1800771
+    m_Address: AdventureView_ja-JP
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-ja-JP
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 499bc6ddc3f6a2d44889bd50c0b54c0f
     m_Address: TitleView_ja-JP
     m_ReadOnly: 1

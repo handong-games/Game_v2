@@ -21,6 +21,7 @@ namespace Game.Core.Managers.DB
         public CardTable Card { get; private set; }
         public CardDeckTable CardDeck { get; private set; }
         public MonsterTable Monster { get; private set; }
+        public CombatCardAbilityTable CombatCardAbility { get; private set; }
 
         protected override void OnInit()
         {
@@ -33,6 +34,7 @@ namespace Game.Core.Managers.DB
             Card = assets.OfType<CardTable>().First();
             CardDeck = assets.OfType<CardDeckTable>().First();
             Monster = assets.OfType<MonsterTable>().First();
+            CombatCardAbility = assets.OfType<CombatCardAbilityTable>().First();
         }
 
         protected override void OnDispose()
@@ -43,6 +45,7 @@ namespace Game.Core.Managers.DB
             Card = null;
             CardDeck = null;
             Monster = null;
+            CombatCardAbility = null;
 
             if (_tableHandle.IsValid())
             {

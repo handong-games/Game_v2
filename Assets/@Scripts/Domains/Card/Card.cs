@@ -1,11 +1,12 @@
 using Game.Data;
 using Gameplay.GAS;
+using UIToolkit.Timeline;
 
 namespace Domains.Card
 {
     public sealed class Card : GameplayActor
     {
-        public Card(uint cardId, ICardModel model, ECardFace face)
+        public Card(uint cardId, CardModelBase model, ECardFace face)
         {
             CardId = cardId;
             Model = model;
@@ -13,10 +14,11 @@ namespace Domains.Card
         }
 
         public uint CardId { get; }
-        public ICardModel Model { get; private set; }
+        public CardModelBase Model { get; private set; }
         public ECardFace Face { get; private set; }
+        public UIToolkitTimelineComponent Timeline { get; } = new();
 
-        internal void SetModel(ICardModel model)
+        internal void SetModel(CardModelBase model)
         {
             Model = model;
         }

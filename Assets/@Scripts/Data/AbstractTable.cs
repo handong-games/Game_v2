@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Game.Data
 {
     public abstract class AbstractTable<TModel, TKey> : ScriptableObject
-        where TModel : AbstractModel<TKey>
+        where TModel : AbstractModel, IKeyAssignable<TKey>
         where TKey : Enum
     {
         [SerializeField]

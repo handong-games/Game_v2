@@ -11,17 +11,20 @@ namespace Domains.View.Widgets
             LocalizedString name,
             Sprite icon,
             GameplayAbilitySpecHandle handle,
-            ESkillTargetType targetType)
+            ESkillTargetType targetType,
+            SkillGameplayAbility skillAbility)
         {
             Name = name;
             Icon = icon;
             Handle = handle;
             TargetType = targetType;
+            SkillAbility = skillAbility;
         }
 
         public LocalizedString Name { get; }
         public Sprite Icon { get; }
         public GameplayAbilitySpecHandle Handle { get; }
         public ESkillTargetType TargetType { get; }
+        public SkillGameplayAbility SkillAbility { get; }
     }
 }

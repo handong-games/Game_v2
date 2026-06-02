@@ -13,7 +13,7 @@ namespace Game.AbilitySystem.Abilities.Tests
         public void HandleGameplayEvent_FlipsCoinCountAndWritesHeadsAndTails()
         {
             GameplayActor actor = new();
-            CombatAttributeSet combatSet = new();
+            CostAttributeSet combatSet = new();
             SetAttributeValue(combatSet.CoinCount, 3f);
             actor.AbilitySystem.AddAttributeSet(combatSet);
 
@@ -37,7 +37,7 @@ namespace Game.AbilitySystem.Abilities.Tests
         public void HandleGameplayEvent_DoesNotPublishChanges_WhenAggregateResultIsUnchanged()
         {
             GameplayActor actor = new();
-            CombatAttributeSet combatSet = new();
+            CostAttributeSet combatSet = new();
             SetAttributeValue(combatSet.CoinCount, 3f);
             SetAttributeValue(combatSet.CoinHeads, 2f);
             SetAttributeValue(combatSet.CoinTails, 1f);

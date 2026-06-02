@@ -11,17 +11,19 @@ namespace Domains.Scene
 {
     public sealed class AdventureScene : BaseScene
     {
-        private const string MonsterNamesTable = "MonsterNames";
+        private static readonly TableReference[] LocalizationTables =
+        {
+            nameof(AdventureView),
+            "CharacterNames",
+            "MonsterNames",
+            "SkillNames",
+        };
 
         protected override void OnLoaded()
         {
             /* Localization */
             AsyncOperationHandle preloadOperation = LocalizationSettings.StringDatabase.PreloadTables(
-                new TableReference[]
-                {
-                    MonsterNamesTable,
-                }
-            );
+                LocalizationTables);
 
             preloadOperation.WaitForCompletion();
 
@@ -41,7 +43,10 @@ namespace Domains.Scene
         protected override void OnUnloaded()
         {
             /* Localization */
-            LocalizationSettings.StringDatabase.ReleaseTable(MonsterNamesTable);
+            for (int i = 0; i < LocalizationTables.Length; i++)
+            {
+                LocalizationSettings.StringDatabase.ReleaseTable(LocalizationTables[i]);
+            }
         }
     }
 }

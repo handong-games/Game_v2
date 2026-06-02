@@ -28,11 +28,31 @@ namespace Gameplay.GAS
 
         public GameplayAbilitySpecHandle GiveAbility(GameplayAbility ability, int level = 1)
         {
+            if (ability == null)
+                throw new ArgumentNullException(nameof(ability));
+
+            GameplayAbility runtimeAbility = UnityEngine.Object.Instantiate(ability);
+            runtimeAbility.name = ability.name;
+            runtimeAbility.InitializeRuntimeInstanceFrom(ability);
+
             GameplayAbilitySpecHandle handle = new(_nextAbilityHandle++);
-            GameplayAbilitySpec spec = new(handle, ability, level);
+            GameplayAbilitySpec spec = new(handle, runtimeAbility, level);
             _abilities.Add(handle, spec);
             RegisterAbilityTriggers(spec);
+            runtimeAbility.OnGiveAbility(ActorInfo, spec);
             return handle;
+        }
+
+        public bool ClearAbility(GameplayAbilitySpecHandle handle)
+        {
+            if (!_abilities.TryGetValue(handle, out GameplayAbilitySpec spec))
+                return false;
+
+            UnregisterAbilityTriggers(spec);
+            spec.Ability.OnRemoveAbility(ActorInfo, spec);
+            _abilities.Remove(handle);
+            DestroyAbilityInstance(spec.Ability);
+            return true;
         }
 
         public bool TryGetAbilitySpec(GameplayAbilitySpecHandle handle, out GameplayAbilitySpec spec)
@@ -132,8 +152,11 @@ namespace Gameplay.GAS
 
         public void AddAttributeSet(AttributeSet attributeSet)
         {
-            if (attributeSet != null)
-                _attributeSets.Add(attributeSet);
+            if (attributeSet == null)
+                return;
+
+            attributeSet.Initialize(this);
+            _attributeSets.Add(attributeSet);
         }
 
         public T GetSet<T>() where T : AttributeSet
@@ -429,6 +452,37 @@ namespace Gameplay.GAS
 
                 handles.Add(spec.Handle);
             }
+        }
+
+        private void UnregisterAbilityTriggers(GameplayAbilitySpec spec)
+        {
+            IReadOnlyList<GameplayAbilityTriggerData> triggers = spec.Ability.AbilityTriggers;
+            for (int i = 0; i < triggers.Count; i++)
+            {
+                GameplayAbilityTriggerData trigger = triggers[i];
+                if (trigger.TriggerSource != GameplayAbilityTriggerSource.GameplayEvent)
+                    continue;
+
+                if (!_gameplayEventTriggeredAbilities.TryGetValue(
+                        trigger.TriggerTag,
+                        out List<GameplayAbilitySpecHandle> handles))
+                    continue;
+
+                handles.Remove(spec.Handle);
+                if (handles.Count == 0)
+                    _gameplayEventTriggeredAbilities.Remove(trigger.TriggerTag);
+            }
+        }
+
+        private static void DestroyAbilityInstance(GameplayAbility ability)
+        {
+            if (ability == null)
+                return;
+
+            if (UnityEngine.Application.isPlaying)
+                UnityEngine.Object.Destroy(ability);
+            else
+                UnityEngine.Object.DestroyImmediate(ability);
         }
 
         private int TriggerAbilitiesFromGameplayEvent(GameplayEventData eventData)

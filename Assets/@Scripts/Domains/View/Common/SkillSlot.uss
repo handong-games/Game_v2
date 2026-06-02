@@ -65,3 +65,11 @@
     border-width: 1px;
     border-color: rgba(255, 255, 255, 0.22);
 }
+
+.skill-slot-widget:disabled {
+    opacity: 0.46;
+}
+
+.skill-slot-widget:disabled .skill-slot__frame {
+    -unity-background-image-tint-color: rgba(80, 76, 70, 0.72);
+}

@@ -39,6 +39,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Locale-en-US
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 586b084904434026a5f7a853776f8378
+    m_Address: AdventureView_en-US
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en-US
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e23e6132b8844fd889f4ad2be2668d41
     m_Address: MonsterNames_en-US
     m_ReadOnly: 1

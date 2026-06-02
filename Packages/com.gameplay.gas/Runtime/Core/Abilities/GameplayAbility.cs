@@ -7,6 +7,8 @@ namespace Gameplay.GAS
     {
         private readonly List<GameplayAbilityTask> _activeTasks = new();
         private readonly List<GameplayAbilityTriggerData> _abilityTriggers = new();
+        private GameplayAbilityActorInfo _currentActorInfo;
+        private GameplayAbilitySpec _currentSpec;
 
         [SerializeField]
         private GameplayEffect _costGameplayEffect;
@@ -30,6 +32,24 @@ namespace Gameplay.GAS
 
         public IReadOnlyList<GameplayAbilityTask> ActiveTasks => _activeTasks;
         public IReadOnlyList<GameplayAbilityTriggerData> AbilityTriggers => _abilityTriggers;
+        protected GameplayAbilityActorInfo CurrentActorInfo => _currentActorInfo;
+        protected GameplayAbilitySpec CurrentSpec => _currentSpec;
+
+        public virtual void OnGiveAbility(
+            GameplayAbilityActorInfo actorInfo,
+            GameplayAbilitySpec spec)
+        {
+            _currentActorInfo = actorInfo;
+            _currentSpec = spec;
+        }
+
+        public virtual void OnRemoveAbility(
+            GameplayAbilityActorInfo actorInfo,
+            GameplayAbilitySpec spec)
+        {
+            _currentActorInfo = null;
+            _currentSpec = null;
+        }
 
         public virtual bool CanActivateAbility(
             GameplayAbilitySpecHandle handle,
@@ -227,7 +247,30 @@ namespace Gameplay.GAS
                 eventTag));
         }
 
+        internal void InitializeRuntimeInstanceFrom(GameplayAbility source)
+        {
+            if (source == null)
+                return;
+
+            AbilityTags.Clear();
+            AbilityTags.AppendTags(source.AbilityTags);
+
+            ActivationOwnedTags.Clear();
+            ActivationOwnedTags.AppendTags(source.ActivationOwnedTags);
+
+            _abilityTriggers.Clear();
+            _abilityTriggers.AddRange(source._abilityTriggers);
+        }
+
         internal T NewTask<T>(
+            GameplayAbilitySpecHandle handle,
+            GameplayAbilityActorInfo actorInfo,
+            GameplayAbilityActivationInfo activationInfo) where T : GameplayAbilityTask, new()
+        {
+            return CreateTask<T>(handle, actorInfo, activationInfo);
+        }
+
+        public T CreateTask<T>(
             GameplayAbilitySpecHandle handle,
             GameplayAbilityActorInfo actorInfo,
             GameplayAbilityActivationInfo activationInfo) where T : GameplayAbilityTask, new()

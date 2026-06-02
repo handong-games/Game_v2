@@ -5,6 +5,17 @@ namespace Gameplay.GAS
 {
     public class AttributeSet
     {
+        public AbilitySystemComponent AbilitySystem { get; private set; }
+
+        internal void Initialize(AbilitySystemComponent abilitySystem)
+        {
+            if (AbilitySystem != null)
+                return;
+
+            AbilitySystem = abilitySystem;
+            OnInitialized();
+        }
+
         public void AddAttribute(GameplayAttribute attribute, float baseValue)
         {
             if (!TryGetAttributeData(attribute, out GameplayAttributeData data))
@@ -84,6 +95,10 @@ namespace Gameplay.GAS
         }
 
         public virtual void PostGameplayEffectExecute(GameplayEffectModCallbackData data)
+        {
+        }
+
+        protected virtual void OnInitialized()
         {
         }
     }
