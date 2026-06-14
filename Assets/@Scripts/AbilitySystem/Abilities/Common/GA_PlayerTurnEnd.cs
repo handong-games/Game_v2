@@ -26,7 +26,8 @@ namespace Game.AbilitySystem.Abilities
                 return;
             }
 
-            costSet.RestoreCoinsToBase();
+            costSet.CoinHeads.SetCurrentValue(0f);
+            costSet.CoinTails.SetCurrentValue(0f);
             EndAbility(handle, actorInfo, activationInfo, wasCancelled: false);
         }
     }

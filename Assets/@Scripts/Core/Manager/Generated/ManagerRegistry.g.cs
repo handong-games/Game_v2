@@ -38,6 +38,7 @@ namespace Game.System.Core.Manager
             new(typeof(global::Game.Core.Managers.Scene.SceneManagerEx), global::Game.Core.Managers.Scene.SceneManagerEx.Create, global::Game.Core.Managers.Scene.SceneManagerEx.Init, global::Game.Core.Managers.Scene.SceneManagerEx.PostInit, global::Game.Core.Managers.Scene.SceneManagerEx.Dispose),
             new(typeof(global::Game.Core.Managers.View.ViewTransitionManager), global::Game.Core.Managers.View.ViewTransitionManager.Create, global::Game.Core.Managers.View.ViewTransitionManager.Init, global::Game.Core.Managers.View.ViewTransitionManager.PostInit, global::Game.Core.Managers.View.ViewTransitionManager.Dispose),
             new(typeof(global::Game.Core.Managers.View.ViewManager), global::Game.Core.Managers.View.ViewManager.Create, global::Game.Core.Managers.View.ViewManager.Init, global::Game.Core.Managers.View.ViewManager.PostInit, global::Game.Core.Managers.View.ViewManager.Dispose),
+            new(typeof(global::Game.Messages.GameplayMessageManager), global::Game.Messages.GameplayMessageManager.Create, global::Game.Messages.GameplayMessageManager.Init, global::Game.Messages.GameplayMessageManager.PostInit, global::Game.Messages.GameplayMessageManager.Dispose),
         };
 
         public static void AllInit()

@@ -130,9 +130,11 @@ namespace UIToolkit.Timeline
             bool hasTranslate = false;
             bool hasScale = false;
             bool hasRotate = false;
+            bool hasOpacity = false;
             Vector2 translate = Vector2.zero;
             Vector2 scale = Vector2.one;
             float rotate = 0f;
+            float opacity = 1f;
 
             for (int i = 0; i < runtime.ValueClipCount; i++)
             {
@@ -142,7 +144,18 @@ namespace UIToolkit.Timeline
 
                 if (timeMs > clip.EndMs)
                 {
-                    SetValue(clip.Property, clip.To, ref hasTranslate, ref translate, ref hasScale, ref scale, ref hasRotate, ref rotate);
+                    SetValue(
+                        clip.Property,
+                        clip.To,
+                        ref hasTranslate,
+                        ref translate,
+                        ref hasScale,
+                        ref scale,
+                        ref hasRotate,
+                        ref rotate,
+                        ref hasOpacity,
+                        ref opacity);
+
                     continue;
                 }
 
@@ -150,7 +163,17 @@ namespace UIToolkit.Timeline
                     ? 1f
                     : Mathf.Clamp01((timeMs - clip.StartMs) / (float)clip.DurationMs);
                 Vector2 value = Vector2.LerpUnclamped(clip.From, clip.To, Ease(normalizedTime, clip.Easing));
-                SetValue(clip.Property, value, ref hasTranslate, ref translate, ref hasScale, ref scale, ref hasRotate, ref rotate);
+                SetValue(
+                    clip.Property,
+                    value,
+                    ref hasTranslate,
+                    ref translate,
+                    ref hasScale,
+                    ref scale,
+                    ref hasRotate,
+                    ref rotate,
+                    ref hasOpacity,
+                    ref opacity);
             }
 
             if (hasTranslate)
@@ -161,6 +184,9 @@ namespace UIToolkit.Timeline
 
             if (hasRotate)
                 target.style.rotate = new Rotate(Angle.Degrees(rotate));
+
+            if (hasOpacity)
+                target.style.opacity = Mathf.Clamp01(opacity);
         }
 
         public static void Clear(VisualElement target)
@@ -168,6 +194,7 @@ namespace UIToolkit.Timeline
             target.style.translate = new Translate(0f, 0f);
             target.style.scale = new Scale(Vector3.one);
             target.style.rotate = new Rotate(Angle.Degrees(0f));
+            target.style.opacity = 1f;
         }
 
         private static void SetValue(
@@ -178,7 +205,9 @@ namespace UIToolkit.Timeline
             ref bool hasScale,
             ref Vector2 scale,
             ref bool hasRotate,
-            ref float rotate)
+            ref float rotate,
+            ref bool hasOpacity,
+            ref float opacity)
         {
             switch (property)
             {
@@ -195,6 +224,11 @@ namespace UIToolkit.Timeline
                 case TimelineValueProperty.Rotate:
                     hasRotate = true;
                     rotate = value.x;
+                    break;
+
+                case TimelineValueProperty.Opacity:
+                    hasOpacity = true;
+                    opacity = value.x;
                     break;
             }
         }

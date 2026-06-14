@@ -1,0 +1,172 @@
+.death-preview-root {
+    width: 760px;
+    height: 520px;
+}
+
+.death-preview-backdrop {
+    flex-grow: 1;
+    background-color: rgb(18, 28, 34);
+    padding-top: 44px;
+    padding-bottom: 44px;
+    padding-left: 56px;
+    padding-right: 56px;
+}
+
+.death-preview-stage {
+    flex-grow: 1;
+    background-color: rgb(24, 39, 47);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgba(255, 255, 255, 0.06);
+    border-right-color: rgba(255, 255, 255, 0.06);
+    border-top-color: rgba(255, 255, 255, 0.06);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+    justify-content: center;
+    align-items: center;
+}
+
+.death-preview-lane {
+    width: 320px;
+    height: 390px;
+    justify-content: center;
+    align-items: center;
+}
+
+.death-preview-slot {
+    width: 256px;
+    height: 352px;
+    justify-content: center;
+    align-items: center;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgba(191, 220, 202, 0.12);
+    border-right-color: rgba(191, 220, 202, 0.12);
+    border-top-color: rgba(191, 220, 202, 0.12);
+    border-bottom-color: rgba(191, 220, 202, 0.12);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.death-card {
+    width: 228px;
+    height: 320px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.death-card-frame {
+    flex-grow: 1;
+    background-color: rgb(242, 236, 214);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgb(85, 76, 55);
+    border-right-color: rgb(85, 76, 55);
+    border-top-color: rgb(85, 76, 55);
+    border-bottom-color: rgb(85, 76, 55);
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.death-card-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.death-card-name {
+    color: rgb(40, 42, 39);
+    font-size: 20px;
+    unity-font-style: bold;
+}
+
+.death-card-rank {
+    color: rgb(96, 82, 52);
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+.death-card-portrait {
+    flex-grow: 1;
+    background-color: rgb(86, 131, 102);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgba(0, 0, 0, 0.18);
+    border-right-color: rgba(0, 0, 0, 0.18);
+    border-top-color: rgba(0, 0, 0, 0.18);
+    border-bottom-color: rgba(0, 0, 0, 0.18);
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.death-card-core {
+    width: 116px;
+    height: 116px;
+    background-color: rgb(171, 230, 146);
+    border-top-left-radius: 58px;
+    border-top-right-radius: 58px;
+    border-bottom-left-radius: 58px;
+    border-bottom-right-radius: 58px;
+    border-left-width: 4px;
+    border-right-width: 4px;
+    border-top-width: 4px;
+    border-bottom-width: 4px;
+    border-left-color: rgba(255, 255, 255, 0.16);
+    border-right-color: rgba(255, 255, 255, 0.16);
+    border-top-color: rgba(255, 255, 255, 0.16);
+    border-bottom-color: rgba(255, 255, 255, 0.16);
+}
+
+.death-card-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.death-card-stat {
+    color: rgb(54, 57, 49);
+    font-size: 12px;
+}
+
+.death-card-pips {
+    flex-direction: row;
+    gap: 6px;
+}
+
+.death-card-pip {
+    width: 10px;
+    height: 10px;
+    background-color: rgb(143, 184, 128);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}

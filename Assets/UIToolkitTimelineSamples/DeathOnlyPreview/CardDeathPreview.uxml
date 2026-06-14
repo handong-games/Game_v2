@@ -1,0 +1,32 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="CardDeathPreview.uss" />
+    <ui:VisualElement name="death-preview-root" class="death-preview-root">
+        <ui:VisualElement class="death-preview-backdrop">
+            <ui:VisualElement class="death-preview-stage">
+                <ui:VisualElement class="death-preview-lane">
+                    <ui:VisualElement class="death-preview-slot">
+                        <ui:VisualElement name="death-card" class="death-card">
+                            <ui:VisualElement class="death-card-frame">
+                                <ui:VisualElement class="death-card-header">
+                                    <ui:Label class="death-card-name" text="Test Slime" />
+                                    <ui:Label class="death-card-rank" text="NORMAL" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="death-card-portrait">
+                                    <ui:VisualElement class="death-card-core" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="death-card-footer">
+                                    <ui:Label class="death-card-stat" text="HP 12 / 12" />
+                                    <ui:VisualElement class="death-card-pips">
+                                        <ui:VisualElement class="death-card-pip" />
+                                        <ui:VisualElement class="death-card-pip" />
+                                        <ui:VisualElement class="death-card-pip" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

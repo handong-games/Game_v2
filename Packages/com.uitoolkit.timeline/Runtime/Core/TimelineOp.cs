@@ -9,7 +9,8 @@ namespace UIToolkit.Timeline
     {
         Translate = 0,
         Scale = 1,
-        Rotate = 2
+        Rotate = 2,
+        Opacity = 3
     }
 
     public enum TimelineEasing : byte

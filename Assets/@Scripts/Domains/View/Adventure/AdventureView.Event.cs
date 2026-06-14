@@ -1,3 +1,5 @@
+using System;
+using Domains.Combat;
 using Domains.Event;
 using Domains.Player;
 using UnityEngine;
@@ -13,6 +15,7 @@ namespace Domains.Adventure
             AdventureEvents.BoardChanged += OnBoardChanged;
             AdventureEvents.TurnBannerRequested += OnTurnBannerRequested;
             AdventureEvents.EnemyTurnBannerRequested += OnEnemyTurnBannerRequested;
+            AdventureEvents.CombatEnded += OnCombatEnded;
             _pouch.Clicked += OnPouchClicked;
             _endTurnWidget.Clicked += OnEndTurnClicked;
         }
@@ -24,6 +27,7 @@ namespace Domains.Adventure
             AdventureEvents.BoardChanged -= OnBoardChanged;
             AdventureEvents.TurnBannerRequested -= OnTurnBannerRequested;
             AdventureEvents.EnemyTurnBannerRequested -= OnEnemyTurnBannerRequested;
+            AdventureEvents.CombatEnded -= OnCombatEnded;
             _pouch.Clicked -= OnPouchClicked;
             _endTurnWidget.Clicked -= OnEndTurnClicked;
         }
@@ -42,6 +46,21 @@ namespace Domains.Adventure
         {
             _controller.OnEnemyTurnCompleted();
             await PlayTurnBannerAnimation();
+        }
+
+        private void OnCombatEnded(ECombatEndResult result)
+        {
+            switch (result)
+            {
+                case ECombatEndResult.Victory:
+                    break;
+
+                case ECombatEndResult.Defeat:
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(result), result, null);
+            }
         }
 
         private async void OnPouchClicked()

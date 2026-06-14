@@ -16,6 +16,6 @@ MonoBehaviour:
     Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   _values:
   - _attributeFieldName: MaxHealth
-    _value: 30
+    _value: 12
   - _attributeFieldName: Health
-    _value: 30
+    _value: 12

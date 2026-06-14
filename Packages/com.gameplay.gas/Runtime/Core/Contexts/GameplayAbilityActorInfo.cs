@@ -10,5 +10,16 @@ namespace Gameplay.GAS
 
         public GameplayActor Owner { get; }
         public AbilitySystemComponent AbilitySystem { get; }
+        public object Avatar { get; internal set; }
+
+        public T GetAvatar<T>() where T : class
+        {
+            return Avatar as T;
+        }
+
+        public void ClearAvatar()
+        {
+            Avatar = null;
+        }
     }
 }

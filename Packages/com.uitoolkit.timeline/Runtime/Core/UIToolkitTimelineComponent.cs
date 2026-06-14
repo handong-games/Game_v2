@@ -79,6 +79,18 @@ namespace UIToolkit.Timeline
             _player.Cancel(playback);
         }
 
+        public bool TrySetPointerInputEnabled(bool enabled)
+        {
+            if (_target == null)
+                return false;
+
+            _target.pickingMode = enabled
+                ? PickingMode.Position
+                : PickingMode.Ignore;
+
+            return true;
+        }
+
         public bool TryGetPlaybackState(
             TimelinePlayback playback,
             out TimelinePlaybackState state)

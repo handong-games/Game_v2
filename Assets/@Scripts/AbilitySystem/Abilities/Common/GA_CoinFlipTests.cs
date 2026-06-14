@@ -65,6 +65,32 @@ namespace Game.AbilitySystem.Abilities.Tests
             Assert.That(tailsChangedCount, Is.EqualTo(0));
         }
 
+        [Test]
+        public void CommitAbilityCost_SpendsCoinValueThroughGameplayEffect()
+        {
+            GameplayActor actor = new();
+            CostAttributeSet combatSet = new();
+            actor.AbilitySystem.AddAttributeSet(combatSet);
+            SetAttributeValue(combatSet.CoinHeads, 3f);
+
+            GameplayEffect costEffect = ScriptableObject.CreateInstance<GameplayEffect>();
+            costEffect.AddModifier(new GameplayModifier(
+                CostAttributeSet.CoinHeadsAttribute,
+                GameplayModifierOperation.Add,
+                -1f));
+
+            CostSkillAbility ability =
+                ScriptableObject.CreateInstance<CostSkillAbility>();
+            ability.SetCost(costEffect);
+
+            GameplayAbilitySpecHandle handle = actor.AbilitySystem.GiveAbility(ability);
+            bool activated = actor.AbilitySystem.TryActivateAbility(handle);
+
+            Assert.That(activated, Is.True);
+            Assert.That(combatSet.CoinHeads.BaseValue, Is.EqualTo(2f));
+            Assert.That(combatSet.CoinHeads.CurrentValue, Is.EqualTo(2f));
+        }
+
         private static void SetAttributeValue(GameplayAttributeData data, float value)
         {
             data.SetBaseValue(value);
@@ -87,6 +113,30 @@ namespace Game.AbilitySystem.Abilities.Tests
             protected override bool FlipCoin()
             {
                 return _results.Dequeue();
+            }
+        }
+
+        private sealed class CostSkillAbility : SkillGameplayAbility
+        {
+            private GameplayEffect _costEffect;
+
+            public void SetCost(GameplayEffect costEffect)
+            {
+                _costEffect = costEffect;
+            }
+
+            public override GameplayEffect GetCostGameplayEffect()
+            {
+                return _costEffect;
+            }
+
+            public override void ActivateAbility(
+                GameplayAbilitySpecHandle handle,
+                GameplayAbilityActorInfo actorInfo,
+                GameplayAbilityActivationInfo activationInfo,
+                GameplayEventData triggerEventData)
+            {
+                CommitAbilityCost(handle, actorInfo, activationInfo);
             }
         }
     }

@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: Warrior_AbilitySet
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.AbilitySetModel
   _abilities:
+  - {fileID: 11400000, guid: 4cfffbb08dd34967b515d026e0bfefb9, type: 2}
   - {fileID: 11400000, guid: bb344a82bc9f0f44ba171bab13610fa8, type: 2}
   - {fileID: 11400000, guid: a446d3b1062e46bdadbd008063593279, type: 2}
   - {fileID: 11400000, guid: dce524ad5e7e4ceb9d7a48cb00e435b7, type: 2}
   - {fileID: 11400000, guid: 716823b8a56d40ec8982b0e1a460eb78, type: 2}
+  - {fileID: 11400000, guid: 59c2c95779074306b3d0d4c9a9be8af7, type: 2}

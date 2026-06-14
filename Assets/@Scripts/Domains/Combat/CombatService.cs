@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using Game.AbilitySystem;
+using Game.AbilitySystem.Abilities;
 using Game.AbilitySystem.Attributes;
 using Game.Core.Managers.DB;
 using Game.Core.Managers.Dependency;
 using Game.Data;
+using Game.Messages;
 using Gameplay.GAS;
 using Domains.Event;
+using UnityEngine;
 
 namespace Domains.Combat
 {
@@ -15,6 +18,9 @@ namespace Domains.Combat
     {
         private readonly List<CombatCard>[] _cardsBySide =
             new List<CombatCard>[(int)ECombatSide.Count];
+        private readonly Dictionary<object, CombatCard> _combatCardByAvatar = new();
+        private readonly HashSet<object> _resolvedDeaths = new();
+        private IDisposable _combatDeathSubscription;
 
         public CombatService()
         {
@@ -26,6 +32,7 @@ namespace Domains.Combat
 
         private ECombatSide _currentSide;
         private bool _enemyTurnCompletionRequested;
+        private bool _combatEnded;
 
         public int RoundNumber { get; private set; }
         public ECombatSide CurrentSide => _currentSide;
@@ -37,7 +44,12 @@ namespace Domains.Combat
             if (combatCards == null)
                 throw new ArgumentNullException(nameof(combatCards));
 
+            EnsureDeathSubscription();
             ClearCards();
+            _combatCardByAvatar.Clear();
+            _resolvedDeaths.Clear();
+            _combatEnded = false;
+            _enemyTurnCompletionRequested = false;
             
             for (int i = 0; i < combatCards.Count; i++)
             {
@@ -45,7 +57,9 @@ namespace Domains.Combat
                 if (combatCard == null)
                     continue;
 
+                combatCard.AbilitySystem.SetAvatar(combatCard);
                 _cardsBySide[(int)combatCard.Side].Add(combatCard);
+                _combatCardByAvatar[combatCard] = combatCard;
             }
             
             int playerCount = _cardsBySide[(int)ECombatSide.Player].Count;
@@ -63,7 +77,13 @@ namespace Domains.Combat
 
         public void NextTurn()
         {
+            if (_combatEnded)
+                return;
+
             EndCurrentTurn();
+            if (_combatEnded)
+                return;
+
             _currentSide = GetNextSide();
 
             switch (_currentSide)
@@ -87,9 +107,14 @@ namespace Domains.Combat
 
         public void Dispose()
         {
+            _combatDeathSubscription?.Dispose();
+            _combatDeathSubscription = null;
+            _combatCardByAvatar.Clear();
+            _resolvedDeaths.Clear();
             ClearCards();
             _currentSide = ECombatSide.Enemy;
             RoundNumber = 0;
+            _combatEnded = false;
         }
 
         private ECombatSide GetNextSide()
@@ -101,11 +126,17 @@ namespace Domains.Combat
 
         private void StartPlayerTurn()
         {
+            if (_combatEnded)
+                return;
+
             RoundNumber++;
         }
 
         private void EndCurrentTurn()
         {
+            if (_combatEnded)
+                return;
+
             switch (_currentSide)
             {
                 case ECombatSide.Player:
@@ -137,14 +168,20 @@ namespace Domains.Combat
 
         private void StartEnemyTurn()
         {
+            if (_combatEnded)
+                return;
+
             IReadOnlyList<CombatCard> enemyCards = GetCards(ECombatSide.Enemy);
             AbilitySystemComponent playerAbilitySystem = PlayerCards[0].AbilitySystem;
             _enemyTurnCompletionRequested = false;
 
             for (int i = 0; i < enemyCards.Count; i++)
             {
+                if (_combatEnded)
+                    return;
+
                 CombatCard combatCard = enemyCards[i];
-                if (combatCard == null)
+                if (!IsAlive(combatCard))
                     continue;
 
                 GameplayEventData eventData = new(AbilityGameplayTags.EventTurnStarted)
@@ -160,6 +197,9 @@ namespace Domains.Combat
 
         private void OnEnemyTurnActionCompleted()
         {
+            if (_combatEnded)
+                return;
+
             if (_currentSide != ECombatSide.Enemy)
                 return;
 
@@ -234,10 +274,92 @@ namespace Domains.Combat
             }
         }
 
+        private void EnsureDeathSubscription()
+        {
+            _combatDeathSubscription ??=
+                GameplayMessageManager.Instance.Subscribe<GameplayDeathMessage>(
+                    GameplayMessageTags.CombatDeath,
+                    OnCombatDeathMessage);
+        }
+
+        private void OnCombatDeathMessage(GameplayDeathMessage message)
+        {
+            if (_combatEnded)
+                return;
+
+            if (message.Avatar == null)
+                return;
+
+            if (!_combatCardByAvatar.TryGetValue(message.Avatar, out CombatCard combatCard))
+                return;
+
+            if (!_resolvedDeaths.Add(message.Avatar))
+                return;
+
+            CancelPendingActionResolution();
+            ClearPendingExecutionQueue();
+
+            if (combatCard.Side == ECombatSide.Player)
+            {
+                CompleteCombat(ECombatEndResult.Defeat);
+                return;
+            }
+
+            if (CountAliveEnemies() == 0)
+            {
+                CompleteCombat(ECombatEndResult.Victory);
+            }
+        }
+
+        private void CompleteCombat(ECombatEndResult result)
+        {
+            if (_combatEnded)
+                return;
+
+            _combatEnded = true;
+            AdventureEvents.CombatEnded?.Invoke(result);
+        }
+
+        private bool IsAlive(CombatCard combatCard)
+        {
+            if (combatCard == null)
+                return false;
+
+            return !combatCard.AbilitySystem.OwnedTags.HasTagExact(StateGameplayTags.Dead);
+        }
+
+        private int CountAliveEnemies()
+        {
+            int aliveCount = 0;
+            IReadOnlyList<CombatCard> enemyCards = EnemyCards;
+
+            for (int i = 0; i < enemyCards.Count; i++)
+            {
+                if (IsAlive(enemyCards[i]))
+                    aliveCount++;
+            }
+
+            return aliveCount;
+        }
+
+        private void CancelPendingActionResolution()
+        {
+        }
+
+        private void ClearPendingExecutionQueue()
+        {
+        }
+
         private void ClearCards()
         {
             for (int i = 0; i < _cardsBySide.Length; i++)
             {
+                for (int j = 0; j < _cardsBySide[i].Count; j++)
+                {
+                    _cardsBySide[i][j]?.AbilitySystem.ClearAvatar();
+                    _cardsBySide[i][j]?.Intent.ClearIntent();
+                }
+
                 _cardsBySide[i].Clear();
             }
         }

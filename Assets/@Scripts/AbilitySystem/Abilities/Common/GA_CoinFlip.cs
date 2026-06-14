@@ -41,8 +41,8 @@ namespace Game.AbilitySystem.Abilities
                     tails++;
             }
 
-            SetCurrentAttributeValue(combatSet.CoinHeads, heads);
-            SetCurrentAttributeValue(combatSet.CoinTails, tails);
+            SetAttributeValue(combatSet.CoinHeads, heads);
+            SetAttributeValue(combatSet.CoinTails, tails);
 
             GameplayEffectContext context = new(
                 actorInfo.AbilitySystem,
@@ -63,8 +63,9 @@ namespace Game.AbilitySystem.Abilities
             return Random.value < 0.5f;
         }
 
-        private static void SetCurrentAttributeValue(GameplayAttributeData data, float value)
+        private static void SetAttributeValue(GameplayAttributeData data, float value)
         {
+            data.SetBaseValue(value);
             data.SetCurrentValue(value);
         }
     }

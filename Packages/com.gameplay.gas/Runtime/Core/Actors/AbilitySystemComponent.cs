@@ -26,6 +26,21 @@ namespace Gameplay.GAS
         public event Action<GameplayEventData> GameplayEventReceived;
         public event Action<GameplayCueEventData> GameplayCueReceived;
 
+        public void SetAvatar(object avatar)
+        {
+            ActorInfo.Avatar = avatar;
+        }
+
+        public void ClearAvatar()
+        {
+            ActorInfo.ClearAvatar();
+        }
+
+        public T GetAvatar<T>() where T : class
+        {
+            return ActorInfo.GetAvatar<T>();
+        }
+
         public GameplayAbilitySpecHandle GiveAbility(GameplayAbility ability, int level = 1)
         {
             if (ability == null)
@@ -89,6 +104,34 @@ namespace Gameplay.GAS
             }
         }
 
+        public void CancelAbilities(
+            GameplayTagContainer withTags = null,
+            GameplayTagContainer withoutTags = null,
+            GameplayAbility ignore = null)
+        {
+            foreach (KeyValuePair<GameplayAbilitySpecHandle, GameplayAbilitySpec> pair in _abilities)
+            {
+                GameplayAbility ability = pair.Value.Ability;
+                if (ability == null ||
+                    !ability.IsActive ||
+                    ReferenceEquals(ability, ignore))
+                {
+                    continue;
+                }
+
+                if (withTags != null && !ability.AbilityTags.HasAny(withTags))
+                    continue;
+
+                if (withoutTags != null && ability.AbilityTags.HasAny(withoutTags))
+                    continue;
+
+                ability.CancelAbility(
+                    pair.Key,
+                    ActorInfo,
+                    GameplayAbilityActivationInfo.Default);
+            }
+        }
+
         public bool TryActivateAbility(GameplayAbilitySpecHandle handle)
         {
             if (!_abilities.TryGetValue(handle, out GameplayAbilitySpec spec))
@@ -98,6 +141,7 @@ namespace Gameplay.GAS
             if (!spec.Ability.CanActivateAbility(handle, ActorInfo))
                 return false;
 
+            spec.Ability.BeginActivation(ActorInfo);
             spec.Ability.ActivateAbility(handle, ActorInfo, activationInfo, null);
             return true;
         }
@@ -235,6 +279,7 @@ namespace Gameplay.GAS
             if (!spec.Ability.CanActivateAbility(handle, ActorInfo))
                 return false;
 
+            spec.Ability.BeginActivation(ActorInfo);
             spec.Ability.ActivateAbility(handle, ActorInfo, activationInfo, eventData);
             return true;
         }

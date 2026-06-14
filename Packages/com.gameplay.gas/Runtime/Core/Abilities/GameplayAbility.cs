@@ -9,6 +9,8 @@ namespace Gameplay.GAS
         private readonly List<GameplayAbilityTriggerData> _abilityTriggers = new();
         private GameplayAbilityActorInfo _currentActorInfo;
         private GameplayAbilitySpec _currentSpec;
+        private bool _isActive;
+        private bool _canBeCanceled = true;
 
         [SerializeField]
         private GameplayEffect _costGameplayEffect;
@@ -32,6 +34,7 @@ namespace Gameplay.GAS
 
         public IReadOnlyList<GameplayAbilityTask> ActiveTasks => _activeTasks;
         public IReadOnlyList<GameplayAbilityTriggerData> AbilityTriggers => _abilityTriggers;
+        public bool IsActive => _isActive;
         protected GameplayAbilityActorInfo CurrentActorInfo => _currentActorInfo;
         protected GameplayAbilitySpec CurrentSpec => _currentSpec;
 
@@ -47,6 +50,11 @@ namespace Gameplay.GAS
             GameplayAbilityActorInfo actorInfo,
             GameplayAbilitySpec spec)
         {
+            if (_isActive)
+            {
+                EndAbility(spec.Handle, actorInfo, GameplayAbilityActivationInfo.Default, wasCancelled: true);
+            }
+
             _currentActorInfo = null;
             _currentSpec = null;
         }
@@ -63,6 +71,16 @@ namespace Gameplay.GAS
             GameplayEventData eventData)
         {
             return true;
+        }
+
+        public virtual bool CanBeCanceled()
+        {
+            return _canBeCanceled;
+        }
+
+        public virtual void SetCanBeCanceled(bool canBeCanceled)
+        {
+            _canBeCanceled = canBeCanceled;
         }
 
         public virtual bool CommitAbility(
@@ -108,12 +126,30 @@ namespace Gameplay.GAS
             GameplayAbilityActivationInfo activationInfo,
             GameplayEventData triggerEventData);
 
+        public virtual void CancelAbility(
+            GameplayAbilitySpecHandle handle,
+            GameplayAbilityActorInfo actorInfo,
+            GameplayAbilityActivationInfo activationInfo)
+        {
+            if (!CanBeCanceled())
+                return;
+
+            EndAbility(handle, actorInfo, activationInfo, wasCancelled: true);
+        }
+
         public virtual void EndAbility(
             GameplayAbilitySpecHandle handle,
             GameplayAbilityActorInfo actorInfo,
             GameplayAbilityActivationInfo activationInfo,
             bool wasCancelled)
         {
+            if (_isActive && actorInfo?.AbilitySystem != null)
+            {
+                actorInfo.AbilitySystem.RemoveGrantedTags(ActivationOwnedTags);
+            }
+
+            _isActive = false;
+            _canBeCanceled = true;
             EndActiveTasks();
         }
 
@@ -260,6 +296,21 @@ namespace Gameplay.GAS
 
             _abilityTriggers.Clear();
             _abilityTriggers.AddRange(source._abilityTriggers);
+        }
+
+        internal void BeginActivation(GameplayAbilityActorInfo actorInfo)
+        {
+            if (_isActive)
+                return;
+
+            _canBeCanceled = true;
+
+            if (actorInfo?.AbilitySystem != null)
+            {
+                actorInfo.AbilitySystem.ApplyGrantedTags(ActivationOwnedTags);
+            }
+
+            _isActive = true;
         }
 
         internal T NewTask<T>(

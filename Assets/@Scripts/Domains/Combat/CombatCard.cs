@@ -11,11 +11,13 @@ namespace Domains.Combat
         {
             Card = card ?? throw new ArgumentNullException(nameof(card));
             Side = side;
+            Intent = new IntentComponent();
         }
 
         public uint CardId => Card.CardId;
         public Card Card { get; }
         public ECombatSide Side { get; }
         public AbilitySystemComponent AbilitySystem => Card.AbilitySystem;
+        public IntentComponent Intent { get; }
     }
 }

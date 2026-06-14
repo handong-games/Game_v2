@@ -1,0 +1,109 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f97b83b52ee4e3f885444f1d33c2cae, type: 3}
+  m_Name: Monster_TestSlime_Timeline_Death
+  m_EditorClassIdentifier: com.uitoolkit.timeline::UIToolkit.Timeline.TimelineAsset
+  _authoring:
+    _previewTree: {fileID: 9197481963319205126, guid: b2eb0017968140cf8c0705ff942205dc, type: 3}
+    _previewTargetName: attack-card
+    _tracks:
+    - _property: 0
+      _clips:
+      - _startMs: 0
+        _durationMs: 120
+        _from: {x: 0, y: 0}
+        _to: {x: 10, y: 0}
+        _easing: 3
+      - _startMs: 120
+        _durationMs: 240
+        _from: {x: 10, y: 0}
+        _to: {x: 28, y: 0}
+        _easing: 2
+    - _property: 1
+      _clips:
+      - _startMs: 0
+        _durationMs: 140
+        _from: {x: 1, y: 1}
+        _to: {x: 0.98, y: 0.98}
+        _easing: 3
+      - _startMs: 140
+        _durationMs: 220
+        _from: {x: 0.98, y: 0.98}
+        _to: {x: 0.93, y: 0.93}
+        _easing: 2
+    - _property: 2
+      _clips:
+      - _startMs: 0
+        _durationMs: 140
+        _from: {x: 0, y: 0}
+        _to: {x: -3, y: 0}
+        _easing: 3
+      - _startMs: 140
+        _durationMs: 220
+        _from: {x: -3, y: 0}
+        _to: {x: -5, y: 0}
+        _easing: 2
+    - _property: 3
+      _clips:
+      - _startMs: 140
+        _durationMs: 220
+        _from: {x: 1, y: 0}
+        _to: {x: 0, y: 0}
+        _easing: 2
+    _notifies: []
+  _validationMessages: []
+  _runtime:
+    _valueClips:
+    - _property: 0
+      _startMs: 0
+      _durationMs: 120
+      _from: {x: 0, y: 0}
+      _to: {x: 10, y: 0}
+      _easing: 3
+    - _property: 0
+      _startMs: 120
+      _durationMs: 240
+      _from: {x: 10, y: 0}
+      _to: {x: 28, y: 0}
+      _easing: 2
+    - _property: 1
+      _startMs: 0
+      _durationMs: 140
+      _from: {x: 1, y: 1}
+      _to: {x: 0.98, y: 0.98}
+      _easing: 3
+    - _property: 1
+      _startMs: 140
+      _durationMs: 220
+      _from: {x: 0.98, y: 0.98}
+      _to: {x: 0.93, y: 0.93}
+      _easing: 2
+    - _property: 2
+      _startMs: 0
+      _durationMs: 140
+      _from: {x: 0, y: 0}
+      _to: {x: -3, y: 0}
+      _easing: 3
+    - _property: 2
+      _startMs: 140
+      _durationMs: 220
+      _from: {x: -3, y: 0}
+      _to: {x: -5, y: 0}
+      _easing: 2
+    - _property: 3
+      _startMs: 140
+      _durationMs: 220
+      _from: {x: 1, y: 0}
+      _to: {x: 0, y: 0}
+      _easing: 2
+    _notifyTable: []
+    _events: []

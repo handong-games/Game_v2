@@ -17,5 +17,7 @@ MonoBehaviour:
     _attributeSetDefaults:
     - {fileID: 11400000, guid: 2252b7fe4188a1f4ca9d66b110919f67, type: 2}
     _grantedAbilities:
+    - {fileID: 11400000, guid: 92d82f6d6e364f2f82b04a4cecc707dc, type: 2}
     - {fileID: 11400000, guid: c67910a0ca934024835f3679f8bcca1f, type: 2}
     - {fileID: 11400000, guid: 59c2c95779074306b3d0d4c9a9be8af7, type: 2}
+    - {fileID: 11400000, guid: 7bda262e2ac64ff9be0db6c5358c8a99, type: 2}
