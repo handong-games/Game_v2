@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Domains.Event;
 using Domains.Player;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -17,32 +16,10 @@ namespace Domains.Adventure
         private CardDealer _cardDealer;
         private VisualElement _hoveredCard;
 
-        private void BindCards()
-        {
-            _cardBoard = Root.Q<VisualElement>("card-board");
-            _cardDeck = Root.Q<VisualElement>("card-deck");
-
-            _cardDealer = new CardDealer();
-            _cardDealer.Bind(_cardDeck, _cardBoard);
-        }
-
         private void ClearCards()
         {
             UnregisterCardEvents();
             _cardDealer?.Clear();
-        }
-
-        private async void OnCardsDrawn(IReadOnlyList<AdventureCardViewModel> cards)
-        {
-            if (_cardDealer == null)
-                return;
-
-            UnregisterCardEvents();
-
-            await _cardDealer.DealAsync(cards);
-            RegisterCardEvents();
-
-            AdventureEvents.CardDealCompleted?.Invoke();
         }
 
         private void RegisterCardEvents()
@@ -118,7 +95,7 @@ namespace Domains.Adventure
             _controller.OnCardClicked(cardId);
         }
 
-        private void OnBoardChanged(IReadOnlyList<AdventureCardViewModel> cards)
+        internal void OnBoardChanged(IReadOnlyList<AdventureCardViewModel> cards)
         {
             if (_cardDealer == null)
                 return;

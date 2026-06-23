@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using Domains.Adventure;
 using Game.Core.Managers.View;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -14,10 +14,10 @@ namespace Domains.View.Widgets
         private const string EnterClass = "ui-transition--enter";
 
         private readonly List<SkillSlotWidget> _slots = new();
+        private AdventureSkillSlotWidgetEvents _events;
         private bool _isShown;
 
         public IReadOnlyList<SkillSlotWidget> Slots => _slots;
-        public event Action<int, SkillSlotWidget> SelectionChanged;
 
         public AdventureSkillSlotGroup()
         {
@@ -29,8 +29,11 @@ namespace Domains.View.Widgets
             AddToClassList("skill-slot-group");
         }
 
-        public void Bind(IReadOnlyList<AdventureSkillSlotViewModel> skillSlots)
+        public void Bind(
+            IReadOnlyList<AdventureSkillSlotViewModel> skillSlots,
+            AdventureSkillSlotWidgetEvents events)
         {
+            _events = events;
             int count = skillSlots?.Count ?? 0;
             EnsureSlotCount(count);
 
@@ -50,6 +53,11 @@ namespace Domains.View.Widgets
 
                 slot.Bind(skillSlots[i]);
             }
+        }
+
+        public void Unbind()
+        {
+            _events = null;
         }
 
         public async Awaitable Show()
@@ -72,7 +80,7 @@ namespace Domains.View.Widgets
         {
             int selectedIndex = FindSelectedIndex(evt.newValue);
             SkillSlotWidget selectedButton = GetSelectedButton(selectedIndex);
-            SelectionChanged?.Invoke(selectedIndex, selectedButton);
+            _events?.SelectionChanged?.Invoke(selectedIndex, selectedButton);
         }
 
         private SkillSlotWidget GetSelectedButton(int selectedIndex)

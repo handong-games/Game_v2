@@ -9,11 +9,12 @@ using Object = UnityEngine.Object;
 
 namespace Game.Core.Managers.DB
 {
-    public sealed class DBManager : BaseManager<DBManager>
+    public sealed class DBManager : System.IDisposable
     {
         private const string ModelTableLabel = "ModelTable";
 
         private AsyncOperationHandle<IList<Object>> _tableHandle;
+        private bool _initialized;
 
         public CharacterTable Character { get; private set; }
         public CharacterSkillTable CharacterSkill { get; private set; }
@@ -23,8 +24,12 @@ namespace Game.Core.Managers.DB
         public MonsterTable Monster { get; private set; }
         public CombatCardAbilityTable CombatCardAbility { get; private set; }
 
-        protected override void OnInit()
+        public void Initialize()
         {
+            if (_initialized)
+                return;
+
+            _initialized = true;
             _tableHandle = Addressables.LoadAssetsAsync<Object>(ModelTableLabel, null);
             IList<Object> assets = _tableHandle.WaitForCompletion();
             
@@ -37,8 +42,19 @@ namespace Game.Core.Managers.DB
             CombatCardAbility = assets.OfType<CombatCardAbilityTable>().First();
         }
 
-        protected override void OnDispose()
+        public void Dispose()
         {
+            if (!_initialized)
+                return;
+
+            _initialized = false;
+            Character?.ReleaseLoadedAssets();
+            CharacterSkill?.ReleaseLoadedAssets();
+            Adventure?.ReleaseLoadedAssets();
+            Card?.ReleaseLoadedAssets();
+            CardDeck?.ReleaseLoadedAssets();
+            Monster?.ReleaseLoadedAssets();
+
             Character = null;
             CharacterSkill = null;
             Adventure = null;

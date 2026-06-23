@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Core.Managers.Garphic;
+using Game.Core.Ports;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
@@ -8,8 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace Game.Core.Managers.View
 {
-    [ManagerDependency(typeof(GraphicManager))]
-    public partial class ViewManager : BaseManager<ViewManager>
+    public partial class ViewManager : IViewHost, global::System.IDisposable
     {
         private UIDocument _document;
         private PanelSettings _panelSettings;
@@ -18,19 +18,32 @@ namespace Game.Core.Managers.View
         private VisualElement _viewLayer;
         private VisualElement _overlayLayer;
         private readonly Stack<BaseView> _views = new();
+        private readonly HashSet<BaseView> _attachedViews = new();
+        private readonly GraphicManager _graphicManager;
+        private bool _initialized;
 
         public VisualElement RootLayer => _rootLayer;
         public VisualElement OverlayLayer => _overlayLayer;
 
-        protected override void OnInit()
+        public ViewManager(GraphicManager graphicManager)
         {
+            _graphicManager = graphicManager;
+        }
+
+        public void Initialize()
+        {
+            if (_initialized)
+                return;
+
+            _initialized = true;
+
             /* Event */
             SceneManager.sceneUnloaded += OnSceneUnloaded;
 
             /* ViewManagerBehavior */
             _managerObject = new GameObject("@ViewManager");
             Object.DontDestroyOnLoad(_managerObject);
-            _managerObject.AddComponent<ViewManagerBehavior>();
+            _managerObject.AddComponent<ViewManagerBehavior>().Initialize(this);
             
             /* PanelSettings */
             _panelSettings = Addressables.LoadAssetAsync<PanelSettings>("PanelSettings").WaitForCompletion();
@@ -73,19 +86,23 @@ namespace Game.Core.Managers.View
             _rootLayer.Add(_overlayLayer);
             
             root.Add(_rootLayer);
-        }
 
-        protected override void OnPostInit()
-        {
             GraphicManager.ViewAspectChanged += OnViewAspectChanged;
-            OnViewAspectChanged(GraphicManager.Instance.GetAspectPreset());
+            OnViewAspectChanged(_graphicManager.GetAspectPreset());
         }
 
-        protected override void OnDispose()
+        public void Dispose()
         {
+            if (!_initialized)
+                return;
+
+            _initialized = false;
+
             /* Event */
             SceneManager.sceneUnloaded -= OnSceneUnloaded;
             GraphicManager.ViewAspectChanged -= OnViewAspectChanged;
+
+            Clear();
 
             if (_managerObject != null)
             {
@@ -93,7 +110,11 @@ namespace Game.Core.Managers.View
                 _managerObject = null;
             }
 
-            Clear();
+            _document = null;
+            _panelSettings = null;
+            _rootLayer = null;
+            _viewLayer = null;
+            _overlayLayer = null;
         }
 
         private void OnSceneUnloaded(UnityEngine.SceneManagement.Scene unloadedScene)
@@ -103,10 +124,140 @@ namespace Game.Core.Managers.View
 
         public void Push(BaseView baseView)
         {
+            PushAndOwn(baseView);
+        }
+
+        public void PushAndOwn(BaseView baseView)
+        {
             if (baseView == null)
             {
                 return;
             }
+
+            if (_attachedViews.Contains(baseView))
+            {
+                Debug.LogError($"Failed to push view {baseView.GetType().Name}: view is already attached as a non-owned view.");
+                return;
+            }
+
+            if (!EnsureViewBound(baseView))
+                return;
+
+            AttachRootToViewLayer(baseView);
+            _views.Push(baseView);
+
+            OnViewportSizeChanged(Screen.width, Screen.height);
+        }
+
+        public void Attach(BaseView baseView)
+        {
+            if (baseView == null)
+            {
+                return;
+            }
+
+            if (_views.Contains(baseView))
+            {
+                Debug.LogError($"Failed to attach view {baseView.GetType().Name}: view is already owned by the legacy stack.");
+                return;
+            }
+
+            if (!EnsureViewBound(baseView))
+                return;
+
+            AttachRootToViewLayer(baseView);
+            _attachedViews.Add(baseView);
+
+            OnViewportSizeChanged(Screen.width, Screen.height);
+        }
+
+        public void Detach(BaseView baseView)
+        {
+            if (baseView == null)
+            {
+                return;
+            }
+
+            _attachedViews.Remove(baseView);
+
+            if (baseView.Root != null)
+            {
+                baseView.Root.RemoveFromHierarchy();
+            }
+        }
+
+        public void DetachAll()
+        {
+            List<BaseView> attachedViews = new(_attachedViews);
+            for (int i = 0; i < attachedViews.Count; i++)
+            {
+                Detach(attachedViews[i]);
+            }
+        }
+
+        public void Pop()
+        {
+            PopAndDispose();
+        }
+
+        public void PopAndDispose()
+        {
+            if (_views.Count == 0)
+            {
+                return;
+            }
+
+            BaseView top = _views.Pop();
+            DisposeAndDetachOwnedView(top);
+
+            if (_views.Count > 0)
+            {
+                _views.Peek().SetVisible(true);
+            }
+        }
+
+        public void Clear()
+        {
+            ClearOwnedViewsAndDetachAll();
+        }
+
+        public void ClearOwnedViewsAndDetachAll()
+        {
+            while (_views.Count > 0)
+            {
+                BaseView top = _views.Pop();
+                DisposeAndDetachOwnedView(top);
+            }
+
+            DetachAll();
+            if (_viewLayer == null || _overlayLayer == null)
+                return;
+
+            _viewLayer.Clear();
+            /* Todo : 리팩토링 필요 */
+            _overlayLayer.ClearClassList();
+            _overlayLayer.AddToClassList("app-overlay-layer");
+        }
+
+        public BaseView Peek()
+        {
+            return _views.Count > 0 ? _views.Peek() : null;
+        }
+
+        private static void DisposeAndDetachOwnedView(BaseView view)
+        {
+            view.Dispose();
+
+            if (view.Root != null)
+            {
+                view.Root.RemoveFromHierarchy();
+            }
+        }
+
+        private bool EnsureViewBound(BaseView baseView)
+        {
+            if (baseView.Root != null)
+                return true;
 
             VisualTreeAsset visualTreeAsset =
                 Addressables.LoadAssetAsync<VisualTreeAsset>(baseView.GetType().Name).WaitForCompletion();
@@ -114,7 +265,7 @@ namespace Game.Core.Managers.View
             if (visualTreeAsset == null)
             {
                 Debug.LogError($"Failed to show view {baseView.GetType().Name}: VisualTreeAsset is null.");
-                return;
+                return false;
             }
 
             VisualElement container = new VisualElement
@@ -132,6 +283,7 @@ namespace Game.Core.Managers.View
             {
                 name = $"{baseView.GetType().Name}-logical-root"
             };
+            
             logicalRoot.AddToClassList("app-view__logical-root");
             logicalRoot.style.position = Position.Absolute;
             logicalRoot.style.left = 0;
@@ -139,56 +291,20 @@ namespace Game.Core.Managers.View
 
             container.Add(logicalRoot);
             visualTreeAsset.CloneTree(logicalRoot);
-            _viewLayer.Add(container);
             baseView.Bind(container, logicalRoot);
-            _views.Push(baseView);
-
-            OnViewportSizeChanged(Screen.width, Screen.height);
+            return true;
         }
 
-        public void Pop()
+        private void AttachRootToViewLayer(BaseView baseView)
         {
-            if (_views.Count == 0)
-            {
+            if (baseView.Root == null)
                 return;
-            }
 
-            BaseView top = _views.Pop();
-            top.Dispose();
+            if (baseView.Root.parent == _viewLayer)
+                return;
 
-            if (top.Root != null)
-            {
-                top.Root.RemoveFromHierarchy();
-            }
-
-            if (_views.Count > 0)
-            {
-                _views.Peek().SetVisible(true);
-            }
-        }
-
-        public void Clear()
-        {
-            while (_views.Count > 0)
-            {
-                BaseView top = _views.Pop();
-                top.Dispose();
-
-                if (top.Root != null)
-                {
-                    top.Root.RemoveFromHierarchy();
-                }
-            }
-
-            _viewLayer.Clear();
-            /* Todo : 리팩토링 필요 */
-            _overlayLayer.ClearClassList();
-            _overlayLayer.AddToClassList("app-overlay-layer");
-        }
-
-        public BaseView Peek()
-        {
-            return _views.Count > 0 ? _views.Peek() : null;
+            baseView.Root.RemoveFromHierarchy();
+            _viewLayer.Add(baseView.Root);
         }
     }
 }

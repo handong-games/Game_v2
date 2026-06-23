@@ -38,7 +38,10 @@ namespace Domains.Adventure
             if (totalDamage <= 0)
                 return;
 
-            DamageCueEventBus.Publish(new DamageCueData(totalDamage));
+            IAdventureGameplayCueReceiver receiver =
+                target.GetAvatar<IAdventureGameplayCueReceiver>();
+
+            receiver?.HandleDamageCue(new DamageCueData(totalDamage));
         }
     }
 }

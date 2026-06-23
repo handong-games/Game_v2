@@ -1,4 +1,4 @@
-using Game.Core.Managers.Audio;
+using Domains.Settings;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -23,11 +23,14 @@ namespace Domains.Settings.View
             _masterValueLabel = BindElement<Label>("master-value");
             _bgmValueLabel = BindElement<Label>("bgm-value");
             _sfxValueLabel = BindElement<Label>("sfx-value");
-            
-            _muteInBackgroundToggle.SetValueWithoutNotify(AudioManager.Instance.GetMuteInBackground());
-            _masterSlider.SetValueWithoutNotify(AudioManager.Instance.GetVolume(EAudioVolume.Master));
-            _bgmSlider.SetValueWithoutNotify(AudioManager.Instance.GetVolume(EAudioVolume.BGM));
-            _sfxSlider.SetValueWithoutNotify(AudioManager.Instance.GetVolume(EAudioVolume.SFX));
+        }
+
+        private void RefreshAudio()
+        {
+            _muteInBackgroundToggle.SetValueWithoutNotify(_controller.GetMuteInBackground());
+            _masterSlider.SetValueWithoutNotify(_controller.GetVolume(EAudioVolume.Master));
+            _bgmSlider.SetValueWithoutNotify(_controller.GetVolume(EAudioVolume.BGM));
+            _sfxSlider.SetValueWithoutNotify(_controller.GetVolume(EAudioVolume.SFX));
             _masterValueLabel.text = ToVolumeText(_masterSlider.value);
             _bgmValueLabel.text = ToVolumeText(_bgmSlider.value);
             _sfxValueLabel.text = ToVolumeText(_sfxSlider.value);
@@ -43,25 +46,25 @@ namespace Domains.Settings.View
 
         private void OnMasterVolumeChanged(ChangeEvent<float> evt)
         {
-            AudioManager.Instance.SetVolume(EAudioVolume.Master, evt.newValue);
+            _controller.SetVolume(EAudioVolume.Master, evt.newValue);
             _masterValueLabel.text = ToVolumeText(evt.newValue);
         }
 
         private void OnBgmVolumeChanged(ChangeEvent<float> evt)
         {
-            AudioManager.Instance.SetVolume(EAudioVolume.BGM, evt.newValue);
+            _controller.SetVolume(EAudioVolume.BGM, evt.newValue);
             _bgmValueLabel.text = ToVolumeText(evt.newValue);
         }
 
         private void OnSfxVolumeChanged(ChangeEvent<float> evt)
         {
-            AudioManager.Instance.SetVolume(EAudioVolume.SFX, evt.newValue);
+            _controller.SetVolume(EAudioVolume.SFX, evt.newValue);
             _sfxValueLabel.text = ToVolumeText(evt.newValue);
         }
 
         private void OnMuteInBackgroundChanged(ChangeEvent<bool> evt)
         {
-            AudioManager.Instance.SetMuteInBackground(evt.newValue);
+            _controller.SetMuteInBackground(evt.newValue);
         }
 
         private static string ToVolumeText(float value)

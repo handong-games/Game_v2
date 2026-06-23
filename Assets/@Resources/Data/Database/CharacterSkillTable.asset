@@ -13,12 +13,48 @@ MonoBehaviour:
   m_Name: CharacterSkillTable
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterSkillTable
   _rows:
-  - {fileID: 11400000, guid: 2ea1e056dbc9e524db82ce4c441f5db5, type: 2}
-  - {fileID: 11400000, guid: dd3ccb0d895173d408aa2e034e6914c1, type: 2}
-  - {fileID: 11400000, guid: 379fe8fa9be86894e9416cb4503099e5, type: 2}
-  - {fileID: 11400000, guid: 1bd6ceb615db71e45a9bf88a4e1982fc, type: 2}
-  - {fileID: 11400000, guid: e92cc570e87960f46b1cbd15b747b7e9, type: 2}
-  - {fileID: 11400000, guid: daeabda278ecf9b4dbf6ddc286606e09, type: 2}
-  - {fileID: 11400000, guid: ce50c67d801238a47bcd1a7bcbae88a8, type: 2}
-  - {fileID: 11400000, guid: cfc09c87d82f75146964f2cee025fc0d, type: 2}
-  - {fileID: 11400000, guid: 035331c678b2eef42a79988f33a2e065, type: 2}
+  - m_AssetGUID: 2ea1e056dbc9e524db82ce4c441f5db5
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: dd3ccb0d895173d408aa2e034e6914c1
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 379fe8fa9be86894e9416cb4503099e5
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 1bd6ceb615db71e45a9bf88a4e1982fc
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: e92cc570e87960f46b1cbd15b747b7e9
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: daeabda278ecf9b4dbf6ddc286606e09
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: ce50c67d801238a47bcd1a7bcbae88a8
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: cfc09c87d82f75146964f2cee025fc0d
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 035331c678b2eef42a79988f33a2e065
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0

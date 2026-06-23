@@ -1,35 +1,24 @@
 using System;
 using System.Collections.Generic;
+using Domains.Adventure;
 using Game.AbilitySystem;
-using Game.AbilitySystem.Abilities;
 using Game.AbilitySystem.Attributes;
 using Game.Core.Managers.DB;
-using Game.Core.Managers.Dependency;
 using Game.Data;
 using Game.Messages;
 using Gameplay.GAS;
-using Domains.Event;
-using UnityEngine;
 
 namespace Domains.Combat
 {
-    [Dependency]
     public sealed class CombatService : IDisposable
     {
-        private readonly List<CombatCard>[] _cardsBySide =
-            new List<CombatCard>[(int)ECombatSide.Count];
+        private readonly List<CombatCard>[] _cardsBySide = new List<CombatCard>[(int)ECombatSide.Count];
         private readonly Dictionary<object, CombatCard> _combatCardByAvatar = new();
         private readonly HashSet<object> _resolvedDeaths = new();
+        private readonly AdventureCombatEvents _events;
+        private readonly DBManager _dbManager;
+        private readonly GameplayMessageManager _gameplayMessageManager;
         private IDisposable _combatDeathSubscription;
-
-        public CombatService()
-        {
-            for (int i = 0; i < _cardsBySide.Length; i++)
-            {
-                _cardsBySide[i] = new List<CombatCard>();
-            }
-        }
-
         private ECombatSide _currentSide;
         private bool _enemyTurnCompletionRequested;
         private bool _combatEnded;
@@ -39,6 +28,21 @@ namespace Domains.Combat
         public IReadOnlyList<CombatCard> PlayerCards => _cardsBySide[(int)ECombatSide.Player];
         public IReadOnlyList<CombatCard> EnemyCards => _cardsBySide[(int)ECombatSide.Enemy];
 
+        public CombatService(
+            AdventureCombatEvents events,
+            DBManager dbManager,
+            GameplayMessageManager gameplayMessageManager)
+        {
+            _events = events;
+            _dbManager = dbManager;
+            _gameplayMessageManager = gameplayMessageManager;
+
+            for (int i = 0; i < _cardsBySide.Length; i++)
+            {
+                _cardsBySide[i] = new List<CombatCard>();
+            }
+        }
+        
         public void ReadyCombat(IReadOnlyList<CombatCard> combatCards)
         {
             if (combatCards == null)
@@ -207,7 +211,7 @@ namespace Domains.Combat
                 return;
 
             _enemyTurnCompletionRequested = true;
-            AdventureEvents.EnemyTurnBannerRequested?.Invoke();
+            _events.EnemyTurnBannerRequested?.Invoke();
         }
 
         private void ApplyCombatEntries()
@@ -225,7 +229,7 @@ namespace Domains.Combat
 
         private void ApplyCombatEntry(CombatCard combatCard)
         {
-            CombatCardAbilityTable table = DBManager.Instance.CombatCardAbility;
+            CombatCardAbilityTable table = _dbManager.CombatCardAbility;
 
             if (!table.TryGet(combatCard.Card.Model, out CombatCardAbilityEntry entry))
             {
@@ -277,7 +281,7 @@ namespace Domains.Combat
         private void EnsureDeathSubscription()
         {
             _combatDeathSubscription ??=
-                GameplayMessageManager.Instance.Subscribe<GameplayDeathMessage>(
+                _gameplayMessageManager.Subscribe<GameplayDeathMessage>(
                     GameplayMessageTags.CombatDeath,
                     OnCombatDeathMessage);
         }
@@ -317,7 +321,7 @@ namespace Domains.Combat
                 return;
 
             _combatEnded = true;
-            AdventureEvents.CombatEnded?.Invoke(result);
+            _events.ResultRequested?.Invoke(result);
         }
 
         private bool IsAlive(CombatCard combatCard)

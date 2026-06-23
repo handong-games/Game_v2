@@ -1,4 +1,4 @@
-using System;
+using Domains.Adventure;
 using Game.Core.Managers.View;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,8 +8,6 @@ namespace Domains.View.Widgets
     [UxmlElement]
     public sealed partial class Pouch : VisualElement
     {
-        public event Action Clicked;
-
         private const string ImageName = "pouch-image";
         private const string HiddenClass = "pouch__image--hidden";
         private const string EnterClass = "pouch__image--enter";
@@ -18,6 +16,7 @@ namespace Domains.View.Widgets
         private const string FloatDownClass = "pouch--float-down";
 
         private VisualElement _image;
+        private AdventurePouchWidgetEvents _events;
         private bool? _isFloatingUp;
 
         public Pouch()
@@ -26,6 +25,16 @@ namespace Domains.View.Widgets
             RegisterCallback<TransitionEndEvent>(OnFloatTransitionEnd);
             RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
+        }
+
+        public void Bind(AdventurePouchWidgetEvents events)
+        {
+            _events = events;
+        }
+
+        public void Unbind()
+        {
+            _events = null;
         }
 
         public async Awaitable Show()
@@ -91,7 +100,7 @@ namespace Domains.View.Widgets
 
             evt.StopImmediatePropagation();
             await Hide();
-            Clicked?.Invoke();
+            _events?.Clicked?.Invoke();
         }
 
         private void StartIdleAnimation()

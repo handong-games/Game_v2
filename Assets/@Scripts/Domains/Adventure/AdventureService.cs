@@ -1,47 +1,42 @@
 using System;
-using Game.Core.Managers.DB;
-using Game.Core.Managers.Dependency;
-using Game.Core.Utility;
+using Domains.Scene.Adventure;
 using Game.Data;
-using Game.Generated;
 
 namespace Domains.Adventure
 {
-    [Dependency]
     public sealed class AdventureService : IDisposable
     {
-        public AdventureSession CurrentAdventure { get; private set; }
+        private readonly AdventureRunState _state;
+        private readonly AdventureSceneInitialData _initialData;
 
-        public AdventureSession StartNew(ECharacter character)
+        public AdventureService(AdventureRunState state, AdventureSceneInitialData initialData)
         {
-            DBManager.Instance.Character.Get(character);
+            _state = state;
+            _initialData = initialData;
+        }
 
-            AdventureModel adventure = DBManager.Instance.Adventure.Get(EAdventure.Default);
-            CurrentAdventure = new AdventureSession(
-                character,
-                adventure.Id,
-                adventure.CardDeckId,
-                adventure.MaxStageCount,
-                RandomUtility.CreateSeed());
+        public AdventureRun CurrentRun => _state.CurrentRun;
 
-            return CurrentAdventure;
+        public void SetCurrent(AdventureRun run)
+        {
+            _state.SetCurrent(run);
         }
 
         public AdventureStageDto GetCurrentStage()
         {
-            AdventureModel adventure = DBManager.Instance.Adventure.Get(CurrentAdventure.AdventureId);
+            AdventureRun currentRun = CurrentRun;
 
-            if (CurrentAdventure.StageNumber == 1)
+            if (currentRun.StageNumber == 1)
             {
-                return new AdventureStageDto(EAdventureStageType.First, adventure.StartDrawCount);
+                return new AdventureStageDto(EAdventureStageType.First, _initialData.Adventure.StartDrawCount);
             }
 
-            if (CurrentAdventure.StageNumber >= CurrentAdventure.MaxStageCount)
+            if (currentRun.StageNumber >= currentRun.MaxStageCount)
             {
                 return new AdventureStageDto(EAdventureStageType.Boss, 1);
             }
 
-            return new AdventureStageDto(EAdventureStageType.Choice, adventure.StartDrawCount);
+            return new AdventureStageDto(EAdventureStageType.Choice, _initialData.Adventure.StartDrawCount);
         }
 
         public EAdventureStageType GetCurrentStageType()
@@ -51,12 +46,12 @@ namespace Domains.Adventure
 
         public void AdvanceStage()
         {
-            CurrentAdventure.AdvanceStage();
+            CurrentRun.AdvanceStage();
         }
 
         public void Dispose()
         {
-            CurrentAdventure = null;
+            _state.Clear();
         }
     }
 }

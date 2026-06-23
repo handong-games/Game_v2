@@ -1,6 +1,5 @@
 using System;
 using Domains.Combat;
-using Domains.Event;
 using Domains.Player;
 using UnityEngine;
 
@@ -8,47 +7,18 @@ namespace Domains.Adventure
 {
     public sealed partial class AdventureView
     {
-        private void RegisterEvents()
-        {
-            AdventureEvents.AdventureStarted += OnAdventureStarted;
-            AdventureEvents.CardsDrawn += OnCardsDrawn;
-            AdventureEvents.BoardChanged += OnBoardChanged;
-            AdventureEvents.TurnBannerRequested += OnTurnBannerRequested;
-            AdventureEvents.EnemyTurnBannerRequested += OnEnemyTurnBannerRequested;
-            AdventureEvents.CombatEnded += OnCombatEnded;
-            _pouch.Clicked += OnPouchClicked;
-            _endTurnWidget.Clicked += OnEndTurnClicked;
-        }
-
-        private void UnregisterEvents()
-        {
-            AdventureEvents.AdventureStarted -= OnAdventureStarted;
-            AdventureEvents.CardsDrawn -= OnCardsDrawn;
-            AdventureEvents.BoardChanged -= OnBoardChanged;
-            AdventureEvents.TurnBannerRequested -= OnTurnBannerRequested;
-            AdventureEvents.EnemyTurnBannerRequested -= OnEnemyTurnBannerRequested;
-            AdventureEvents.CombatEnded -= OnCombatEnded;
-            _pouch.Clicked -= OnPouchClicked;
-            _endTurnWidget.Clicked -= OnEndTurnClicked;
-        }
-
-        private void OnAdventureStarted()
-        {
-            _ = PlayIntroAnimation();
-        }
-
-        private async void OnTurnBannerRequested()
+        internal async void OnTurnBannerRequested()
         {
             await PlayTurnBannerAnimation();
         }
 
-        private async void OnEnemyTurnBannerRequested()
+        internal async void OnEnemyTurnBannerRequested()
         {
             _controller.OnEnemyTurnCompleted();
             await PlayTurnBannerAnimation();
         }
 
-        private void OnCombatEnded(ECombatEndResult result)
+        internal void OnCombatEnded(ECombatEndResult result)
         {
             switch (result)
             {
@@ -63,40 +33,53 @@ namespace Domains.Adventure
             }
         }
 
-        private async void OnPouchClicked()
+        internal async void OnPouchClicked()
         {
             await _coinStatusWidget.Show();
             _controller.OnPouchClicked();
         }
 
-        private async Awaitable PlayCoinFlipAsync(CoinFlipCueData data)
+        public void HandleCoinFlipCue(CoinFlipCueData data)
         {
-            if (data == null)
-                return;
-
-            await _coinEffectPlayer.Play(
-                data,
-                _pouch,
-                _coinStatusWidget.GetTarget(ECoinFace.Heads),
-                _coinStatusWidget.GetTarget(ECoinFace.Tails),
-                _coinStatusWidget.Add);
-
-            await ShowSkillSlots();
-            await _endTurnWidget.Show();
+            _ = PlayCoinFlipAsync(data);
         }
 
-        private async Awaitable PlayCoinChangeAsync(CoinChangeCueData data)
+        public void HandleCoinChangeCue(CoinChangeCueData data)
         {
-            if (data == null || !data.HasEntries)
-                return;
-
-            await _coinStatusWidget.Show();
-            await _coinChangeEffectPlayer.Play(
-                data,
-                (face, delta) => _coinStatusWidget.ApplyDelta(face, delta));
+            _ = PlayCoinChangeAsync(data);
         }
 
-        private async void OnEndTurnClicked()
+        public void HandleDamageCue(DamageCueData data)
+        {
+        }
+
+        private void BindGameplayCueReceivers()
+        {
+            if (_initialViewModel?.BoardCards == null)
+                return;
+
+            for (int i = 0; i < _initialViewModel.BoardCards.Count; i++)
+            {
+                _initialViewModel.BoardCards[i].AbilitySystem?.SetAvatar(this);
+            }
+        }
+
+        private void UnbindGameplayCueReceivers()
+        {
+            if (_initialViewModel?.BoardCards == null)
+                return;
+
+            for (int i = 0; i < _initialViewModel.BoardCards.Count; i++)
+            {
+                var abilitySystem = _initialViewModel.BoardCards[i].AbilitySystem;
+                if (ReferenceEquals(abilitySystem?.GetAvatar<IAdventureGameplayCueReceiver>(), this))
+                {
+                    abilitySystem.ClearAvatar();
+                }
+            }
+        }
+
+        internal async void OnEndTurnClicked()
         {
             _coinStatusWidget.Hide();
             _coinStatusWidget.Reset();

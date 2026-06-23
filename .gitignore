@@ -36,6 +36,7 @@ Thumbs.db
 desktop.ini
 
 # Local analysis artifacts
+/.omx/
 /artifacts/sts2_ildasm.txt
 /outputs/
 /TempScaleSyntax.cs

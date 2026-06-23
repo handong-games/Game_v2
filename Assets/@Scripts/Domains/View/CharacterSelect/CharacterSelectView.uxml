@@ -25,13 +25,19 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="card-list" class="character-select__card-list">
                     <ui:VisualElement name="card-0" class="character-select__card">
-                        <ui:Instance template="CardTemplate" name="card-template-0" class="character-select__card-template"/>
+                        <ui:VisualElement name="card-feedback-0" class="character-select__card-feedback">
+                            <ui:Instance template="CardTemplate" name="card-template-0" class="character-select__card-template"/>
+                        </ui:VisualElement>
                     </ui:VisualElement>
                     <ui:VisualElement name="card-1" class="character-select__card">
-                        <ui:Instance template="CardTemplate" name="card-template-1" class="character-select__card-template"/>
+                        <ui:VisualElement name="card-feedback-1" class="character-select__card-feedback">
+                            <ui:Instance template="CardTemplate" name="card-template-1" class="character-select__card-template"/>
+                        </ui:VisualElement>
                     </ui:VisualElement>
                     <ui:VisualElement name="card-2" class="character-select__card">
-                        <ui:Instance template="CardTemplate" name="card-template-2" class="character-select__card-template"/>
+                        <ui:VisualElement name="card-feedback-2" class="character-select__card-feedback">
+                            <ui:Instance template="CardTemplate" name="card-template-2" class="character-select__card-template"/>
+                        </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement name="card-detail" class="character-select__detail">

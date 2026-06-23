@@ -1,4 +1,8 @@
-.title-screen__intro {
+.title-screen__logo,
+.title-screen__menu,
+.title-screen__footer {
+    opacity: 0;
+    translate: 0 18px;
     transition-property: opacity, translate;
     transition-duration: var(--motion-duration-long-700ms);
     transition-timing-function: ease-out;
@@ -27,7 +31,21 @@
     -unity-text-outline-color: rgba(0, 0, 0, 0.98);
 }
 
-.title-screen__intro-hidden {
-    opacity: 0;
-    translate: 0 18px;
+.title-screen--intro-shown .title-screen__logo,
+.title-screen--intro-shown .title-screen__menu,
+.title-screen--intro-shown .title-screen__footer {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.title-screen--intro-shown .title-screen__logo {
+    transition-delay: 0ms, 0ms;
+}
+
+.title-screen--intro-shown .title-screen__menu {
+    transition-delay: 700ms, 700ms;
+}
+
+.title-screen--intro-shown .title-screen__footer {
+    transition-delay: 1400ms, 1400ms;
 }

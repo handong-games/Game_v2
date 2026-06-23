@@ -13,7 +13,23 @@ MonoBehaviour:
   m_Name: CardTable
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CardTable
   _rows:
-  - {fileID: 11400000, guid: ea3afc1a85624427910c5420ebf699e2, type: 2}
-  - {fileID: 11400000, guid: 42a6128e117444fd91b9a0d0098a43fc, type: 2}
-  - {fileID: 11400000, guid: 7836396d67144302af16f22201fca3bb, type: 2}
-  - {fileID: 11400000, guid: 9eebd7f7598c49959bc01fa18136527a, type: 2}
+  - m_AssetGUID: ea3afc1a85624427910c5420ebf699e2
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 42a6128e117444fd91b9a0d0098a43fc
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 7836396d67144302af16f22201fca3bb
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 9eebd7f7598c49959bc01fa18136527a
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0

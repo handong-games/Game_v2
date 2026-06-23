@@ -1,33 +1,45 @@
 ﻿using System.Collections.Generic;
+using System;
 using Domains.Settings;
-using Game.Core.Managers.Dependency;
 using Game.Core.Managers.Save;
 using UnityEngine.Localization.Settings;
 
 namespace Game.Core.Managers.Locale
 {
-    [ManagerDependency(typeof(SaveManager))]
-    public class LocaleManager : BaseManager<LocaleManager>
+    public class LocaleManager : IDisposable
     {
         private LocalizationSettingsState _settings;
+        private readonly SaveManager _saveManager;
         private UnityEngine.Localization.Locale _currentLocale;
+        private bool _initialized;
+
         public UnityEngine.Localization.Locale CurrentLocale => _currentLocale;
         
-        protected override void OnInit()
+        public LocaleManager(SaveManager saveManager)
         {
-            LocalizationSettings.InitializationOperation.WaitForCompletion();
+            _saveManager = saveManager;
         }
 
-        protected override void OnPostInit()
+        public void Initialize()
         {
-            _settings = DependencyManager.Instance.Resolve<LocalizationSettingsState>();
+            if (_initialized)
+                return;
+
+            _initialized = true;
+            LocalizationSettings.InitializationOperation.WaitForCompletion();
+            _settings = _saveManager.GetState<LocalizationSettingsState>();
             _currentLocale = LocalizationSettings.AvailableLocales.GetLocale(_settings.LanguageCode);
             LocalizationSettings.SelectedLocale = _currentLocale;
         }
 
-        protected override void OnDispose()
+        public void Dispose()
         {
-            
+            if (!_initialized)
+                return;
+
+            _initialized = false;
+            _settings = null;
+            _currentLocale = null;
         }
         
         public List<string> GetLocaleLabels()

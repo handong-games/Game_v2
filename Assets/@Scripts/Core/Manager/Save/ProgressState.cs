@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Game.Core.Managers.Dependency;
 using Game.Generated;
 
 namespace Game.Core.Managers.Save
 {
-    [Dependency]
     public sealed class ProgressState : ISave<ProgressSave>
     {
         public HashSet<ECharacter> CharacterUnlockIds { get; } = new()

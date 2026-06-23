@@ -1,10 +1,8 @@
 using Game.Core.Define;
-using Game.Core.Managers.Dependency;
 using UnityEngine;
 
 namespace Game.Core.Managers.Save
 {
-    [Dependency]
     public sealed class GraphicSettingsState : ISave<GraphicSettingsSave>
     {
         public bool Fullscreen { get; set; } = true;

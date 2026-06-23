@@ -16,24 +16,13 @@ namespace Domains.Adventure
         private GameplayAbilitySpecHandle _activeSkillHandle = GameplayAbilitySpecHandle.Invalid;
         private int _activeSkillIndex = -1;
         private bool IsSkillTargetingActive { get; set; }
-
-        private void BindSkillSlots(IReadOnlyList<AdventureSkillSlotViewModel> skillSlots)
-        {
-            _skillSlots = skillSlots ?? Array.Empty<AdventureSkillSlotViewModel>();
-            _targetingEventRoot = Root.Q<VisualElement>("adventure-root") ?? Root;
-            _skillSlotGroup = Root.Q<AdventureSkillSlotGroup>("skill-slot-group");
-            _skillSlotGroup.Bind(_skillSlots);
-
-            _skillSlotGroup.SelectionChanged -= OnSkillSlotSelectionChanged;
-            _skillSlotGroup.SelectionChanged += OnSkillSlotSelectionChanged;
-        }
-
+        
         private Awaitable ShowSkillSlots()
         {
             return _skillSlotGroup.Show();
         }
 
-        private void OnSkillSlotSelectionChanged(int selectedIndex, SkillSlotWidget selectedButton)
+        internal void OnSkillSlotSelectionChanged(int selectedIndex, SkillSlotWidget selectedButton)
         {
             if (selectedIndex < 0)
             {

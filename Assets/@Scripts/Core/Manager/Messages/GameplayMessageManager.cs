@@ -1,21 +1,35 @@
 using System;
 using System.Collections.Generic;
-using Game.Core.Managers;
 using Gameplay.GAS;
 
 namespace Game.Messages
 {
-    public sealed class GameplayMessageManager : BaseManager<GameplayMessageManager>
+    // TODO: Remove Instance after GameplayAbility receives message publishing through an injected context/service.
+    public sealed class GameplayMessageManager : IDisposable
     {
         private readonly Dictionary<GameplayTag, List<IMessageHandler>> _handlers = new();
+        private bool _initialized;
 
-        protected override void OnInit()
+        public static GameplayMessageManager Instance { get; private set; }
+
+        public GameplayMessageManager()
         {
+            Instance = this;
         }
 
-        protected override void OnDispose()
+        public void Initialize()
         {
+            _initialized = true;
+        }
+
+        public void Dispose()
+        {
+            if (!_initialized)
+                return;
+
+            _initialized = false;
             _handlers.Clear();
+            Instance = null;
         }
 
         public IDisposable Subscribe<T>(GameplayTag tag, Action<T> handler)

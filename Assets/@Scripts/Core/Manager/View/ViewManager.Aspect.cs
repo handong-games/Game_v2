@@ -173,6 +173,11 @@ namespace Game.Core.Managers.View
             {
                 view?.ApplyResponsiveLayout(logicalCanvas);
             }
+
+            foreach (BaseView view in _attachedViews)
+            {
+                view?.ApplyResponsiveLayout(logicalCanvas);
+            }
         }
     }
 }

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Game.Core.Managers.Dependency;
 using Game.Data;
 using UnityEditor;
 using UnityEditor.Callbacks;
@@ -122,12 +121,6 @@ namespace Game.Core.Managers.Save.Editor
                     Type stateType = section.StateType;
                     if (stateType == null)
                         throw new InvalidOperationException($"Save catalog state script is missing. File: {file.FileName}, Section: {section.SectionName}");
-
-                    if (stateType.GetCustomAttributes(typeof(DependencyAttribute), false).Length == 0)
-                    {
-                        throw new InvalidOperationException(
-                            $"Save catalog state must have DependencyAttribute. State: {stateType.FullName}");
-                    }
 
                     Type saveInterface = stateType.GetInterfaces()
                         .FirstOrDefault(type => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ISave<>));

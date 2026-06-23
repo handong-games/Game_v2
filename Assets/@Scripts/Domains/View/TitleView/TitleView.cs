@@ -1,4 +1,3 @@
-using Game.Core.Managers.Dependency;
 using Game.Core.Managers.View;
 using System;
 using UnityEngine.UIElements;
@@ -8,8 +7,7 @@ namespace Views.TitleView
 {
     public partial class TitleView : BaseView
     {
-        [Inject]
-        private TitleViewController _controller;
+        private readonly TitleViewController _controller;
 
         private VisualElement _titleLogo;
         private VisualElement _titleMenu;
@@ -18,8 +16,14 @@ namespace Views.TitleView
         private Button _settingsButton;
         private Button _quitButton;
         private readonly List<Button> _menuButtons = new();
+        private bool _introPlayed;
 
-        protected override void OnBind(VisualElement root)
+        public TitleView(TitleViewController controller)
+        {
+            _controller = controller ?? throw new ArgumentNullException(nameof(controller));
+        }
+
+        protected override void OnVisualTreeCloned(VisualElement root)
         {
             if (Root.childCount == 0)
                 return;
@@ -46,21 +50,25 @@ namespace Views.TitleView
             _quitButton.clicked += _controller.OnQuit;
         }
 
-        protected override void OnAttachedToPanel(AttachToPanelEvent evt)
+        protected override void OnShown()
         {
+            if (_introPlayed)
+                return;
+
+            _introPlayed = true;
             _ = PlayIntroAnimation();
-        }
-
-        protected override void OnDetachedFromPanel(DetachFromPanelEvent evt)
-        {
-
         }
 
         public override void Dispose()
         {
-            _newGameButton.clicked -= _controller.OnNewGame;
-            _settingsButton.clicked -= _controller.OnSettings;
-            _quitButton.clicked -= _controller.OnQuit;
+            if (_newGameButton != null)
+                _newGameButton.clicked -= _controller.OnNewGame;
+
+            if (_settingsButton != null)
+                _settingsButton.clicked -= _controller.OnSettings;
+
+            if (_quitButton != null)
+                _quitButton.clicked -= _controller.OnQuit;
             
             UnregisterMenuFocusHandlers(_newGameButton);
             UnregisterMenuFocusHandlers(_settingsButton);
@@ -68,10 +76,12 @@ namespace Views.TitleView
 
             _titleLogo = null;
             _titleMenu = null;
+            _titleVersion = null;
             _newGameButton = null;
             _settingsButton = null;
             _quitButton = null;
             _menuButtons.Clear();
+            _introPlayed = false;
             
             base.Dispose();
         }

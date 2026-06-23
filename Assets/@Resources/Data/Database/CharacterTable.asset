@@ -13,6 +13,18 @@ MonoBehaviour:
   m_Name: CharacterTable
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CharacterTable
   _rows:
-  - {fileID: 11400000, guid: 22b0b7f155aa8e34a8d68112365cfd73, type: 2}
-  - {fileID: 11400000, guid: 3a0dc1935daa62f42b0565ce03d16f4d, type: 2}
-  - {fileID: 11400000, guid: 5b6632388278a1948a80040f53469bae, type: 2}
+  - m_AssetGUID: 22b0b7f155aa8e34a8d68112365cfd73
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 3a0dc1935daa62f42b0565ce03d16f4d
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 5b6632388278a1948a80040f53469bae
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0

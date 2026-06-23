@@ -2,24 +2,29 @@ using System.Collections.Generic;
 using Game.AbilitySystem.Abilities;
 using Game.AbilitySystem.Attributes;
 using Game.Core.Managers.DB;
-using Game.Core.Managers.Dependency;
 using Game.Data;
 using Game.Generated;
 using Gameplay.GAS;
 
 namespace Domains.Character
 {
-    [Dependency]
     public sealed class CharacterService
     {
+        private readonly DBManager _dbManager;
+
+        public CharacterService(DBManager dbManager)
+        {
+            _dbManager = dbManager;
+        }
+
         public CharacterModel Get(ECharacter id)
         {
-            return DBManager.Instance.Character.Get(id);
+            return _dbManager.Character.Get(id);
         }
 
         public IReadOnlyList<CharacterModel> GetAll()
         {
-            return DBManager.Instance.Character.GetAll();
+            return _dbManager.Character.GetAll();
         }
 
         public bool TryGetInitialAttributeValue(

@@ -1,9 +1,7 @@
-using Domains.Card;
+using System;
 using Domains.Adventure;
-using Domains.Scene;
+using Domains.Card;
 using Domains.View.Widgets;
-using Game.Core.Managers.Dependency;
-using Game.Core.Managers.Scene;
 using Game.Core.Managers.View;
 using Game.Data;
 using UnityEngine;
@@ -12,19 +10,11 @@ using UnityEngine.UIElements;
 
 namespace Domains.CharacterSelect
 {
-    public sealed class CharacterSelectView : BaseView
+    public sealed partial class CharacterSelectView : BaseView
     {
-        private const int CardRevealStartMs = 120;
-        private const int CardRevealStepMs = 80;
-        private const int ButtonsRevealMs = 420;
-        private const int DetailRevealDelayMs = 70;
-        private const int LockedFeedbackDurationMs = 140;
         private const int CardCount = 3;
 
-        private const string BlockerActiveClass = "character-select__blocker--active";
-        private const string TitleVisibleClass = "character-select__header--visible";
-        private const string CardsVisibleClass = "character-select__card--visible";
-        private const string NavigationVisibleClass = "character-select__navigation--visible";
+        private const string ShownClass = "character-select--shown";
         private const string DetailVisibleClass = "character-select__detail-panel--visible";
         private const string StartVisibleClass = "character-select__navigation-button--start--visible";
         private const string ClosingClass = "character-select--closing";
@@ -34,12 +24,9 @@ namespace Domains.CharacterSelect
         private const string LockedFeedbackLeftClass = "character-select__card--locked-feedback-left";
         private const string LockedFeedbackRightClass = "character-select__card--locked-feedback-right";
 
-        [Inject]
-        private CharacterSelectController _controller;
+        private readonly CharacterSelectController _controller;
 
         private VisualElement _screenRoot;
-        private VisualElement _blockerBackground;
-        private VisualElement _header;
         private VisualElement _cardList;
         private VisualElement _detailPanel;
         private VisualElement _navigation;
@@ -51,26 +38,22 @@ namespace Domains.CharacterSelect
         private CharacterSelectSkillSlotGroup _skillSlotGroup;
 
         private VisualElement[] _cards;
+        private VisualElement[] _cardFeedbackRoots;
         private CardWidget[] _cardWidgets;
         private EventCallback<PointerDownEvent>[] _cardPointerHandlers;
         private CharacterSelectCardViewModel[] _cardViewModels;
         private LocalizedString _localizedName;
         private int _selectedIndex;
         private bool _isClosing;
-        private CloseReason _closeReason;
 
-        private enum CloseReason
+        public CharacterSelectView(CharacterSelectController controller)
         {
-            None,
-            Back,
-            Start,
+            _controller = controller ?? throw new ArgumentNullException(nameof(controller));
         }
 
-        protected override void OnBind(VisualElement root)
+        protected override void OnVisualTreeCloned(VisualElement root)
         {
             _screenRoot = Root.Q<VisualElement>("character-select-root");
-            _blockerBackground = Root.Q<VisualElement>("blocker");
-            _header = Root.Q<VisualElement>("header");
             _cardList = Root.Q<VisualElement>("card-list");
             _detailPanel = Root.Q<VisualElement>("detail-panel");
             _detailName = Root.Q<Label>("detail-name");
@@ -81,30 +64,35 @@ namespace Domains.CharacterSelect
             _backButton = Root.Q<Button>("btn-back");
             _startButton = Root.Q<Button>("btn-start");
 
-            _isClosing = false;
-            _closeReason = CloseReason.None;
-            _selectedIndex = -1;
-
-            _screenRoot.RemoveFromClassList(ClosingClass);
-            _screenRoot.RegisterCallback<TransitionEndEvent>(OnClose);
+            _screenRoot.RegisterCallback<TransitionEndEvent>(OnCloseTransitionEnd);
 
             CacheCards();
-            LoadCharacterCards();
-            ApplyCardData();
-            ResetSelectionState();
-            _ = PlayIntroAnimation();
-            ApplyEntranceStates();
 
             _backButton.clicked += OnClickBackButton;
             _startButton.clicked += OnClickStartButton;
-            _startButton.SetEnabled(false);
+        }
+
+        protected override void OnShown()
+        {
+            ResetClosingState();
+            LoadCharacterCards();
+            ApplyCardData();
+            ResetSelectionState();
+            ResetEntranceStates();
+            _ = PlayIntroAnimation();
+        }
+
+        protected override void OnHidden()
+        {
+            ResetEntranceStates();
+            UnbindLocalizedName();
         }
 
         public override void Dispose()
         {
             if (_screenRoot != null)
             {
-                _screenRoot.UnregisterCallback<TransitionEndEvent>(OnClose);
+                _screenRoot.UnregisterCallback<TransitionEndEvent>(OnCloseTransitionEnd);
             }
 
             if (_backButton != null)
@@ -127,12 +115,15 @@ namespace Domains.CharacterSelect
                     {
                         _cards[i].UnregisterCallback(_cardPointerHandlers[i]);
                     }
+
+                    if (_cardFeedbackRoots[i] != null)
+                    {
+                        _cardFeedbackRoots[i].UnregisterCallback<TransitionEndEvent>(OnCardFeedbackTransitionEnd);
+                    }
                 }
             }
 
             _screenRoot = null;
-            _blockerBackground = null;
-            _header = null;
             _cardList = null;
             _detailPanel = null;
             _navigation = null;
@@ -143,18 +134,21 @@ namespace Domains.CharacterSelect
             _detailCoin = null;
             _skillSlotGroup = null;
             _cards = null;
+            _cardFeedbackRoots = null;
             _cardWidgets = null;
             _cardPointerHandlers = null;
             _cardViewModels = null;
             _localizedName = null;
             _selectedIndex = -1;
             _isClosing = false;
-            _closeReason = CloseReason.None;
+
+            base.Dispose();
         }
 
         private void CacheCards()
         {
             _cards = new VisualElement[CardCount];
+            _cardFeedbackRoots = new VisualElement[CardCount];
             _cardWidgets = new CardWidget[CardCount];
             _cardPointerHandlers = new EventCallback<PointerDownEvent>[CardCount];
 
@@ -162,11 +156,13 @@ namespace Domains.CharacterSelect
             {
                 int index = i;
                 _cards[index] = Root.Q<VisualElement>($"card-{index}");
-                _cardWidgets[index] = _cards[index].Q<CardWidget>("card");
+                _cardFeedbackRoots[index] = Root.Q<VisualElement>($"card-feedback-{index}");
+                _cardWidgets[index] = _cardFeedbackRoots[index].Q<CardWidget>("card");
 
                 EventCallback<PointerDownEvent> handler = _ => OnCardPointerDown(index);
                 _cardPointerHandlers[index] = handler;
                 _cards[index].RegisterCallback(handler);
+                _cardFeedbackRoots[index].RegisterCallback<TransitionEndEvent>(OnCardFeedbackTransitionEnd);
             }
         }
 
@@ -213,8 +209,8 @@ namespace Domains.CharacterSelect
             {
                 _cards[i].RemoveFromClassList(SelectedClass);
                 _cards[i].RemoveFromClassList(SubduedClass);
-                _cards[i].RemoveFromClassList(LockedFeedbackLeftClass);
-                _cards[i].RemoveFromClassList(LockedFeedbackRightClass);
+                _cardFeedbackRoots[i].RemoveFromClassList(LockedFeedbackLeftClass);
+                _cardFeedbackRoots[i].RemoveFromClassList(LockedFeedbackRightClass);
 
                 CharacterSelectCardViewModel card = GetCardData(i);
                 if (card != null)
@@ -222,6 +218,19 @@ namespace Domains.CharacterSelect
                     BindCharacterCard(i, card);
                 }
             }
+        }
+
+        private void ResetClosingState()
+        {
+            _isClosing = false;
+            _screenRoot.RemoveFromClassList(ClosingClass);
+            _navigation.SetEnabled(true);
+            _cardList.SetEnabled(true);
+        }
+
+        private void ResetEntranceStates()
+        {
+            _screenRoot?.RemoveFromClassList(ShownClass);
         }
 
         private void BindCharacterCard(int index, CharacterSelectCardViewModel card)
@@ -234,20 +243,6 @@ namespace Domains.CharacterSelect
                 face,
                 front,
                 back));
-        }
-
-        private void ApplyEntranceStates()
-        {
-            _header.AddToClassList(TitleVisibleClass);
-
-            for (int i = 0; i < _cards.Length; i++)
-            {
-                VisualElement card = _cards[i];
-                int delay = CardRevealStartMs + (i * CardRevealStepMs);
-                card.schedule.Execute(() => card.AddToClassList(CardsVisibleClass)).StartingIn(delay);
-            }
-
-            _navigation.schedule.Execute(() => _navigation.AddToClassList(NavigationVisibleClass)).StartingIn(ButtonsRevealMs);
         }
 
         private void OnCardPointerDown(int index)
@@ -276,16 +271,10 @@ namespace Domains.CharacterSelect
 
             RefreshCardSelectionState();
 
-            Root.schedule.Execute(() =>
-            {
-                if (_isClosing || _selectedIndex != index)
-                    return;
-
-                BindDetailPanel(card);
-                _detailPanel.AddToClassList(DetailVisibleClass);
-                _startButton.AddToClassList(StartVisibleClass);
-                _startButton.SetEnabled(true);
-            }).StartingIn(DetailRevealDelayMs);
+            BindDetailPanel(card);
+            _detailPanel.AddToClassList(DetailVisibleClass);
+            _startButton.AddToClassList(StartVisibleClass);
+            _startButton.SetEnabled(true);
         }
 
         private void RefreshCardSelectionState()
@@ -362,10 +351,23 @@ namespace Domains.CharacterSelect
                 ? LockedFeedbackRightClass
                 : LockedFeedbackLeftClass;
 
-            _cards[index].RemoveFromClassList(LockedFeedbackLeftClass);
-            _cards[index].RemoveFromClassList(LockedFeedbackRightClass);
-            _cards[index].AddToClassList(feedbackClass);
-            _cards[index].schedule.Execute(() => _cards[index].RemoveFromClassList(feedbackClass)).StartingIn(LockedFeedbackDurationMs);
+            VisualElement feedbackRoot = _cardFeedbackRoots[index];
+            feedbackRoot.RemoveFromClassList(LockedFeedbackLeftClass);
+            feedbackRoot.RemoveFromClassList(LockedFeedbackRightClass);
+            feedbackRoot.AddToClassList(feedbackClass);
+        }
+
+        private void OnCardFeedbackTransitionEnd(TransitionEndEvent evt)
+        {
+            if (evt.target is not VisualElement feedbackRoot)
+                return;
+
+            if (!feedbackRoot.ClassListContains(LockedFeedbackLeftClass) &&
+                !feedbackRoot.ClassListContains(LockedFeedbackRightClass))
+                return;
+
+            feedbackRoot.RemoveFromClassList(LockedFeedbackLeftClass);
+            feedbackRoot.RemoveFromClassList(LockedFeedbackRightClass);
         }
 
         private void OnClickBackButton()
@@ -373,8 +375,7 @@ namespace Domains.CharacterSelect
             if (_isClosing)
                 return;
 
-            _isClosing = true;
-            Close(CloseReason.Back);
+            PlayCloseAnimation();
         }
 
         private void OnClickStartButton()
@@ -389,39 +390,10 @@ namespace Domains.CharacterSelect
             _controller.StartNewAdventure(card.CharacterId);
         }
 
-        private void OnClose(TransitionEndEvent evt)
+        private void OnCloseAnimationCompleted()
         {
-            if (!_isClosing || evt.target != _screenRoot)
-                return;
-
-            CloseReason closeReason = _closeReason;
             _isClosing = false;
-            _closeReason = CloseReason.None;
-
-            switch (closeReason)
-            {
-                case CloseReason.Back:
-                    ViewManager.Instance.Pop();
-                    break;
-                case CloseReason.Start:
-                    SceneManagerEx.Instance.LoadScene<AdventureScene>();
-                    break;
-            }
-        }
-
-        private void Close(CloseReason closeReason)
-        {
-            _isClosing = true;
-            _closeReason = closeReason;
-            _navigation.SetEnabled(false);
-            _cardList.SetEnabled(false);
-            _screenRoot.AddToClassList(ClosingClass);
-        }
-
-        private async Awaitable PlayIntroAnimation()
-        {
-            await Awaitable.NextFrameAsync();
-            _blockerBackground.AddToClassList(BlockerActiveClass);
+            _controller.OnBackClosed();
         }
 
         private CharacterSelectCardViewModel GetCardData(int index)

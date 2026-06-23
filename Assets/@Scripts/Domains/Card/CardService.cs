@@ -1,29 +1,29 @@
 using System;
-using System.Collections.Generic;
-using Game.AbilitySystem.Attributes;
-using Game.Core.Managers.Dependency;
 using Game.Data;
-using Gameplay.GAS;
 
 namespace Domains.Card
 {
-    [Dependency]
     public sealed class CardService : IDisposable
     {
-        private readonly Dictionary<uint, Card> _cards = new();
-        private uint _nextCardId = 1;
+        private readonly CardRegistry _registry;
+        private readonly CardFactory _factory;
+
+        public CardService(CardRegistry registry, CardFactory factory)
+        {
+            _registry = registry;
+            _factory = factory;
+        }
 
         public Card Create(CardModelBase model)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
 
-            Card card = new(CreateCardId(), model, ECardFace.Front);
-            ApplyOwnedTags(card, model);
-            CreateAndApplyAttributeSets(card, model.AttributeSetDefaults);
-
-            model.AbilitySet?.GiveAbilities(card.AbilitySystem);
-            _cards.Add(card.CardId, card);
+            Card card = _factory.Create(
+                _registry.CreateCardId(),
+                model,
+                ECardFace.Front);
+            _registry.Add(card);
             return card;
         }
 
@@ -32,96 +32,30 @@ namespace Domains.Card
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
 
-            if (!_cards.TryGetValue(cardId, out Card card))
+            if (!_registry.TryGet(cardId, out Card card))
                 throw new InvalidOperationException($"Card id {cardId} is not registered.");
 
-            RemoveOwnedTags(card, card.Model);
-            card.SetModel(model);
-            card.SetFace(face);
-            ApplyOwnedTags(card, model);
+            _factory.Replace(card, model, face);
         }
 
         public bool TryGet(uint cardId, out Card card)
         {
-            return _cards.TryGetValue(cardId, out card);
+            return _registry.TryGet(cardId, out card);
         }
 
         public void Remove(uint cardId)
         {
-            _cards.Remove(cardId);
+            _registry.Remove(cardId);
         }
 
         public void Clear()
         {
-            _cards.Clear();
-            _nextCardId = 1;
+            _registry.Clear();
         }
 
         public void Dispose()
         {
             Clear();
         }
-
-        private uint CreateCardId()
-        {
-            return _nextCardId++;
-        }
-
-        private static void CreateAndApplyAttributeSets(
-            Card card,
-            IReadOnlyList<AttributeSetDefaultsDefinition> definitions)
-        {
-            if (card == null || definitions == null)
-                return;
-
-            HashSet<Type> createdSetTypes = new();
-
-            for (int i = 0; i < definitions.Count; i++)
-            {
-                AttributeSetDefaultsDefinition definition = definitions[i];
-                if (definition == null)
-                    continue;
-
-                Type setType = definition.GetAttributeSetType();
-                if (setType == null)
-                    continue;
-
-                if (!typeof(AttributeSet).IsAssignableFrom(setType))
-                    continue;
-
-                if (!createdSetTypes.Add(setType))
-                    continue;
-
-                AttributeSet attributeSet = Activator.CreateInstance(setType) as AttributeSet;
-                if (attributeSet == null)
-                    continue;
-
-                definition.ApplyTo(attributeSet);
-                card.AbilitySystem.AddAttributeSet(attributeSet);
-            }
-        }
-
-        private static void ApplyOwnedTags(Card card, CardModelBase model)
-        {
-            IReadOnlyList<GameplayTag> ownedTags = model.OwnedTags;
-            for (int i = 0; i < ownedTags.Count; i++)
-            {
-                GameplayTag tag = ownedTags[i];
-                if (tag.IsValid)
-                    card.AbilitySystem.OwnedTags.AddTag(tag);
-            }
-        }
-
-        private static void RemoveOwnedTags(Card card, CardModelBase model)
-        {
-            IReadOnlyList<GameplayTag> ownedTags = model.OwnedTags;
-            for (int i = 0; i < ownedTags.Count; i++)
-            {
-                GameplayTag tag = ownedTags[i];
-                if (tag.IsValid)
-                    card.AbilitySystem.OwnedTags.RemoveTag(tag);
-            }
-        }
-
     }
 }

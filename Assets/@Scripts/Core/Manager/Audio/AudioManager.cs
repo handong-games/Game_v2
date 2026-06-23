@@ -1,39 +1,50 @@
 using Domains.Settings;
-using Game.Core.Managers.Dependency;
+using System;
 using Game.Core.Managers.Save;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Game.Core.Managers.Audio
 {
-    [ManagerDependency(typeof(SaveManager))]
-    public sealed class AudioManager : BaseManager<AudioManager>
+    public sealed class AudioManager : IDisposable
     {
         private AudioSettingsState _settings;
         private GameObject _audioRoot;
         private AudioSource[] _audioSources = new AudioSource[(int)EAudioPlay.Count];
-        
-        protected override void OnInit()
+        private readonly SaveManager _saveManager;
+        private bool _initialized;
+
+        public AudioManager(SaveManager saveManager)
         {
+            _saveManager = saveManager;
+        }
+
+        public void Initialize()
+        {
+            if (_initialized)
+                return;
+
+            _initialized = true;
             _audioRoot = new GameObject("@AudioManager");
             Object.DontDestroyOnLoad(_audioRoot);
-            _audioRoot.AddComponent<AudioManagerBehaviour>();
+            _audioRoot.AddComponent<AudioManagerBehaviour>().Initialize(this);
             _audioRoot.AddComponent<AudioListener>();
 
             _audioSources[(int)EAudioPlay.BGM] = CreateSource(loop: true);
             _audioSources[(int)EAudioPlay.SFX] = CreateSource(loop: false);
-        }
 
-        protected override void OnPostInit()
-        {
-            _settings = DependencyManager.Instance.Resolve<AudioSettingsState>();
+            _settings = _saveManager.GetState<AudioSettingsState>();
             SetVolume(EAudioVolume.Master, _settings.MasterVolume);
             SetVolume(EAudioVolume.BGM, _settings.BgmVolume);
             SetVolume(EAudioVolume.SFX, _settings.SfxVolume);
         }
 
-        protected override void OnDispose()
+        public void Dispose()
         {
+            if (!_initialized)
+                return;
+
+            _initialized = false;
             if (_audioRoot != null)
             {
                 Object.Destroy(_audioRoot);
@@ -41,6 +52,7 @@ namespace Game.Core.Managers.Audio
             }
 
             _audioSources = new AudioSource[(int)EAudioPlay.Count];
+            _settings = null;
         }
         
         public void Play(EAudioPlay type, AudioClip audio)

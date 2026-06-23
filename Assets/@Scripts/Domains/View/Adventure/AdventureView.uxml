@@ -30,6 +30,7 @@
     <Style src="project://database/Assets/@Scripts/Domains/View/CoinEffectPlayer/CoinEffectPlayer.uss?fileID=7433441132597879392&amp;guid=3bc277c5a0f54edb85686b9743543ece&amp;type=3#CoinEffectPlayer"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/EndTurnWidget/EndTurnWidget.uss?fileID=7433441132597879392&amp;guid=d07c021ad761488abf739058074c5687&amp;type=3#EndTurnWidget"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/Adventure/AdventureView.uss?fileID=7433441132597879392&amp;guid=45a72d6395514e4986d12dec76e1ec7f&amp;type=3#AdventureView"/>
+    <Style src="AdventureView.Animation.uss"/>
     <ui:VisualElement class="screen">
             <ui:VisualElement name="adventure-root" class="adventure-view">
                 <ui:VisualElement name="adventure-background" class="adventure-view__background" picking-mode="Ignore"/>

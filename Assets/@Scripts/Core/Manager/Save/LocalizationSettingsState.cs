@@ -1,9 +1,7 @@
-using Game.Core.Managers.Dependency;
 using UnityEngine.Localization.Settings;
 
 namespace Game.Core.Managers.Save
 {
-    [Dependency]
     public sealed class LocalizationSettingsState : ISave<LocalizationSettingsSave>
     {
         public string LanguageCode { get; set; } = "en-US";

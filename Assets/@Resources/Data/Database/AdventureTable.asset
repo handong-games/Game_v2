@@ -13,4 +13,8 @@ MonoBehaviour:
   m_Name: AdventureTable
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.AdventureTable
   _rows:
-  - {fileID: 11400000, guid: c70f6895cc6d46ea930490bfb83ca1f6, type: 2}
+  - m_AssetGUID: c70f6895cc6d46ea930490bfb83ca1f6
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0

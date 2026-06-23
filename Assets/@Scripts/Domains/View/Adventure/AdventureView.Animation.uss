@@ -1,0 +1,54 @@
+.adventure-view .resource-status-bar {
+    opacity: 0;
+    translate: -42px 0;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-long-700ms);
+    transition-delay: 1700ms;
+    transition-timing-function: ease-out;
+}
+
+.adventure-view--intro-shown .resource-status-bar {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.adventure-view .progress-bar {
+    opacity: 0;
+    translate: 0 -18px;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-medium-400ms);
+    transition-delay: 2050ms;
+    transition-timing-function: ease-out;
+}
+
+.adventure-view--intro-shown .progress-bar {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.adventure-view .progress-bar__track-fill {
+    scale: 0 1;
+    transform-origin: left center;
+    transition-property: scale;
+    transition-duration: var(--motion-duration-normal-250ms);
+    transition-delay: 2300ms;
+    transition-timing-function: ease-out;
+}
+
+.adventure-view--intro-shown .progress-bar__track-fill {
+    scale: 1 1;
+}
+
+.adventure-view .card-deck {
+    opacity: 0;
+    translate: 96px 0;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-medium-400ms);
+    transition-delay: 2600ms;
+    transition-timing-function: ease-out;
+}
+
+.adventure-view--intro-shown .card-deck {
+    opacity: 1;
+    translate: 0 0;
+}

@@ -15,8 +15,13 @@ namespace Domains.Adventure
             if (eventType != GameplayCueEvent.Executed || parameters?.Context == null)
                 return;
 
-            if (parameters.Context.TryGetSourceObject(out CoinFlipCueData data))
-                CoinFlipCueEventBus.Publish(data);
+            if (!parameters.Context.TryGetSourceObject(out CoinFlipCueData data))
+                return;
+
+            IAdventureGameplayCueReceiver receiver =
+                target.GetAvatar<IAdventureGameplayCueReceiver>();
+
+            receiver?.HandleCoinFlipCue(data);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace Game.Core.Managers.View
             _logicalRoot = logicalRoot;
             _root.RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
             _root.RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
-            OnBind(root);
+            OnVisualTreeCloned(root);
         }
 
         public virtual void SetVisible(bool visible)
@@ -52,7 +52,27 @@ namespace Game.Core.Managers.View
             _root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
-        protected abstract void OnBind(VisualElement root);
+        public void Show()
+        {
+            SetVisible(true);
+            OnShown();
+        }
+
+        public void Hide()
+        {
+            OnHidden();
+            SetVisible(false);
+        }
+
+        protected abstract void OnVisualTreeCloned(VisualElement root);
+
+        protected virtual void OnShown()
+        {
+        }
+
+        protected virtual void OnHidden()
+        {
+        }
 
         protected virtual void OnAttachedToPanel(AttachToPanelEvent evt)
         {

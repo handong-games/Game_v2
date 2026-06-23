@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using Game.Core.Define;
-using Game.Core.Managers.Garphic;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Domains.Settings.View
@@ -15,22 +12,23 @@ namespace Domains.Settings.View
         private void OnBindGraphics()
         {
             _fullscreenToggle = Bind<Toggle, bool>("fullscreen-toggle", OnFullscreenChanged);
-            _fullscreenToggle.SetValueWithoutNotify(GraphicManager.Instance.IsFullscreen());
             
             _aspectRatioField = Bind<DropdownField, string>("aspect-ratio-field", OnAspectRatioChanged);
-            _aspectRatioField.SetValueWithoutNotify(GraphicManager.Instance.GetAspectPresetText());
-            _aspectRatioField.choices = new List<string>(GraphicManager.Instance.GetAspectPresetLabels());
             
             _resolutionField = Bind<DropdownField, string>("resolution-field", OnResolutionSelected);
-            _resolutionField.SetValueWithoutNotify(GraphicManager.Instance.GetCurrentResolutionText());
-            _resolutionField.SetEnabled(!GraphicManager.Instance.IsFullscreen());
             _resolutionField.RegisterCallback<PointerDownEvent>(OnResolutionDropdownPointerDown);
         }
 
-        // 해상도 변경 이벤트
-        private void OnWindowSizeChanged(int resolutionWidth, int resolutionHeight)
+        private void RefreshGraphics()
         {
-            _resolutionField.SetValueWithoutNotify(GraphicManager.Instance.GetCurrentResolutionText());
+            bool isFullscreen = _controller.IsFullscreen();
+            _fullscreenToggle.SetValueWithoutNotify(isFullscreen);
+
+            _aspectRatioField.choices = new List<string>(_controller.GetAspectPresetLabels());
+            _aspectRatioField.SetValueWithoutNotify(_controller.GetAspectPresetText());
+
+            _resolutionField.SetValueWithoutNotify(_controller.GetCurrentResolutionText());
+            _resolutionField.SetEnabled(!isFullscreen);
         }
 
         private void OnUnbindGraphics()
@@ -43,21 +41,12 @@ namespace Domains.Settings.View
 
         private List<string> GetResolutions()
         {
-            IReadOnlyList<Vector2Int> resolutionList = GraphicManager.Instance.GetResolutions();
-            List<string> labels = new List<string>(resolutionList.Count);
-
-            for (int i = 0; i < resolutionList.Count; i++)
-            {
-                Vector2Int resolution = resolutionList[i];
-                labels.Add($"{resolution.x} x {resolution.y}");
-            }
-
-            return labels;
+            return new List<string>(_controller.GetResolutionLabels());
         }
 
         private string GetCurrentResolutionText()
         {
-            return GraphicManager.Instance.GetCurrentResolutionText();
+            return _controller.GetCurrentResolutionText();
         }
 
         private void OnResolutionDropdownPointerDown(PointerDownEvent evt)
@@ -68,38 +57,26 @@ namespace Domains.Settings.View
 
         private void OnFullscreenChanged(ChangeEvent<bool> evt)
         {
-            GraphicManager.Instance.SetFullscreen(evt.newValue);
-            bool isFullscreen = GraphicManager.Instance.IsFullscreen();
-            //UpdateFullscreenVisualState(isFullscreen);
-            //UpdateRootLayerState();
+            _controller.SetFullscreen(evt.newValue);
+            bool isFullscreen = _controller.IsFullscreen();
             
             _resolutionField.SetEnabled(!isFullscreen);
-            _resolutionField.SetValueWithoutNotify(GraphicManager.Instance.GetCurrentResolutionText());
+            _resolutionField.SetValueWithoutNotify(_controller.GetCurrentResolutionText());
         }
 
         private void OnResolutionSelected(ChangeEvent<string> evt)
         {
-            int index = _resolutionField.index;
-            IReadOnlyList<Vector2Int> resolutionList = GraphicManager.Instance.GetResolutions();
-            if (index < 0 || index >= resolutionList.Count)
-            {
+            if (!_controller.SetResolutionAtIndex(_resolutionField.index))
                 return;
-            }
-
-            Vector2Int resolution = resolutionList[index];
-            GraphicManager.Instance.SetResolution(resolution.x, resolution.y);
-            _resolutionField.SetValueWithoutNotify(GraphicManager.Instance.GetCurrentResolutionText());
+            
+            _resolutionField.SetValueWithoutNotify(_controller.GetCurrentResolutionText());
         }
 
         private void OnAspectRatioChanged(ChangeEvent<string> evt)
         {
-            int index = _aspectRatioField.index;
-            if (!GraphicManager.Instance.TryGetAspectPresetAtIndex(index, out EDisplayAspect preset))
-            {
+            if (!_controller.SetAspectPresetAtIndex(_aspectRatioField.index))
                 return;
-            }
 
-            GraphicManager.Instance.SetAspectPreset(preset);
             UpdateRootLayerState();
             _resolutionField.SetValueWithoutNotify(GetCurrentResolutionText());
         }

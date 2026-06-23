@@ -1,0 +1,48 @@
+.settings-screen__panel,
+.settings-screen__tabs,
+.settings-screen__content,
+.settings-screen__footer {
+    opacity: 0;
+    translate: 0 14px;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-medium-400ms), var(--motion-duration-medium-400ms);
+    transition-delay: 0ms, 0ms;
+    transition-timing-function: ease-out, ease-out;
+}
+
+.settings-screen {
+    opacity: 1;
+    translate: 0 0;
+    transition-property: opacity, translate;
+    transition-duration: var(--motion-duration-normal-250ms), var(--motion-duration-normal-250ms);
+    transition-timing-function: ease-out, ease-out;
+}
+
+.settings-screen--closing {
+    opacity: 0;
+    translate: 0 16px;
+}
+
+.settings-screen--intro-shown .settings-screen__panel,
+.settings-screen--intro-shown .settings-screen__tabs,
+.settings-screen--intro-shown .settings-screen__content,
+.settings-screen--intro-shown .settings-screen__footer {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.settings-screen--intro-shown .settings-screen__panel {
+    transition-delay: 0ms, 0ms;
+}
+
+.settings-screen--intro-shown .settings-screen__tabs {
+    transition-delay: 80ms, 80ms;
+}
+
+.settings-screen--intro-shown .settings-screen__content {
+    transition-delay: 140ms, 140ms;
+}
+
+.settings-screen--intro-shown .settings-screen__footer {
+    transition-delay: 210ms, 210ms;
+}

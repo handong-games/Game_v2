@@ -1,15 +1,16 @@
-using Game.Core.Managers.Dependency;
 using Game.Core.Managers.View;
 using Domains.View.Widgets;
 using UnityEngine.UIElements;
 
 namespace Domains.Adventure
 {
-    public sealed partial class AdventureView : BaseView
+    public sealed partial class AdventureView : BaseView, IAdventureGameplayCueReceiver
     {
-        [Inject]
-        private AdventureController _controller;
+        private readonly AdventureController _controller;
+        private readonly AdventureWidgetEvents _widgetEvents;
+        private readonly ViewTransitionManager _viewTransitionManager;
 
+        private VisualElement _adventureRoot;
         private Banner _banner;
         private VisualElement _resourceStatusBar;
         private VisualElement _progressBar;
@@ -21,11 +22,22 @@ namespace Domains.Adventure
         private ArrowWidget _arrowWidget;
         private CoinEffectPlayer _coinEffectPlayer;
         private CoinChangeEffectPlayer _coinChangeEffectPlayer;
+        private AdventureInitialViewModel _initialViewModel;
+        private bool _introStarted;
 
-        protected override void OnBind(VisualElement root)
+        public AdventureView(
+            AdventureController controller,
+            AdventureWidgetEvents widgetEvents,
+            ViewTransitionManager viewTransitionManager)
         {
-            AdventureInitialViewModel initialViewModel = _controller.CreateInitialViewModel();
+            _controller = controller;
+            _widgetEvents = widgetEvents;
+            _viewTransitionManager = viewTransitionManager;
+        }
 
+        protected override void OnVisualTreeCloned(VisualElement root)
+        {
+            _adventureRoot = Root.Q<VisualElement>("adventure-root");
             _banner = Root.Q<Banner>("banner");
             _resourceStatusBar = Root.Q<VisualElement>("resource-status-bar");
             _progressBar = Root.Q<VisualElement>("progress-bar");
@@ -35,37 +47,50 @@ namespace Domains.Adventure
             _coinStatusWidget = Root.Q<CoinStatusWidget>("coin-status-widget");
             _endTurnWidget = Root.Q<EndTurnWidget>("end-turn-widget");
             _arrowWidget = Root.Q<ArrowWidget>("arrow-widget");
-            BindCards();
-            BindSkillSlots(initialViewModel.SkillSlots);
+            _cardBoard = Root.Q<VisualElement>("card-board");
+            _cardDeck = Root.Q<VisualElement>("card-deck");
+            _cardDealer = new CardDealer();
+            
+            _endTurnWidget?.Bind(_widgetEvents.Turn);
+            _pouch?.Bind(_widgetEvents.Pouch);
+            _cardDealer.Bind(_cardDeck, _cardBoard);
+
+            _initialViewModel = _controller.StartInitialStage();
+            _skillSlots = _initialViewModel.SkillSlots;
+            BindGameplayCueReceivers();
+            _targetingEventRoot = Root.Q<VisualElement>("adventure-root") ?? Root;
+            _skillSlotGroup = Root.Q<AdventureSkillSlotGroup>("skill-slot-group");
+            _skillSlotGroup?.Bind(_skillSlots, _widgetEvents.SkillSlot);
 
             _coinEffectPlayer = new CoinEffectPlayer();
             _coinEffectPlayer.Bind(_effectLayer);
             _coinChangeEffectPlayer = new CoinChangeEffectPlayer();
+        }
 
-            CoinFlipCueEventBus.Published += OnCoinFlipCuePublished;
-            CoinChangeCueEventBus.Published += OnCoinChangeCuePublished;
-            RegisterEvents();
+        protected override void OnShown()
+        {
+            if (_introStarted)
+                return;
+
+            _introStarted = true;
+            
+            _ = PlayIntroAnimation();
         }
 
         public override void Dispose()
         {
+            UnbindGameplayCueReceivers();
             ClearSkillPreview();
             ClearCards();
-            UnregisterEvents();
-            CoinFlipCueEventBus.Published -= OnCoinFlipCuePublished;
-            CoinChangeCueEventBus.Published -= OnCoinChangeCuePublished;
+            _pouch?.Unbind();
+            _endTurnWidget?.Unbind();
+            _skillSlotGroup?.Unbind();
+
             _coinEffectPlayer?.Clear();
+            _coinEffectPlayer = null;
+            _coinChangeEffectPlayer = null;
+            _initialViewModel = null;
             base.Dispose();
-        }
-
-        private void OnCoinFlipCuePublished(CoinFlipCueData data)
-        {
-            _ = PlayCoinFlipAsync(data);
-        }
-
-        private void OnCoinChangeCuePublished(CoinChangeCueData data)
-        {
-            _ = PlayCoinChangeAsync(data);
         }
     }
 }

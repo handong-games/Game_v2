@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Domains.Adventure;
-using Domains.Combat;
 
 namespace Domains.Event
 {
@@ -17,8 +16,5 @@ namespace Domains.Event
         public static Action<IReadOnlyList<AdventureCardViewModel>> BoardChanged;
         public static Action CardDealCompleted;
         public static Action TurnBannerRequested;
-        public static Action EnemyTurnBannerRequested;
-        public static Action StageCompleted;
-        public static Action<ECombatEndResult> CombatEnded;
     }
 }

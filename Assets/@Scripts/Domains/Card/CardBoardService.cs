@@ -1,23 +1,21 @@
 using System;
 using System.Collections.Generic;
-using Game.Core.Managers.Dependency;
 
 namespace Domains.Card
 {
-    [Dependency]
     public sealed class CardBoardService : IDisposable
     {
-        private readonly Dictionary<ECardZone, List<uint>> _cardIdsByZone = new()
+        private readonly CardBoardState _state;
+
+        public CardBoardService(CardBoardState state)
         {
-            { ECardZone.Left, new List<uint>() },
-            { ECardZone.Right, new List<uint>() },
-            { ECardZone.Removed, new List<uint>() },
-        };
+            _state = state;
+        }
 
         public void PlaceCard(ECardZone zone, uint cardId)
         {
             RemoveCardFromAllZones(cardId);
-            _cardIdsByZone[zone].Add(cardId);
+            _state.GetMutableCardIds(zone).Add(cardId);
         }
 
         public void PlaceCards(ECardZone zone, IReadOnlyList<uint> cardIds)
@@ -33,13 +31,13 @@ namespace Domains.Card
 
         public void RemoveCard(ECardZone zone, uint cardId)
         {
-            _cardIdsByZone[zone].Remove(cardId);
+            _state.GetMutableCardIds(zone).Remove(cardId);
         }
 
         public void MoveAllExcept(ECardZone zone, uint keepCardId, ECardZone targetZone)
         {
-            List<uint> source = _cardIdsByZone[zone];
-            List<uint> target = _cardIdsByZone[targetZone];
+            List<uint> source = _state.GetMutableCardIds(zone);
+            List<uint> target = _state.GetMutableCardIds(targetZone);
 
             for (int i = source.Count - 1; i >= 0; i--)
             {
@@ -54,12 +52,12 @@ namespace Domains.Card
 
         public IReadOnlyList<uint> GetCardIds(ECardZone zone)
         {
-            return _cardIdsByZone[zone];
+            return _state.GetCardIds(zone);
         }
 
         public void Clear()
         {
-            foreach (List<uint> cardIds in _cardIdsByZone.Values)
+            foreach (List<uint> cardIds in _state.GetAllZones())
             {
                 cardIds.Clear();
             }
@@ -72,7 +70,7 @@ namespace Domains.Card
 
         private void RemoveCardFromAllZones(uint cardId)
         {
-            foreach (List<uint> cardIds in _cardIdsByZone.Values)
+            foreach (List<uint> cardIds in _state.GetAllZones())
             {
                 cardIds.Remove(cardId);
             }

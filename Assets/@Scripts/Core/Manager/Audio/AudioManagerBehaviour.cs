@@ -4,14 +4,21 @@ namespace Game.Core.Managers.Audio
 {
     public sealed class AudioManagerBehaviour : MonoBehaviour
     {
+        private AudioManager _audioManager;
+
+        public void Initialize(AudioManager audioManager)
+        {
+            _audioManager = audioManager;
+        }
+
         private void OnApplicationPause(bool pauseStatus)
         {
-            AudioManager.Instance.OnApplicationPause(pauseStatus);
+            _audioManager?.OnApplicationPause(pauseStatus);
         }
 
         private void OnApplicationFocus(bool hasFocus)
         {
-            AudioManager.Instance.OnApplicationFocus(hasFocus);
+            _audioManager?.OnApplicationFocus(hasFocus);
         }
     }
 }

@@ -1,4 +1,4 @@
-using System;
+using Domains.Adventure;
 using Game.Core.Managers.View;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -14,14 +14,23 @@ namespace Domains.View.Widgets
         private const string EnterClass = "ui-transition--enter";
 
         private Button _button;
+        private AdventureTurnWidgetEvents _events;
         private bool _isShown;
-
-        public event Action Clicked;
 
         public EndTurnWidget()
         {
             RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
+        }
+
+        public void Bind(AdventureTurnWidgetEvents events)
+        {
+            _events = events;
+        }
+
+        public void Unbind()
+        {
+            _events = null;
         }
 
         public async Awaitable Show()
@@ -60,7 +69,7 @@ namespace Domains.View.Widgets
 
         private void OnClicked()
         {
-            Clicked?.Invoke();
+            _events?.EndTurnClicked?.Invoke();
         }
 
         private void SetClickable(bool clickable)

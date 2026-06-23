@@ -1,28 +1,47 @@
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Game.Core.Managers.View
 {
-    public sealed class ViewTransitionManager : BaseManager<ViewTransitionManager>
+    // TODO: Remove Instance after UI Toolkit widgets receive ViewTransitionManager through Bind/context.
+    public sealed class ViewTransitionManager : IDisposable
     {
         private readonly string[] _transitionClasses = new string[(int)EViewTransitionType.Count];
         private readonly Dictionary<VisualElement, ActiveTransition> _activeTransitions = new();
+        private bool _initialized;
 
-        protected override void OnInit()
+        public static ViewTransitionManager Instance { get; private set; }
+
+        public ViewTransitionManager()
         {
+            Instance = this;
+        }
+
+        public void Initialize()
+        {
+            if (_initialized)
+                return;
+
+            _initialized = true;
             _transitionClasses[(int)EViewTransitionType.FadeIn] = "view-transition--fade-in";
             _transitionClasses[(int)EViewTransitionType.FadeOut] = "view-transition--fade-out";
         }
 
-        protected override void OnDispose()
+        public void Dispose()
         {
+            if (!_initialized)
+                return;
+
+            _initialized = false;
             foreach (ActiveTransition transition in _activeTransitions.Values)
             {
                 transition.Dispose();
             }
 
             _activeTransitions.Clear();
+            Instance = null;
         }
 
         public async Awaitable Play(VisualElement visualElement, EViewTransitionType transitionType)

@@ -13,4 +13,8 @@ MonoBehaviour:
   m_Name: CardDeckTable
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.CardDeckTable
   _rows:
-  - {fileID: 11400000, guid: 8410e6f85aca41dda278d4659cb6626f, type: 2}
+  - m_AssetGUID: 8410e6f85aca41dda278d4659cb6626f
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0

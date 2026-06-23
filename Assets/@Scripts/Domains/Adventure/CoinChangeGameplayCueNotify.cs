@@ -48,7 +48,10 @@ namespace Domains.Adventure
             if (entries.Count == 0)
                 return;
 
-            CoinChangeCueEventBus.Publish(new CoinChangeCueData(entries));
+            IAdventureGameplayCueReceiver receiver =
+                target.GetAvatar<IAdventureGameplayCueReceiver>();
+
+            receiver?.HandleCoinChangeCue(new CoinChangeCueData(entries));
         }
     }
 }

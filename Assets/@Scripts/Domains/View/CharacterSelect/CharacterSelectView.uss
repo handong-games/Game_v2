@@ -37,7 +37,7 @@
     transition-timing-function: ease-out;
 }
 
-.character-select__blocker--active {
+.character-select--shown .character-select__blocker {
     background-color: rgba(0, 0, 0, 1);
 }
 
@@ -67,7 +67,7 @@
     flex-shrink: 0;
 }
 
-.character-select__header--visible {
+.character-select--shown .character-select__header {
     opacity: 1;
     translate: 0 0;
 }
@@ -111,16 +111,39 @@
     translate: 0 18px;
     transition-property: opacity, translate;
     transition-duration: var(--motion-duration-medium-400ms), var(--motion-duration-medium-400ms);
+    transition-delay: 0ms, 0ms;
     transition-timing-function: ease-out, ease-out;
 }
 
-.character-select__card--visible {
+.character-select--shown .character-select__card {
     opacity: 1;
     translate: 0 0;
 }
 
+.character-select--shown #card-0 {
+    transition-delay: 120ms, 120ms;
+}
+
+.character-select--shown #card-1 {
+    transition-delay: 200ms, 200ms;
+}
+
+.character-select--shown #card-2 {
+    transition-delay: 280ms, 280ms;
+}
+
 .character-select__card--empty {
     display: none;
+}
+
+.character-select__card-feedback {
+    width: 100%;
+    height: 100%;
+    translate: 0 0;
+    transition-property: translate;
+    transition-duration: var(--motion-duration-short-160ms);
+    transition-delay: 0ms;
+    transition-timing-function: ease-out;
 }
 
 .character-select__card-template {
@@ -147,6 +170,14 @@
 .character-select__card--subdued .card__overlay {
     opacity: 1;
     background-color: rgba(0, 0, 0, 0.18);
+}
+
+.character-select__card-feedback.character-select__card--locked-feedback-left {
+    translate: -10px 0;
+}
+
+.character-select__card-feedback.character-select__card--locked-feedback-right {
+    translate: 10px 0;
 }
 
 .character-select__detail {
@@ -176,6 +207,7 @@
     translate: 0 10px;
     transition-property: opacity, translate;
     transition-duration: var(--motion-duration-normal-250ms), var(--motion-duration-normal-250ms);
+    transition-delay: 0ms, 0ms;
     transition-timing-function: ease-out, ease-out;
     overflow: visible;
 }
@@ -183,6 +215,7 @@
 .character-select__detail-panel--visible {
     opacity: 1;
     translate: 0 0;
+    transition-delay: 70ms, 70ms;
 }
 
 .character-select__detail-name {
@@ -253,12 +286,14 @@
     opacity: 0;
     transition-property: opacity;
     transition-duration: var(--motion-duration-normal-250ms);
+    transition-delay: 0ms;
     transition-timing-function: ease-out;
     overflow: hidden;
 }
 
-.character-select__navigation--visible {
+.character-select--shown .character-select__navigation {
     opacity: 1;
+    transition-delay: 420ms;
 }
 
 .character-select__navigation-button {

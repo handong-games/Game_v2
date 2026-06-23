@@ -1,9 +1,7 @@
-using Game.Core.Managers.Dependency;
 using UnityEngine;
 
 namespace Game.Core.Managers.Save
 {
-    [Dependency]
     public sealed class AudioSettingsState : ISave<AudioSettingsSave>
     {
         public float MasterVolume { get; set; } = 0.5f;

@@ -11,13 +11,10 @@ namespace Domains.Adventure
 {
     using CardActor = global::Domains.Card.Card;
 
-    public sealed class CardDealer
+    public sealed partial class CardDealer
     {
         private const int MaxCardCount = 3;
         private const float CardSpacing = 264f;
-        private const float StartScale = 0.28f;
-        private const float DealFallbackSeconds = 0.8f;
-        private const string CardDealEnterClass = "card-deal--enter";
 
         private readonly List<VisualElement> _cards = new();
         private readonly List<VisualElement> _leftCards = new();
@@ -217,12 +214,6 @@ namespace Domains.Adventure
             return CombatCardWidget.Create();
         }
 
-        private static void PrepareCardBeforeLayout(VisualElement card)
-        {
-            card.style.opacity = 0f;
-            card.style.scale = new Scale(new Vector2(StartScale, StartScale));
-        }
-
         private static async Awaitable ShowHealthWidgetAsync(CombatCardWidget cardWidget, System.Action onCompleted)
         {
             await cardWidget.ShowHealthAsync();
@@ -271,81 +262,6 @@ namespace Domains.Adventure
             {
                 cardWidget.Unbind();
             }
-        }
-
-        private void PrepareCardFromDeck(VisualElement card)
-        {
-            Vector2 deckCenter = _cardDeck.worldBound.center;
-            Vector2 cardCenter = card.worldBound.center;
-            Vector2 offset = deckCenter - cardCenter;
-
-            card.RemoveFromClassList(CardDealEnterClass);
-            card.style.opacity = 0f;
-            card.style.scale = new Scale(new Vector2(StartScale, StartScale));
-            card.style.translate = new Translate(
-                new Length(offset.x, LengthUnit.Pixel),
-                new Length(offset.y, LengthUnit.Pixel));
-        }
-
-        private async Awaitable PlayDealEnterAsync(VisualElement card)
-        {
-            AwaitableCompletionSource completionSource = new();
-            bool completed = false;
-
-            EventCallback<TransitionEndEvent> onTransitionEnd = evt =>
-            {
-                if (evt.target != card || completed)
-                    return;
-
-                completed = true;
-                completionSource.SetResult();
-            };
-
-            EventCallback<TransitionCancelEvent> onTransitionCancel = evt =>
-            {
-                if (evt.target != card || completed)
-                    return;
-
-                completed = true;
-                completionSource.SetResult();
-            };
-
-            card.RegisterCallback(onTransitionEnd);
-            card.RegisterCallback(onTransitionCancel);
-            _ = CompleteDealAfterFallback(() =>
-            {
-                if (completed)
-                    return;
-
-                completed = true;
-                completionSource.SetResult();
-            });
-
-            await Awaitable.NextFrameAsync();
-
-            card.AddToClassList(CardDealEnterClass);
-
-            await Awaitable.NextFrameAsync();
-
-            ClearDealStartStyle(card);
-
-            await completionSource.Awaitable;
-
-            card.UnregisterCallback(onTransitionEnd);
-            card.UnregisterCallback(onTransitionCancel);
-        }
-
-        private static async Awaitable CompleteDealAfterFallback(Action complete)
-        {
-            await Awaitable.WaitForSecondsAsync(DealFallbackSeconds);
-            complete();
-        }
-
-        private static void ClearDealStartStyle(VisualElement card)
-        {
-            card.style.opacity = StyleKeyword.Null;
-            card.style.scale = StyleKeyword.Null;
-            card.style.translate = StyleKeyword.Null;
         }
 
         private static float GetOffsetX(int index, int totalCount)

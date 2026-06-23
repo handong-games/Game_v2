@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using System;
-using Game.Core.Managers.Save;
+using System.Collections.Generic;
 using Game.Core.Managers.View;
+using Game.Core.Ports;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -11,6 +11,9 @@ namespace Domains.Settings.View
     {
         private const string ActiveTabButtonClass = "settings-screen__tab-button--active";
         private const string ActiveTabPanelClass = "settings-screen__tab-panel--active";
+        private const string IntroShownClass = "settings-screen--intro-shown";
+        private const string ClosingClass = "settings-screen--closing";
+        private const int DefaultTabIndex = 1;
 
         private VisualElement _screenRoot;
         private Button _tabGeneral;
@@ -20,14 +23,26 @@ namespace Domains.Settings.View
         private VisualElement _graphicsPanel;
         private VisualElement _audioPanel;
         private Button _closeButton;
+        private readonly SettingsViewController _controller;
+        private readonly IViewHost _viewHost;
         private Action _onGeneralTabClicked;
         private Action _onGraphicsTabClicked;
         private Action _onAudioTabClicked;
 
         private readonly List<Button> _tabButtons = new();
         private readonly List<VisualElement> _tabPanels = new();
+        private int _selectedTabIndex = DefaultTabIndex;
+        private bool _isClosing;
 
-        protected override void OnBind(VisualElement root)
+        public SettingsView(
+            SettingsViewController controller,
+            IViewHost viewHost)
+        {
+            _controller = controller ?? throw new ArgumentNullException(nameof(controller));
+            _viewHost = viewHost ?? throw new ArgumentNullException(nameof(viewHost));
+        }
+
+        protected override void OnVisualTreeCloned(VisualElement root)
         {
             if (Root.childCount == 0)
                 return;
@@ -41,6 +56,7 @@ namespace Domains.Settings.View
             _audioPanel = Root.Q<VisualElement>("audio-tab-content");
             _closeButton = Root.Q<Button>("settings-close-button");
 
+            _screenRoot.RegisterCallback<TransitionEndEvent>(OnCloseTransitionEnd);
             _closeButton.clicked += OnClose;
             _onGeneralTabClicked = () => SelectTab(0);
             _onGraphicsTabClicked = () => SelectTab(1);
@@ -66,13 +82,32 @@ namespace Domains.Settings.View
             OnBindGeneral();
             OnBindGraphics();
             OnBindAudio();
+        }
 
+        protected override void OnShown()
+        {
+            ResetCloseState();
+            RefreshGeneral();
+            RefreshGraphics();
+            RefreshAudio();
             UpdateRootLayerState();
-            SelectTab(1);
+            SelectTab(_selectedTabIndex);
+            ResetIntroState();
+            _ = PlayIntroAnimation();
+        }
+
+        protected override void OnHidden()
+        {
+            ResetIntroState();
         }
 
         public override void Dispose()
         {
+            if (_screenRoot != null)
+            {
+                _screenRoot.UnregisterCallback<TransitionEndEvent>(OnCloseTransitionEnd);
+            }
+
             OnUnbindGeneral();
             OnUnbindGraphics();
             OnUnbindAudio();
@@ -86,39 +121,50 @@ namespace Domains.Settings.View
                 _tabGraphics.clicked -= _onGraphicsTabClicked;
             if (_tabAudio != null && _onAudioTabClicked != null)
                 _tabAudio.clicked -= _onAudioTabClicked;
+
+            base.Dispose();
         }
 
         private void SelectTab(int index)
         {
+            int maxIndex = Math.Min(_tabButtons.Count, _tabPanels.Count) - 1;
+            if (maxIndex < 0)
+                return;
+
+            _selectedTabIndex = Math.Max(0, Math.Min(index, maxIndex));
+
             for (int i = 0; i < _tabButtons.Count; i++)
-                _tabButtons[i]?.EnableInClassList(ActiveTabButtonClass, i == index);
+                _tabButtons[i]?.EnableInClassList(ActiveTabButtonClass, i == _selectedTabIndex);
 
             for (int i = 0; i < _tabPanels.Count; i++)
-                _tabPanels[i]?.EnableInClassList(ActiveTabPanelClass, i == index);
+                _tabPanels[i]?.EnableInClassList(ActiveTabPanelClass, i == _selectedTabIndex);
         }
 
         private void OnClose()
         {
-            SaveManager.Instance.SaveAll();
-            ViewManager.Instance.Pop();
+            if (_isClosing)
+                return;
+
+            PlayCloseAnimation();
+        }
+
+        private void OnCloseAnimationCompleted()
+        {
+            _isClosing = false;
+            _controller?.OnClose();
         }
 
         private void UpdateRootLayerState()
         {
-            VisualElement rootLayer = ViewManager.Instance.RootLayer;
+            VisualElement rootLayer = _viewHost.RootLayer;
             if (rootLayer == null)
                 return;
 
+            int displayCount = Mathf.Max(Display.displays.Length, 1);
             rootLayer.EnableInClassList("app--fullscreen", false);
             rootLayer.EnableInClassList("app--windowed", true);
-            rootLayer.EnableInClassList("app--single-display", Mathf.Max(Display.displays.Length, 1) <= 1);
-            rootLayer.EnableInClassList("app--multi-display", Mathf.Max(Display.displays.Length, 1) > 1);
-        }
-
-        private void UpdateFullscreenVisualState(bool isFullscreen)
-        {
-            _screenRoot.EnableInClassList("settings-screen--fullscreen", isFullscreen);
-            _screenRoot.EnableInClassList("settings-screen--windowed", !isFullscreen);
+            rootLayer.EnableInClassList("app--single-display", displayCount <= 1);
+            rootLayer.EnableInClassList("app--multi-display", displayCount > 1);
         }
     }
 }

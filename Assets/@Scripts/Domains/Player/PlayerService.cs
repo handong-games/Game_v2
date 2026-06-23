@@ -1,38 +1,39 @@
 using System;
-using Game.Core.Managers.Dependency;
 using Game.Data;
 
 namespace Domains.Player
 {
     using Card = global::Domains.Card.Card;
 
-    [Dependency]
     public sealed class PlayerService : IDisposable
     {
-        private Card _currentPlayerCard;
+        private readonly PlayerRunState _state;
 
-        public PlayerState CurrentPlayer { get; private set; }
-
-        public void Initialize(CharacterModel character, uint seed)
+        public PlayerService(PlayerRunState state)
         {
-            CurrentPlayer = new PlayerState(character);
-            _currentPlayerCard = null;
+            _state = state ?? throw new ArgumentNullException(nameof(state));
+        }
+
+        public PlayerState CurrentPlayer => _state.CurrentPlayer;
+
+        public void Initialize(CharacterModel character)
+        {
+            _state.Initialize(character);
         }
 
         public void Dispose()
         {
-            CurrentPlayer = null;
-            _currentPlayerCard = null;
+            _state.Clear();
         }
 
         public void SetPlayerCard(Card card)
         {
-            _currentPlayerCard = card;
+            _state.SetPlayerCard(card);
         }
 
         public Card GetPlayerCard()
         {
-            return _currentPlayerCard;
+            return _state.CurrentPlayerCard;
         }
     }
 }

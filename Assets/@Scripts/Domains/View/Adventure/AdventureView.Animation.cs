@@ -1,40 +1,40 @@
-using UnityEngine;
 using Domains.Combat;
+using Domains.Player;
 using Game.Core.Managers.View;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Domains.Adventure
 {
     public sealed partial class AdventureView
     {
-        private const string ResourceStatusBarHiddenClass = "resource-status-bar--hidden";
-        private const string ResourceStatusBarEnterClass = "resource-status-bar--enter";
-
-        private const string ProgressBarHiddenClass = "progress-bar--hidden";
-        private const string ProgressBarEnterClass = "progress-bar--enter";
-        private const string ProgressBarTrackFillHiddenClass = "progress-bar__track-fill--hidden";
-        private const string ProgressBarTrackFillEnterClass = "progress-bar__track-fill--enter";
-
-        private const string CardDeckHiddenClass = "card-deck--hidden";
-        private const string CardDeckEnterClass = "card-deck--enter";
-
+        private const string AdventureIntroShownClass = "adventure-view--intro-shown";
         private const int TurnBannerExitStartMs = 1200;
 
         private async Awaitable PlayIntroAnimation()
         {
-            PrepareResourceStatusBarIntro();
-            PrepareProgressBarIntro();
-            PrepareCardDeckIntro();
+            // Reset Animation
+            _adventureRoot?.RemoveFromClassList(AdventureIntroShownClass);
 
-            ViewTransitionTimeline timeline = new ViewTransitionTimeline()
-                .Run(0, _banner.PresentConfiguredRegion)
-                .Play(1700, _resourceStatusBar, ResourceStatusBarEnterClass)
-                .Play(2050, _progressBar, ProgressBarEnterClass)
-                .Play(2300, _progressBarTrackFill, ProgressBarTrackFillEnterClass)
-                .Play(2600, _cardDeck, CardDeckEnterClass);
+            Awaitable introCompletion = WaitForIntroCompletion();
 
-            await ViewTransitionManager.Instance.Play(timeline);
+            if (_banner != null)
+            {
+                _ = _banner.PresentConfiguredRegion();
+            }
 
-            _controller.OnIntroAnimationCompleted();
+            await Awaitable.NextFrameAsync();
+
+            _adventureRoot?.AddToClassList(AdventureIntroShownClass);
+            await introCompletion;
+
+            if (_cardDealer == null || _initialViewModel == null)
+                return;
+
+            UnregisterCardEvents();
+            await _cardDealer.DealAsync(_initialViewModel.BoardCards);
+            RegisterCardEvents();
+            await PlayTurnBannerAnimation();
         }
 
         private async Awaitable PlayTurnBannerAnimation()
@@ -47,7 +47,7 @@ namespace Domains.Adventure
                 .Run(20, _cardDealer.ShowHealthWidgetsAsync)
                 .Run(TurnBannerExitStartMs, _pouch.Show);
 
-            await ViewTransitionManager.Instance.Play(timeline);
+            await _viewTransitionManager.Play(timeline);
         }
 
         private Awaitable PlayEnemyTurnBannerAnimation()
@@ -55,39 +55,64 @@ namespace Domains.Adventure
             return _banner.PresentEnemyTurn();
         }
 
-        private void PrepareResourceStatusBarIntro()
+        private async Awaitable PlayCoinFlipAsync(CoinFlipCueData data)
         {
-            if (_resourceStatusBar == null)
+            if (data == null)
                 return;
 
-            _resourceStatusBar.RemoveFromClassList(ResourceStatusBarEnterClass);
-            _resourceStatusBar.AddToClassList(ResourceStatusBarHiddenClass);
+            await _coinEffectPlayer.Play(
+                data,
+                _pouch,
+                _coinStatusWidget.GetTarget(ECoinFace.Heads),
+                _coinStatusWidget.GetTarget(ECoinFace.Tails),
+                _coinStatusWidget.Add);
+
+            await ShowSkillSlots();
+            await _endTurnWidget.Show();
         }
 
-        private void PrepareProgressBarIntro()
+        private async Awaitable PlayCoinChangeAsync(CoinChangeCueData data)
         {
-            if (_progressBar == null ||
-                _progressBarTrackFill == null)
-            {
+            if (data == null || !data.HasEntries)
                 return;
-            }
 
-            _progressBar.RemoveFromClassList(ProgressBarEnterClass);
-            _progressBar.AddToClassList(ProgressBarHiddenClass);
-
-            _progressBarTrackFill.RemoveFromClassList(ProgressBarTrackFillEnterClass);
-            _progressBarTrackFill.AddToClassList(ProgressBarTrackFillHiddenClass);
+            await _coinStatusWidget.Show();
+            await _coinChangeEffectPlayer.Play(
+                data,
+                (face, delta) => _coinStatusWidget.ApplyDelta(face, delta));
         }
 
-        private void PrepareCardDeckIntro()
+        private Awaitable WaitForIntroCompletion()
         {
-            if (_cardDeck == null)
+            if (_adventureRoot == null || _cardDeck == null)
             {
-                return;
+                return Awaitable.NextFrameAsync();
             }
 
-            _cardDeck.RemoveFromClassList(CardDeckEnterClass);
-            _cardDeck.AddToClassList(CardDeckHiddenClass);
+            AwaitableCompletionSource completionSource = new();
+            bool completed = false;
+            EventCallback<TransitionEndEvent> onTransitionEnd = null;
+
+            void Complete()
+            {
+                if (completed)
+                    return;
+
+                completed = true;
+                _cardDeck.UnregisterCallback(onTransitionEnd);
+                completionSource.SetResult();
+            }
+
+            onTransitionEnd = evt =>
+            {
+                if (evt.target != _cardDeck)
+                    return;
+
+                Complete();
+            };
+
+            _cardDeck.RegisterCallback(onTransitionEnd);
+            return completionSource.Awaitable;
         }
     }
 }

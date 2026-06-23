@@ -4,8 +4,14 @@ namespace Game.Core.Managers.View
 {
     public sealed class ViewManagerBehavior : MonoBehaviour
     {
+        private ViewManager _viewManager;
         private int _lastWidth;
         private int _lastHeight;
+
+        public void Initialize(ViewManager viewManager)
+        {
+            _viewManager = viewManager;
+        }
 
         private void Awake()
         {
@@ -23,7 +29,7 @@ namespace Game.Core.Managers.View
                 _lastWidth = currentWidth;
                 _lastHeight = currentHeight;
 
-                ViewManager.Instance.OnViewportSizeChanged(currentWidth, currentHeight);
+                _viewManager?.OnViewportSizeChanged(currentWidth, currentHeight);
             }
         }
     }

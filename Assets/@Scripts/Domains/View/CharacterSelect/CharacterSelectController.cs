@@ -1,57 +1,48 @@
 using System;
 using System.Collections.Generic;
 using Domains.Adventure;
-using Domains.Card;
 using Domains.Character;
-using Domains.Combat;
-using Domains.Player;
-using Domains.Scene;
+using Domains.Scene.Title;
+using Game.Core.Adapters;
+using Game.Core.SceneLoading;
 using Game.AbilitySystem.Abilities;
 using Game.AbilitySystem.Attributes;
-using Game.Core.Managers.Dependency;
-using Game.Core.Managers.Scene;
-using Game.Core.Managers.Save;
 using Game.Data;
 using Game.Generated;
 
 namespace Domains.CharacterSelect
 {
-    using Card = global::Domains.Card.Card;
-
-    [Dependency(nameof(TitleScene))]
     public sealed class CharacterSelectController : IDisposable
     {
-        [Inject]
-        private AdventureService _adventureService;
+        private readonly CharacterService _characterService;
+        private readonly AdventureStartState _adventureStartState;
+        private readonly SceneManagerEx _sceneManager;
+        private readonly ICharacterUnlockGateway _unlockGateway;
+        private readonly TitleSceneNavigator _navigator;
 
-        [Inject]
-        private CardDeckService _cardDeckService;
-
-        [Inject]
-        private PlayerService _playerService;
-
-        [Inject]
-        private CardService _cardService;
-
-        [Inject]
-        private CardBoardService _cardBoardService;
-
-        [Inject]
-        private CombatService _combatService;
-
-        [Inject]
-        private CharacterService _characterService;
+        public CharacterSelectController(
+            CharacterService characterService,
+            AdventureStartState adventureStartState,
+            SceneManagerEx sceneManager,
+            ICharacterUnlockGateway unlockGateway,
+            TitleSceneNavigator navigator)
+        {
+            _characterService = characterService;
+            _adventureStartState = adventureStartState;
+            _sceneManager = sceneManager;
+            _unlockGateway = unlockGateway;
+            _navigator = navigator;
+        }
 
         public CharacterSelectInitialViewModel CreateInitialViewModel()
         {
             IReadOnlyList<CharacterModel> characters = _characterService.GetAll();
-            ProgressState progress = SaveManager.Instance.GetState<ProgressState>();
             CharacterSelectCardViewModel[] viewModels = new CharacterSelectCardViewModel[characters.Count];
 
             for (int i = 0; i < characters.Count; i++)
             {
                 CharacterModel character = characters[i];
-                bool isLocked = !progress.IsUnlocked(character.Id);
+                bool isLocked = !_unlockGateway.IsUnlocked(character.Id);
                 float maxHealth = 0f;
                 _characterService.TryGetInitialAttributeValue(
                     character.Id,
@@ -82,8 +73,7 @@ namespace Domains.CharacterSelect
 
         public bool IsUnlocked(ECharacter characterId)
         {
-            ProgressState progress = SaveManager.Instance.GetState<ProgressState>();
-            return progress.IsUnlocked(characterId);
+            return _unlockGateway.IsUnlocked(characterId);
         }
 
         public void StartNewAdventure(ECharacter selectedCharacterId)
@@ -91,19 +81,13 @@ namespace Domains.CharacterSelect
             if (!IsUnlocked(selectedCharacterId))
                 return;
 
-            AdventureSession adventure = _adventureService.StartNew(selectedCharacterId);
-            CharacterModel characterModel = _characterService.Get(selectedCharacterId);
+            _adventureStartState.SelectedCharacterId = selectedCharacterId;
+            _sceneManager.Load(GameSceneId.Adventure);
+        }
 
-            _cardService.Clear();
-            _cardBoardService.Clear();
-            Card playerCard = _cardService.Create(characterModel);
-            _playerService.Initialize(characterModel, adventure.Seed);
-            _playerService.SetPlayerCard(playerCard);
-            _cardDeckService.Initialize(
-                adventure.CardDeckId,
-                adventure.Seed);
-
-            SceneManagerEx.Instance.LoadScene<AdventureScene>();
+        public void OnBackClosed()
+        {
+            _navigator.HideCurrent();
         }
 
         public void Dispose()

@@ -22,7 +22,7 @@ namespace Domains.View.Widgets
         private bool _hasPendingViewModel;
         private bool _isAvailable = true;
 
-        public event Action<SkillSlotWidget, bool> AvailableChanged;
+        internal event Action<SkillSlotWidget, bool> AvailableChanged;
 
         public SkillSlotWidget()
         {

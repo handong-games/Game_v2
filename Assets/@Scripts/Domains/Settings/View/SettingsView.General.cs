@@ -1,4 +1,4 @@
-using Game.Core.Managers.Locale;
+using System.Collections.Generic;
 using UnityEngine.UIElements;
 
 namespace Domains.Settings.View
@@ -10,8 +10,12 @@ namespace Domains.Settings.View
         private void OnBindGeneral()
         {
             _languageField = Bind<DropdownField, string>("language-field", OnLanguageChanged);
-            _languageField.choices = LocaleManager.Instance.GetLocaleLabels();
-            _languageField.SetValueWithoutNotify(LocaleManager.Instance.CurrentLocale.LocaleName);
+        }
+
+        private void RefreshGeneral()
+        {
+            _languageField.choices = new List<string>(_controller.GetLocaleLabels());
+            _languageField.SetValueWithoutNotify(_controller.GetCurrentLocaleName());
         }
 
         private void OnUnbindGeneral()
@@ -21,7 +25,7 @@ namespace Domains.Settings.View
 
         private void OnLanguageChanged(ChangeEvent<string> evt)
         {
-            LocaleManager.Instance.SetLanguage(_languageField.index);
+            _controller.SetLanguage(_languageField.index);
         }
     }
 }

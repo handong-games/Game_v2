@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
+using Domains.Combat.Intent.Data;
 using Game.AbilitySystem.Attributes;
 using Game.Core.Managers.DB;
-using Game.Core.Managers.Dependency;
 using Game.Generated;
 using Gameplay.GAS;
 using UnityEngine;
@@ -18,7 +19,14 @@ namespace Game.Data
         [SerializeField]
         private LocalizedString _localizedName;
 
+        [Header("Intent")]
+        [SerializeField]
+        private IntentActionModel[] _actionSequence;
+
         public LocalizedString LocalizedName => _localizedName;
+        public IReadOnlyList<IntentActionModel> ActionSequence =>
+            _actionSequence ?? Array.Empty<IntentActionModel>();
+
         public override IReadOnlyList<GameplayTag> OwnedTags => _runtimeOwnedTags ??=
             CardGameplayTags.Combine(
                 base.OwnedTags,
@@ -32,17 +40,23 @@ namespace Domains.Monster
 {
     using Game.Data;
 
-    [Dependency]
     public sealed class MonsterService
     {
+        private readonly DBManager _dbManager;
+
+        public MonsterService(DBManager dbManager)
+        {
+            _dbManager = dbManager;
+        }
+
         public MonsterModel Get(EMonster id)
         {
-            return DBManager.Instance.Monster.Get(id);
+            return _dbManager.Monster.Get(id);
         }
 
         public IReadOnlyList<MonsterModel> GetAll()
         {
-            return DBManager.Instance.Monster.GetAll();
+            return _dbManager.Monster.GetAll();
         }
 
         public bool TryGetInitialAttributeValue(

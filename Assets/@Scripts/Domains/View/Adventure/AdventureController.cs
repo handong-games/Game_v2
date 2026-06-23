@@ -1,13 +1,9 @@
-using System;
 using System.Collections.Generic;
 using Domains.Card;
 using Domains.Combat;
-using Domains.Event;
 using Domains.Player;
-using Domains.Scene;
 using Game.AbilitySystem;
 using Game.Core.Managers.DB;
-using Game.Core.Managers.Dependency;
 using Game.Data;
 using Gameplay.GAS;
 
@@ -15,26 +11,32 @@ namespace Domains.Adventure
 {
     using Card = global::Domains.Card.Card;
 
-    [Dependency(nameof(AdventureScene))]
-    public sealed partial class AdventureController : IDisposable
+    public sealed partial class AdventureController
     {
-        [Inject] private PlayerService _playerService;
-        [Inject] private AdventureService _adventureService;
-        [Inject] private CardDeckService _cardDeckService;
-        [Inject] private CardService _cardService;
-        [Inject] private CardBoardService _cardBoardService;
-        [Inject] private CombatService _combatService;
+        private readonly PlayerService _playerService;
+        private readonly AdventureService _adventureService;
+        private readonly CardDeckService _cardDeckService;
+        private readonly CardService _cardService;
+        private readonly CardBoardService _cardBoardService;
+        private readonly CombatService _combatService;
+        private readonly AdventureEvents _events;
 
-        public void StartAdventure()
+        public AdventureController(
+            PlayerService playerService,
+            AdventureService adventureService,
+            CardDeckService cardDeckService,
+            CardService cardService,
+            CardBoardService cardBoardService,
+            CombatService combatService,
+            AdventureEvents events)
         {
-            RegisterEvents();
-
-            AdventureEvents.AdventureStarted?.Invoke();
-        }
-
-        public void Dispose()
-        {
-            UnregisterEvents();
+            _playerService = playerService;
+            _adventureService = adventureService;
+            _cardDeckService = cardDeckService;
+            _cardService = cardService;
+            _cardBoardService = cardBoardService;
+            _combatService = combatService;
+            _events = events;
         }
 
         public void OnPouchClicked()
@@ -51,9 +53,12 @@ namespace Domains.Adventure
             playerCard.AbilitySystem.HandleGameplayEvent(eventData);
         }
 
-        public AdventureInitialViewModel CreateInitialViewModel()
+        public AdventureInitialViewModel StartInitialStage()
         {
-            return new AdventureInitialViewModel(GetSkillSlotViewModels());
+            InitStage();
+            return new AdventureInitialViewModel(
+                GetSkillSlotViewModels(),
+                CreateBoardCards());
         }
 
         public CombatTurnViewModel GetCombatTurnViewModel()
@@ -61,11 +66,6 @@ namespace Domains.Adventure
             return new CombatTurnViewModel(
                 _combatService.CurrentSide,
                 _combatService.RoundNumber);
-        }
-
-        public void OnIntroAnimationCompleted()
-        {
-            InitStage();
         }
 
         public void OnCardClicked(uint cardId)
@@ -79,7 +79,7 @@ namespace Domains.Adventure
             _cardService.Replace(cardId, resolvedModel, CardViewModelFactory.GetDefaultFace(resolvedModel));
 
             _cardBoardService.MoveAllExcept(ECardZone.Right, cardId, ECardZone.Removed);
-            AdventureEvents.BoardChanged?.Invoke(CreateBoardCards());
+            _events.Board.RefreshRequested?.Invoke(CreateBoardCards());
         }
 
         public void OnEndTurnClicked()
@@ -90,32 +90,6 @@ namespace Domains.Adventure
         public void OnEnemyTurnCompleted()
         {
             _combatService.NextTurn();
-        }
-
-        private void RegisterEvents()
-        {
-            AdventureEvents.CardDealCompleted += OnCardDealCompleted;
-            AdventureEvents.StageCompleted += OnStageCompleted;
-        }
-
-        private void UnregisterEvents()
-        {
-            AdventureEvents.CardDealCompleted -= OnCardDealCompleted;
-            AdventureEvents.StageCompleted -= OnStageCompleted;
-        }
-
-        private void OnCardDealCompleted()
-        {
-            if (_adventureService.GetCurrentStageType() == EAdventureStageType.Choice)
-                return;
-
-            AdventureEvents.TurnBannerRequested?.Invoke();
-        }
-
-        private void OnStageCompleted()
-        {
-            _adventureService.AdvanceStage();
-            NextStage();
         }
 
         private void InitStage()
@@ -146,28 +120,6 @@ namespace Domains.Adventure
             }
 
             ReadyCombat(cards);
-            AdventureEvents.CardsDrawn?.Invoke(CreateBoardCards());
-        }
-
-        private void NextStage()
-        {
-            AdventureStageDto currentStageDto = _adventureService.GetCurrentStage();
-
-            List<Card> cards = new();
-
-            IReadOnlyList<CardModelBase> models = _cardDeckService.DrawCards(currentStageDto.DrawCount);
-            for (int i = 0; i < models.Count; i++)
-            {
-                cards.Add(_cardService.Create(models[i]));
-            }
-
-            _cardBoardService.Clear();
-            for (int i = 0; i < cards.Count; i++)
-            {
-                _cardBoardService.PlaceCard(GetZone(cards[i].Model), cards[i].CardId);
-            }
-
-            AdventureEvents.CardsDrawn?.Invoke(CreateBoardCards());
         }
 
         private IReadOnlyList<AdventureCardViewModel> CreateBoardCards()

@@ -2,35 +2,36 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Game.Core.Managers.Dependency;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace Game.Core.Managers.Save
 {
-    [ManagerDependency(typeof(DependencyManager))]
-    public sealed class SaveManager : BaseManager<SaveManager>
+    public sealed class SaveManager : IDisposable
     {
         private readonly List<SaveEntry> _entries = new();
         private readonly Dictionary<Type, object> _states = new();
+        private bool _initialized;
 
-        protected override void OnInit()
+        public void Initialize()
         {
+            if (_initialized)
+                return;
+
+            _initialized = true;
             Application.quitting += SaveAll;
-        }
 
-        protected override void OnPostInit()
-        {
-            // Register save states after all managers finish OnInit.
             RegisterAll();
-
-            // Load saved data into registered states before gameplay starts.
             LoadAll();
         }
 
-        protected override void OnDispose()
+        public void Dispose()
         {
+            if (!_initialized)
+                return;
+
+            _initialized = false;
             Application.quitting -= SaveAll;
 
             _entries.Clear();
@@ -38,10 +39,10 @@ namespace Game.Core.Managers.Save
         }
 
         public void Register<TState, TSave>(string fileName, string sectionName)
-            where TState : class, ISave<TSave>
+            where TState : class, ISave<TSave>, new()
             where TSave : SaveData, new()
         {
-            TState state = DependencyManager.Instance.Resolve<TState>();
+            TState state = new TState();
             _states[typeof(TState)] = state;
 
             _entries.Add(new SaveEntry(

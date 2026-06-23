@@ -13,4 +13,8 @@ MonoBehaviour:
   m_Name: MonsterTable
   m_EditorClassIdentifier: Assembly-CSharp::Game.Data.MonsterTable
   _rows:
-  - {fileID: 11400000, guid: 98b67d0572804b1c9f87c3c625f0f714, type: 2}
+  - m_AssetGUID: 98b67d0572804b1c9f87c3c625f0f714
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
