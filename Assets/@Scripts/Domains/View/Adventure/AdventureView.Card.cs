@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Domains.Player;
+using Domains.View.Widgets;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -10,28 +11,44 @@ namespace Domains.Adventure
         private const string TargetHoverClass = "card--target-hover";
 
         private readonly List<VisualElement> _registeredCards = new();
+        private readonly Dictionary<VisualElement, uint> _cardIdsByElement = new();
 
         private VisualElement _cardBoard;
         private VisualElement _cardDeck;
-        private CardDealer _cardDealer;
         private VisualElement _hoveredCard;
 
         private void ClearCards()
         {
             UnregisterCardEvents();
-            _cardDealer?.Clear();
+            _boardUIFlow.ClearAll();
         }
 
         private void RegisterCardEvents()
         {
-            IReadOnlyList<VisualElement> cards = _cardDealer.Cards;
-            for (int i = 0; i < cards.Count; i++)
+            RegisterCardEvents(AdventureBoardSide.Left);
+            RegisterCardEvents(AdventureBoardSide.Right);
+        }
+
+        private void RegisterCardEvents(AdventureBoardSide side)
+        {
+            IReadOnlyList<AdventureBoardCardWidgetBinding> bindings =
+                _boardUIFlow.GetBindings(side);
+
+            for (int i = 0; i < bindings.Count; i++)
             {
-                VisualElement card = cards[i];
-                card.RegisterCallback<PointerEnterEvent>(OnCardPointerEnter);
-                card.RegisterCallback<PointerLeaveEvent>(OnCardPointerLeave);
-                card.RegisterCallback<PointerDownEvent>(OnCardPointerDown);
-                _registeredCards.Add(card);
+                AdventureBoardCardWidgetBinding binding = bindings[i];
+                VisualElement eventTarget = binding.Placement?.Anchor;
+                if (eventTarget == null)
+                    continue;
+
+                if (!TryGetBoardCardId(binding.ViewModel, out uint cardId))
+                    continue;
+
+                eventTarget.RegisterCallback<PointerEnterEvent>(OnCardPointerEnter);
+                eventTarget.RegisterCallback<PointerLeaveEvent>(OnCardPointerLeave);
+                eventTarget.RegisterCallback<PointerDownEvent>(OnCardPointerDown);
+                _registeredCards.Add(eventTarget);
+                _cardIdsByElement[eventTarget] = cardId;
             }
         }
 
@@ -47,6 +64,7 @@ namespace Domains.Adventure
             }
 
             _registeredCards.Clear();
+            _cardIdsByElement.Clear();
             _hoveredCard = null;
         }
 
@@ -89,7 +107,7 @@ namespace Domains.Adventure
             if (card == null)
                 return;
 
-            if (!_cardDealer.TryGetCardId(card, out uint cardId))
+            if (!_cardIdsByElement.TryGetValue(card, out uint cardId))
                 return;
 
             _controller.OnCardClicked(cardId);
@@ -97,12 +115,11 @@ namespace Domains.Adventure
 
         internal void OnBoardChanged(IReadOnlyList<AdventureCardViewModel> cards)
         {
-            if (_cardDealer == null)
-                return;
-
+            UnbindGameplayCueReceivers();
             UnregisterCardEvents();
-            _cardDealer.Refresh(cards);
+            _boardUIFlow.PlaceCards(_controller.GetBoardCards());
             RegisterCardEvents();
+            BindGameplayCueReceivers();
         }
 
         private void SetHoveredCard(VisualElement card)
@@ -113,6 +130,26 @@ namespace Domains.Adventure
             _hoveredCard?.RemoveFromClassList(TargetHoverClass);
             _hoveredCard = card;
             _hoveredCard?.AddToClassList(TargetHoverClass);
+        }
+
+        private static bool TryGetBoardCardId(
+            AdventureBoardCardViewModel viewModel,
+            out uint cardId)
+        {
+            switch (viewModel)
+            {
+                case AdventureChoiceCardViewModel choice:
+                    cardId = choice.OfferCardId;
+                    return true;
+
+                case AdventureBoardCardViewModel boardCard:
+                    cardId = boardCard.CardId;
+                    return true;
+
+                default:
+                    cardId = default;
+                    return false;
+            }
         }
     }
 }

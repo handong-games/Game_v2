@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="AdventureChoiceCardWidget.uss"/>
+    <ui:VisualElement name="card-root" class="card-widget choice-card-widget">
+        <ui:VisualElement name="card-background" class="card-widget__background" picking-mode="Ignore"/>
+        <ui:VisualElement name="card-frame" class="card-widget__frame" picking-mode="Ignore"/>
+        <ui:VisualElement name="card-content" class="card-widget__content">
+            <ui:VisualElement name="choice-card-icon" class="choice-card-widget__icon" picking-mode="Ignore"/>
+            <ui:Label name="choice-card-label" class="choice-card-widget__label" picking-mode="Ignore"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

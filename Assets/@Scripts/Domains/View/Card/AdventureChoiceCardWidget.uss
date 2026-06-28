@@ -1,0 +1,66 @@
+.card-widget {
+    width: 240px;
+    height: 358px;
+    position: relative;
+}
+
+.card-widget__background {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgb(28, 24, 32);
+}
+
+.card-widget__frame {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-width: 2px;
+    border-color: rgb(210, 180, 110);
+}
+
+.card-widget__content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.choice-card-widget__icon {
+    width: 84px;
+    height: 84px;
+    margin-bottom: 12px;
+}
+
+.choice-card-widget__label {
+    unity-text-align: middle-center;
+    font-size: 18px;
+    color: rgb(238, 232, 218);
+}
+
+.choice-card--monster .card-widget__frame {
+    border-color: rgb(180, 80, 70);
+}
+
+.choice-card--elite .card-widget__frame {
+    border-color: rgb(190, 120, 70);
+}
+
+.choice-card--boss .card-widget__frame {
+    border-color: rgb(210, 70, 70);
+}
+
+.choice-card--event .card-widget__frame {
+    border-color: rgb(120, 160, 220);
+}
+
+.choice-card--shop .card-widget__frame {
+    border-color: rgb(220, 190, 90);
+}

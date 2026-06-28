@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Domains.Combat.Intent.Data;
+using Domains.Intent.Data;
 using Game.AbilitySystem.Attributes;
 using Game.Core.Managers.DB;
 using Game.Generated;
@@ -21,11 +21,11 @@ namespace Game.Data
 
         [Header("Intent")]
         [SerializeField]
-        private IntentActionModel[] _actionSequence;
+        private MonsterActionModel[] _actionSequence;
 
         public LocalizedString LocalizedName => _localizedName;
-        public IReadOnlyList<IntentActionModel> ActionSequence =>
-            _actionSequence ?? Array.Empty<IntentActionModel>();
+        public IReadOnlyList<MonsterActionModel> ActionSequence =>
+            _actionSequence ?? Array.Empty<MonsterActionModel>();
 
         public override IReadOnlyList<GameplayTag> OwnedTags => _runtimeOwnedTags ??=
             CardGameplayTags.Combine(

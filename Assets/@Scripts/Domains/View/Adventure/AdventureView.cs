@@ -1,14 +1,19 @@
 using Game.Core.Managers.View;
 using Domains.View.Widgets;
+using Game.Scenes.Adventure.Events.Widgets;
+using Game.Scenes.Adventure;
 using UnityEngine.UIElements;
 
 namespace Domains.Adventure
 {
     public sealed partial class AdventureView : BaseView, IAdventureGameplayCueReceiver
     {
-        private readonly AdventureController _controller;
+        private readonly AdventureSceneController _controller;
         private readonly AdventureWidgetEvents _widgetEvents;
+        private readonly AdventureCardAvatarRegistry _avatarRegistry;
         private readonly ViewTransitionManager _viewTransitionManager;
+        private readonly AdventureBoardWidgets _boardWidgets;
+        private readonly AdventureBoardUIFlow _boardUIFlow;
 
         private VisualElement _adventureRoot;
         private Banner _banner;
@@ -22,17 +27,23 @@ namespace Domains.Adventure
         private ArrowWidget _arrowWidget;
         private CoinEffectPlayer _coinEffectPlayer;
         private CoinChangeEffectPlayer _coinChangeEffectPlayer;
-        private AdventureInitialViewModel _initialViewModel;
+        private AdventureEntryPresentationViewModel _entryPresentation;
         private bool _introStarted;
 
         public AdventureView(
-            AdventureController controller,
+            AdventureSceneController controller,
             AdventureWidgetEvents widgetEvents,
-            ViewTransitionManager viewTransitionManager)
+            AdventureCardAvatarRegistry avatarRegistry,
+            ViewTransitionManager viewTransitionManager,
+            AdventureBoardWidgets boardWidgets,
+            AdventureBoardUIFlow boardUIFlow)
         {
             _controller = controller;
             _widgetEvents = widgetEvents;
+            _avatarRegistry = avatarRegistry;
             _viewTransitionManager = viewTransitionManager;
+            _boardWidgets = boardWidgets;
+            _boardUIFlow = boardUIFlow;
         }
 
         protected override void OnVisualTreeCloned(VisualElement root)
@@ -49,15 +60,14 @@ namespace Domains.Adventure
             _arrowWidget = Root.Q<ArrowWidget>("arrow-widget");
             _cardBoard = Root.Q<VisualElement>("card-board");
             _cardDeck = Root.Q<VisualElement>("card-deck");
-            _cardDealer = new CardDealer();
             
             _endTurnWidget?.Bind(_widgetEvents.Turn);
             _pouch?.Bind(_widgetEvents.Pouch);
-            _cardDealer.Bind(_cardDeck, _cardBoard);
+            _boardWidgets.Initialize(_cardBoard);
 
-            _initialViewModel = _controller.StartInitialStage();
-            _skillSlots = _initialViewModel.SkillSlots;
-            BindGameplayCueReceivers();
+            _controller.StartInitialStage();
+            _entryPresentation = _controller.GetEntryPresentation();
+            _skillSlots = _controller.GetSkillSlots();
             _targetingEventRoot = Root.Q<VisualElement>("adventure-root") ?? Root;
             _skillSlotGroup = Root.Q<AdventureSkillSlotGroup>("skill-slot-group");
             _skillSlotGroup?.Bind(_skillSlots, _widgetEvents.SkillSlot);
@@ -89,7 +99,7 @@ namespace Domains.Adventure
             _coinEffectPlayer?.Clear();
             _coinEffectPlayer = null;
             _coinChangeEffectPlayer = null;
-            _initialViewModel = null;
+            _entryPresentation = null;
             base.Dispose();
         }
     }

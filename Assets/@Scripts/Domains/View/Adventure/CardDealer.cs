@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Domains.Card;
+using Domains.Intent.Presentation;
 using Domains.View.Widgets;
+using Game.Scenes.Adventure.Events.Widgets;
 using Gameplay.GAS;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
 
 namespace Domains.Adventure
@@ -21,8 +22,11 @@ namespace Domains.Adventure
         private readonly List<VisualElement> _rightCards = new();
         private readonly Dictionary<VisualElement, uint> _cardIdsByElement = new();
         private readonly Dictionary<uint, VisualElement> _cardElementsById = new();
-        private readonly Dictionary<uint, CombatCardWidget> _cardWidgetsById = new();
+        private readonly Dictionary<uint, AdventureMonsterCardWidget> _cardWidgetsById = new();
         private readonly Dictionary<VisualElement, CardActor> _cardActorsByElement = new();
+        private readonly Dictionary<VisualElement, AbilitySystemComponent> _abilitySystemsByElement = new();
+        private readonly AdventureCardAvatarRegistry _avatarRegistry;
+        private readonly IntentBadgeWidgetEvents _intentBadgeEvents;
 
         private VisualElement _cardDeck;
         private VisualElement _cardBoard;
@@ -30,6 +34,14 @@ namespace Domains.Adventure
         private VisualElement _rightArea;
 
         public IReadOnlyList<VisualElement> Cards => _cards;
+
+        public CardDealer(
+            AdventureCardAvatarRegistry avatarRegistry,
+            IntentBadgeWidgetEvents intentBadgeEvents)
+        {
+            _avatarRegistry = avatarRegistry;
+            _intentBadgeEvents = intentBadgeEvents;
+        }
 
         public void Bind(VisualElement cardDeck, VisualElement cardBoard)
         {
@@ -58,14 +70,14 @@ namespace Domains.Adventure
 
             VisualElement slot = CreateSlot(index, clampedTotalCount);
             VisualElement cardAnchor = CreateCardAnchor();
-            CombatCardWidget card = CreateCard();
+            AdventureMonsterCardWidget card = CreateCard();
             cardAnchor.Add(card);
 
             PrepareCardBeforeLayout(cardAnchor);
 
             slot.Add(cardAnchor);
             area.Add(slot);
-            card.Bind(cardViewModel.Card, cardViewModel.AbilitySystem);
+            card.Bind(cardViewModel.Card, cardViewModel.AbilitySystem, _intentBadgeEvents);
             _cards.Add(cardAnchor);
             cards.Add(cardAnchor);
             RegisterCard(cardAnchor, card, cardViewModel.CardId, cardViewModel.AbilitySystem);
@@ -120,7 +132,7 @@ namespace Domains.Adventure
             AwaitableCompletionSource completionSource = new();
             int remainingCount = _cardWidgetsById.Count;
 
-            foreach (CombatCardWidget cardWidget in _cardWidgetsById.Values)
+            foreach (AdventureMonsterCardWidget cardWidget in _cardWidgetsById.Values)
             {
                 _ = ShowHealthWidgetAsync(cardWidget, () =>
                 {
@@ -138,6 +150,22 @@ namespace Domains.Adventure
         public bool TryGetCardId(VisualElement card, out uint cardId)
         {
             return _cardIdsByElement.TryGetValue(card, out cardId);
+        }
+
+        public Awaitable ShowIntentAsync(
+            uint cardId,
+            IReadOnlyList<IntentItemViewModel> items)
+        {
+            return _cardWidgetsById.TryGetValue(cardId, out AdventureMonsterCardWidget cardWidget)
+                ? cardWidget.ShowIntentAsync(items)
+                : Awaitable.NextFrameAsync();
+        }
+
+        public Awaitable TriggerIntentAsync(uint cardId)
+        {
+            return _cardWidgetsById.TryGetValue(cardId, out AdventureMonsterCardWidget cardWidget)
+                ? cardWidget.TriggerIntentAsync()
+                : Awaitable.NextFrameAsync();
         }
 
         public void Refresh(IReadOnlyList<AdventureCardViewModel> cards)
@@ -162,6 +190,7 @@ namespace Domains.Adventure
             _cardElementsById.Clear();
             _cardWidgetsById.Clear();
             _cardActorsByElement.Clear();
+            _abilitySystemsByElement.Clear();
         }
 
         private VisualElement GetArea(ECardZone zone)
@@ -209,12 +238,12 @@ namespace Domains.Adventure
             return cardAnchor;
         }
 
-        private static CombatCardWidget CreateCard()
+        private static AdventureMonsterCardWidget CreateCard()
         {
-            return CombatCardWidget.Create();
+            return AdventureMonsterCardWidget.Create();
         }
 
-        private static async Awaitable ShowHealthWidgetAsync(CombatCardWidget cardWidget, System.Action onCompleted)
+        private static async Awaitable ShowHealthWidgetAsync(AdventureMonsterCardWidget cardWidget, System.Action onCompleted)
         {
             await cardWidget.ShowHealthAsync();
             onCompleted?.Invoke();
@@ -222,13 +251,16 @@ namespace Domains.Adventure
 
         private void RegisterCard(
             VisualElement card,
-            CombatCardWidget cardWidget,
+            AdventureMonsterCardWidget cardWidget,
             uint cardId,
             AbilitySystemComponent abilitySystem)
         {
             _cardIdsByElement.Add(card, cardId);
             _cardElementsById.Add(cardId, card);
             _cardWidgetsById.Add(cardId, cardWidget);
+            _abilitySystemsByElement.Add(card, abilitySystem);
+            abilitySystem?.SetAvatar(cardWidget);
+            _avatarRegistry?.Register(cardId, cardWidget);
 
             if (abilitySystem?.Owner is CardActor cardActor)
             {
@@ -249,8 +281,16 @@ namespace Domains.Adventure
             }
 
             _cardElementsById.Remove(cardId);
-            if (_cardWidgetsById.TryGetValue(cardId, out CombatCardWidget cardWidget))
+            if (_cardWidgetsById.TryGetValue(cardId, out AdventureMonsterCardWidget cardWidget))
             {
+                _avatarRegistry?.Unregister(cardWidget);
+
+                if (_abilitySystemsByElement.Remove(card, out AbilitySystemComponent abilitySystem) &&
+                    ReferenceEquals(abilitySystem?.GetAvatar<AdventureMonsterCardWidget>(), cardWidget))
+                {
+                    abilitySystem.ClearAvatar();
+                }
+
                 cardWidget.Unbind();
                 _cardWidgetsById.Remove(cardId);
             }
@@ -258,7 +298,7 @@ namespace Domains.Adventure
 
         private void UnbindCards()
         {
-            foreach (CombatCardWidget cardWidget in _cardWidgetsById.Values)
+            foreach (AdventureMonsterCardWidget cardWidget in _cardWidgetsById.Values)
             {
                 cardWidget.Unbind();
             }
@@ -289,12 +329,12 @@ namespace Domains.Adventure
 
                 VisualElement slot = CreateSlot(zoneIndex, Mathf.Clamp(totalCount, 1, MaxCardCount));
                 VisualElement cardAnchor = CreateCardAnchor();
-                CombatCardWidget cardWidget = CreateCard();
+                AdventureMonsterCardWidget cardWidget = CreateCard();
 
                 cardAnchor.Add(cardWidget);
                 slot.Add(cardAnchor);
                 area.Add(slot);
-                cardWidget.Bind(cardViewModel.Card, cardViewModel.AbilitySystem);
+                cardWidget.Bind(cardViewModel.Card, cardViewModel.AbilitySystem, _intentBadgeEvents);
                 _cards.Add(cardAnchor);
                 cardElements.Add(cardAnchor);
                 RegisterCard(

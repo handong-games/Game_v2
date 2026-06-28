@@ -4,11 +4,10 @@ namespace Domains.Adventure
 {
     public sealed class AdventureRun
     {
-        public AdventureRun(ECharacter character, EAdventure adventure, ECardDeck cardDeck, uint maxStageCount, uint seed)
+        public AdventureRun(ECharacter character, EAdventure adventure, uint maxStageCount, uint seed)
         {
             SelectedCharacterId = character;
             AdventureId = adventure;
-            CardDeckId = cardDeck;
             MaxStageCount = maxStageCount;
             Seed = seed;
             StageNumber = 1;
@@ -16,7 +15,6 @@ namespace Domains.Adventure
 
         public ECharacter SelectedCharacterId { get; }
         public EAdventure AdventureId { get; }
-        public ECardDeck CardDeckId { get; }
         public uint MaxStageCount { get; }
         public uint Seed { get; }
         public uint StageNumber { get; private set; }

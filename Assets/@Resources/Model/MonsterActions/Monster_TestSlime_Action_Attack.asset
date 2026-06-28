@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da032e5193e73c0498e7bfd8b09ce259, type: 3}
+  m_Name: Monster_TestSlime_Action_Attack
+  m_EditorClassIdentifier: Assembly-CSharp::Domains.Intent.Data.MonsterActionModel
+  _executionAbility: {fileID: 11400000, guid: c67910a0ca934024835f3679f8bcca1f, type: 2}
+  _intentDisplays:
+  - _displayModel: {fileID: 11400000, guid: 25dace03331c4d188beedbb315b16b65, type: 2}
+    _numberRule: {fileID: 11400000, guid: 244077dec3394be39bfc7d7f7a7da1c9, type: 2}

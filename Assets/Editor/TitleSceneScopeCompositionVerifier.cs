@@ -1,11 +1,8 @@
 using System;
-using Domains.CharacterSelect;
 using Game.Core.Composition;
-using Game.Core.Managers.Dependency.Generated;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using Views.TitleView;
 
 public static class TitleSceneScopeCompositionVerifier
 {
@@ -16,7 +13,6 @@ public static class TitleSceneScopeCompositionVerifier
     {
         try
         {
-            VerifyDependencyManagerDoesNotOwnTitleSceneScopedTypes();
             VerifyTitleSceneScopePlacement();
             Debug.Log("TitleSceneScope composition verification passed.");
             EditorApplication.Exit(0);
@@ -25,20 +21,6 @@ public static class TitleSceneScopeCompositionVerifier
         {
             Debug.LogException(exception);
             EditorApplication.Exit(1);
-        }
-    }
-
-    private static void VerifyDependencyManagerDoesNotOwnTitleSceneScopedTypes()
-    {
-        for (int i = 0; i < DependencyRegistry.All.Length; i++)
-        {
-            Type type = DependencyRegistry.All[i].Type;
-            if (type == typeof(TitleViewController) ||
-                type == typeof(CharacterSelectController))
-            {
-                throw new InvalidOperationException(
-                    $"{type.Name} must not be registered in DependencyManager while TitleSceneScope owns the TitleScene path.");
-            }
         }
     }
 

@@ -16,7 +16,7 @@ namespace Game.Data
         private CardFaceModel _back;
 
         [Header("Gameplay")]
-        // Default abilities granted when a card is created. Combat-only abilities are granted by CombatCardAbilityTable.
+        // Default abilities granted when a card is created.
         [SerializeField]
         private AbilitySetModel _abilitySet;
 

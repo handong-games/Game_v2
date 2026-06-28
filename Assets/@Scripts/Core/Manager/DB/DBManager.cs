@@ -20,9 +20,8 @@ namespace Game.Core.Managers.DB
         public CharacterSkillTable CharacterSkill { get; private set; }
         public AdventureTable Adventure { get; private set; }
         public CardTable Card { get; private set; }
-        public CardDeckTable CardDeck { get; private set; }
         public MonsterTable Monster { get; private set; }
-        public CombatCardAbilityTable CombatCardAbility { get; private set; }
+        public AdventureChoiceCardUITable ChoiceCardUI { get; private set; }
 
         public void Initialize()
         {
@@ -37,9 +36,8 @@ namespace Game.Core.Managers.DB
             CharacterSkill = assets.OfType<CharacterSkillTable>().First();
             Adventure = assets.OfType<AdventureTable>().First();
             Card = assets.OfType<CardTable>().First();
-            CardDeck = assets.OfType<CardDeckTable>().First();
             Monster = assets.OfType<MonsterTable>().First();
-            CombatCardAbility = assets.OfType<CombatCardAbilityTable>().First();
+            ChoiceCardUI = assets.OfType<AdventureChoiceCardUITable>().FirstOrDefault();
         }
 
         public void Dispose()
@@ -52,16 +50,15 @@ namespace Game.Core.Managers.DB
             CharacterSkill?.ReleaseLoadedAssets();
             Adventure?.ReleaseLoadedAssets();
             Card?.ReleaseLoadedAssets();
-            CardDeck?.ReleaseLoadedAssets();
             Monster?.ReleaseLoadedAssets();
+            ChoiceCardUI?.ReleaseLoadedAssets();
 
             Character = null;
             CharacterSkill = null;
             Adventure = null;
             Card = null;
-            CardDeck = null;
             Monster = null;
-            CombatCardAbility = null;
+            ChoiceCardUI = null;
 
             if (_tableHandle.IsValid())
             {

@@ -15,10 +15,6 @@ namespace Domains.Adventure
                 PortraitCardFaceModel portrait => PortraitCardFaceViewModel.CreateRuntime(
                     portrait.LocalizedName,
                     portrait.Portrait),
-                ChoiceCardFaceModel choice => ChoiceCardFaceViewModel.CreateRuntime(
-                    choice.StyleType,
-                    choice.Icon,
-                    choice.Label),
                 LockedCardFaceModel => LockedCardFaceViewModel.CreateRuntime(),
                 _ => throw new ArgumentOutOfRangeException(nameof(model)),
             };

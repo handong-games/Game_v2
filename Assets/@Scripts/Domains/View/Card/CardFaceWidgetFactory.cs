@@ -14,7 +14,6 @@ namespace Domains.View.Widgets
             ICardFaceWidget widget = viewModel switch
             {
                 PortraitCardFaceViewModel portrait => CreatePortrait(portrait),
-                ChoiceCardFaceViewModel choice => CreateChoice(choice),
                 LockedCardFaceViewModel locked => CreateLocked(locked),
                 _ => throw new ArgumentOutOfRangeException(nameof(viewModel)),
             };
@@ -25,11 +24,6 @@ namespace Domains.View.Widgets
         private static ICardFaceWidget CreatePortrait(PortraitCardFaceViewModel viewModel)
         {
             return (PortraitCardFaceWidget)PortraitCardFaceWidget.Create();
-        }
-
-        private static ICardFaceWidget CreateChoice(ChoiceCardFaceViewModel viewModel)
-        {
-            return (ChoiceCardFaceWidget)ChoiceCardFaceWidget.Create();
         }
 
         private static ICardFaceWidget CreateLocked(LockedCardFaceViewModel viewModel)

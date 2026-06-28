@@ -1,5 +1,5 @@
-using Domains.Adventure;
 using Game.Core.Managers.View;
+using Game.Scenes.Adventure.Events.Widgets;
 using UnityEngine;
 using UnityEngine.UIElements;
 

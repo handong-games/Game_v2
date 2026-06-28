@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c808c6bfba44408eadd1df3247bc5eee, type: 3}
+  m_Name: Adventure_Default
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Data.AdventureRegionModel
+  _name: Default
+  _entryPresentation:
+    _title:
+      m_TableReference:
+        m_TableCollectionName: AdventureView
+      m_TableEntryReference:
+        m_KeyId: 940000006
+        m_Key: entry_title
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    _subtitle:
+      m_TableReference:
+        m_TableCollectionName: AdventureView
+      m_TableEntryReference:
+        m_KeyId: 940000005
+        m_Key: entry_subtitle
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    _background: {fileID: 0}
+    _emblem: {fileID: 0}
+  _localizedRegionName:
+    m_TableReference:
+      m_TableCollectionName: AdventureView
+    m_TableEntryReference:
+      m_KeyId: 940000006
+      m_Key: entry_title
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  _startDrawCount: 2
+  _maxStageCount: 1
+  _stages:
+  - _startMode: 1
+    _drawCount: 2
+  _encounterDeck:
+    _startEntries:
+    - _type: 0
+      _displayCard: {fileID: 11400000, guid: 98b67d0572804b1c9f87c3c625f0f714, type: 2}
+      _encounterCard: {fileID: 11400000, guid: 98b67d0572804b1c9f87c3c625f0f714, type: 2}
+      _count: 1
+    _shuffleEntries:
+    - _type: 0
+      _displayCard: {fileID: 11400000, guid: 98b67d0572804b1c9f87c3c625f0f714, type: 2}
+      _encounterCard: {fileID: 11400000, guid: 98b67d0572804b1c9f87c3c625f0f714, type: 2}
+      _count: 1
+    _bossEntry:
+      _type: 1
+      _displayCard: {fileID: 11400000, guid: 98b67d0572804b1c9f87c3c625f0f714, type: 2}
+      _encounterCard: {fileID: 11400000, guid: 98b67d0572804b1c9f87c3c625f0f714, type: 2}
+      _count: 1
+  references:
+    version: 2
+    RefIds: []

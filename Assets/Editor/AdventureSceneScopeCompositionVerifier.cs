@@ -1,5 +1,5 @@
 using System;
-using Game.Core.Composition;
+using Game.Scenes.Adventure;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

@@ -1,5 +1,4 @@
 using Domains.Adventure;
-using Domains.Scene.Adventure;
 using Game.Core.Adapters;
 using Game.Core.Managers.Audio;
 using Game.Core.Managers.DB;
@@ -9,6 +8,7 @@ using Game.Core.Managers.Save;
 using Game.Core.Managers.View;
 using Game.Core.Ports;
 using Game.Core.SceneLoading;
+using Game.Scenes.Adventure;
 using Game.Messages;
 using VContainer;
 using VContainer.Unity;

@@ -47,8 +47,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - TitleScene
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6f1d7fe4763446a281d35a88fd537d18
-    m_Address: ChoiceCardFaceWidget
+  - m_GUID: a8f2c3d4e5b6471fa9c0d1e2f3a4b5c6
+    m_Address: AdventureChoiceCardWidget
     m_ReadOnly: 0
     m_SerializedLabels:
     - AdventureScene

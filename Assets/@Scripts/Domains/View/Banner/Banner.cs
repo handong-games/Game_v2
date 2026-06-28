@@ -88,6 +88,13 @@ namespace Domains.View.Widgets
             await Present();
         }
 
+        public Awaitable PresentRegion(LocalizedString kicker, LocalizedString regionName)
+        {
+            return PresentRegion(
+                kicker.GetLocalizedString(),
+                regionName.GetLocalizedString());
+        }
+
         public async Awaitable PresentTurn(string turnText)
         {
             SetMode(TurnClass, RegionClass);

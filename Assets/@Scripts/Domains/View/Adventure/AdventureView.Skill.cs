@@ -115,11 +115,10 @@ namespace Domains.Adventure
             if (_hoveredCard == null)
                 return;
 
-            if (!_cardDealer.TryGetCardId(_hoveredCard, out uint targetCardId))
-                return;
-
-            if (!_controller.UseSkillOnTarget(_activeSkillHandle, targetCardId))
-                return;
+            if (_cardIdsByElement.TryGetValue(_hoveredCard, out uint targetCardId))
+            {
+                _controller.UseSkillOnTarget(_activeSkillHandle, targetCardId);
+            }
 
             ClearSkillPreview();
         }

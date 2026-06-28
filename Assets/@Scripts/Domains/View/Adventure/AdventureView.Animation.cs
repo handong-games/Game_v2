@@ -20,21 +20,23 @@ namespace Domains.Adventure
 
             if (_banner != null)
             {
-                _ = _banner.PresentConfiguredRegion();
+                _ = _banner.PresentRegion(
+                    _entryPresentation.Subtitle,
+                    _entryPresentation.Title);
             }
 
             await Awaitable.NextFrameAsync();
 
+            _boardUIFlow.PlaceCards(_controller.GetBoardCards());
+            RegisterCardEvents();
             _adventureRoot?.AddToClassList(AdventureIntroShownClass);
             await introCompletion;
 
-            if (_cardDealer == null || _initialViewModel == null)
+            if (_entryPresentation == null)
                 return;
 
-            UnregisterCardEvents();
-            await _cardDealer.DealAsync(_initialViewModel.BoardCards);
-            RegisterCardEvents();
-            await PlayTurnBannerAnimation();
+            BindGameplayCueReceivers();
+            _controller.OnInitialBoardShown();
         }
 
         private async Awaitable PlayTurnBannerAnimation()
@@ -44,7 +46,6 @@ namespace Domains.Adventure
 
             timeline
                 .Run(0, () => _banner.PresentPlayerTurn(turn.TurnNumber))
-                .Run(20, _cardDealer.ShowHealthWidgetsAsync)
                 .Run(TurnBannerExitStartMs, _pouch.Show);
 
             await _viewTransitionManager.Play(timeline);

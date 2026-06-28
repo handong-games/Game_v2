@@ -31,6 +31,34 @@ MonoBehaviour:
     m_Key: turn_enemy
     m_Metadata:
       m_Items: []
+  - m_Id: 940000005
+    m_Key: entry_subtitle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 940000006
+    m_Key: entry_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7472175163878846464
+    m_Key: choice_card_monster
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7472175163916595200
+    m_Key: choice_card_elite
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7472175163916595201
+    m_Key: choice_card_boss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7472175163916595202
+    m_Key: choice_card_event
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7472175163916595203
+    m_Key: choice_card_shop
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

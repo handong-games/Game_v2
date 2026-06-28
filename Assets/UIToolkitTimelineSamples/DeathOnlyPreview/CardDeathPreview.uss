@@ -158,12 +158,12 @@
 
 .death-card-pips {
     flex-direction: row;
-    gap: 6px;
 }
 
 .death-card-pip {
     width: 10px;
     height: 10px;
+    margin-left: 6px;
     background-color: rgb(143, 184, 128);
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
