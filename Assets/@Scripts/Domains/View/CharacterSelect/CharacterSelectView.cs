@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Domains.Adventure;
 using Domains.Card;
 using Domains.View.Widgets;
@@ -42,6 +43,8 @@ namespace Domains.CharacterSelect
         private CardWidget[] _cardWidgets;
         private EventCallback<PointerDownEvent>[] _cardPointerHandlers;
         private CharacterSelectCardViewModel[] _cardViewModels;
+        private CardFaceWidgetTemplates _cardFaceTemplates;
+        private VisualTreeAsset _skillSlotTemplate;
         private LocalizedString _localizedName;
         private int _selectedIndex;
         private bool _isClosing;
@@ -145,6 +148,16 @@ namespace Domains.CharacterSelect
             base.Dispose();
         }
 
+        public void BindCardFaceTemplates(CardFaceWidgetTemplates templates)
+        {
+            _cardFaceTemplates = templates ?? throw new ArgumentNullException(nameof(templates));
+        }
+
+        public void BindSkillSlotTemplate(VisualTreeAsset template)
+        {
+            _skillSlotTemplate = template ?? throw new ArgumentNullException(nameof(template));
+        }
+
         private void CacheCards()
         {
             _cards = new VisualElement[CardCount];
@@ -203,7 +216,7 @@ namespace Domains.CharacterSelect
             _detailName.text = string.Empty;
             _detailHp.text = string.Empty;
             _detailCoin.text = string.Empty;
-            _skillSlotGroup?.Bind(System.Array.Empty<CharacterSelectSkillSlotViewModel>());
+            BindSkillSlots(System.Array.Empty<CharacterSelectSkillSlotViewModel>());
 
             for (int i = 0; i < _cards.Length; i++)
             {
@@ -235,6 +248,9 @@ namespace Domains.CharacterSelect
 
         private void BindCharacterCard(int index, CharacterSelectCardViewModel card)
         {
+            if (_cardFaceTemplates == null)
+                throw new InvalidOperationException($"{nameof(CharacterSelectView)} requires {nameof(CardFaceWidgetTemplates)} before card binding.");
+
             ECardFace face = card.IsLocked ? ECardFace.Back : ECardFace.Front;
             CardFaceViewModel front = card.IsLocked ? null : card.Face;
             CardFaceViewModel back = card.IsLocked ? card.Face : null;
@@ -242,7 +258,8 @@ namespace Domains.CharacterSelect
             _cardWidgets[index].Bind(new CardViewModel(
                 face,
                 front,
-                back));
+                back),
+                _cardFaceTemplates);
         }
 
         private void OnCardPointerDown(int index)
@@ -307,7 +324,18 @@ namespace Domains.CharacterSelect
             BindLocalizedName(card);
             _detailHp.text = $"HP {Mathf.RoundToInt(card.MaxHealth)}";
             _detailCoin.text = $"COIN {card.CoinCount}";
-            _skillSlotGroup?.Bind(card.Skills);
+            BindSkillSlots(card.Skills);
+        }
+
+        private void BindSkillSlots(IReadOnlyList<CharacterSelectSkillSlotViewModel> skills)
+        {
+            if (_skillSlotGroup == null)
+                return;
+
+            if (_skillSlotTemplate == null)
+                throw new InvalidOperationException($"{nameof(CharacterSelectView)} requires SkillSlotWidget template before skill binding.");
+
+            _skillSlotGroup.Bind(skills, _skillSlotTemplate);
         }
 
         private void BindLocalizedName(CharacterSelectCardViewModel card)

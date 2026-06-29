@@ -1,9 +1,7 @@
 using Gameplay.GAS;
 using System;
 using Game.AbilitySystem.Abilities;
-using Game.Core.Managers.View;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
 
 namespace Domains.View.Widgets
@@ -11,12 +9,7 @@ namespace Domains.View.Widgets
     [UxmlElement]
     public sealed partial class SkillSlotWidget : Button
     {
-        private const string SkillSlotAddress = "SkillSlotWidget";
-
-        private static VisualTreeAsset _slotTemplate;
-
         private VisualElement _iconElement;
-        private Label _fallbackNameLabel;
         private IReadOnlySkillSlotViewModel _pendingViewModel;
         private AdventureSkillSlotViewModel? _adventureSkillSlot;
         private bool _hasPendingViewModel;
@@ -26,18 +19,33 @@ namespace Domains.View.Widgets
 
         public SkillSlotWidget()
         {
+            throw new InvalidOperationException($"{nameof(SkillSlotWidget)} requires a preloaded VisualTreeAsset template.");
+        }
+
+        public SkillSlotWidget(VisualTreeAsset template)
+        {
+            if (template == null)
+                throw new ArgumentNullException(nameof(template));
+
             text = string.Empty;
             focusable = false;
             AddToClassList("skill-slot-widget");
             RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
 
-            EnsureTemplate();
-            _slotTemplate?.CloneTree(this);
+            template.CloneTree(this);
+            InitializeReferences();
+            EnsureReferences();
         }
 
         public void Bind(IReadOnlySkillSlotViewModel viewModel)
         {
+            if (viewModel == null)
+                throw new ArgumentNullException(nameof(viewModel));
+
+            if (viewModel.Icon == null)
+                throw new InvalidOperationException($"{nameof(SkillSlotWidget)} requires an icon.");
+
             if (_adventureSkillSlot.HasValue)
             {
                 SkillGameplayAbility previousSkillAbility = _adventureSkillSlot.Value.SkillAbility;
@@ -82,8 +90,9 @@ namespace Domains.View.Widgets
 
         private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
-            _iconElement = this.Q<VisualElement>("skill-slot-icon");
-            _fallbackNameLabel = this.Q<Label>("skill-slot-fallback-name");
+            InitializeReferences();
+            EnsureReferences();
+            ApplyBinding();
         }
 
         private void OnDetachedFromPanel(DetachFromPanelEvent evt)
@@ -98,28 +107,14 @@ namespace Domains.View.Widgets
 
             userData = _pendingViewModel;
             RemoveFromClassList("skill-slot--has-icon");
-            RemoveFromClassList("skill-slot--has-label");
             AddToClassList("skill-slot--type-attack");
 
-            if (_iconElement != null)
-                _iconElement.style.backgroundImage = StyleKeyword.Null;
+            EnsureReferences();
 
-            if (_fallbackNameLabel != null)
-                _fallbackNameLabel.text = string.Empty;
-
-            if (_pendingViewModel?.Icon != null && _iconElement != null)
-            {
-                AddToClassList("skill-slot--has-icon");
-                _iconElement.style.backgroundImage =
-                    new StyleBackground(Background.FromSprite(_pendingViewModel.Icon));
-                return;
-            }
-
-            if (_fallbackNameLabel != null)
-            {
-                AddToClassList("skill-slot--has-label");
-                _fallbackNameLabel.text = _pendingViewModel?.Name?.GetLocalizedString() ?? string.Empty;
-            }
+            _iconElement.style.backgroundImage = StyleKeyword.Null;
+            AddToClassList("skill-slot--has-icon");
+            _iconElement.style.backgroundImage =
+                new StyleBackground(Background.FromSprite(_pendingViewModel.Icon));
         }
 
         private void OnActivationStateChanged(bool canActivate)
@@ -137,17 +132,16 @@ namespace Domains.View.Widgets
             AvailableChanged?.Invoke(this, canActivate);
         }
 
-        private static void EnsureTemplate()
+        private void EnsureReferences()
         {
-            if (_slotTemplate != null)
-                return;
-
-            _slotTemplate = Addressables
-                .LoadAssetAsync<VisualTreeAsset>(SkillSlotAddress)
-                .WaitForCompletion();
-
-            if (_slotTemplate == null)
-                Debug.LogError($"{nameof(SkillSlotWidget)} failed to load {SkillSlotAddress}.");
+            if (_iconElement == null)
+                throw new InvalidOperationException($"{nameof(SkillSlotWidget)} requires skill-slot-icon.");
         }
+
+        private void InitializeReferences()
+        {
+            _iconElement ??= this.Q<VisualElement>("skill-slot-icon");
+        }
+
     }
 }

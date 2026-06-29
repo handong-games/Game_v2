@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
-    <widgets:Banner name="banner" class="banner banner--region" picking-mode="Ignore" turn-table="AdventureView" player-turn-key="turn_player" enemy-turn-key="turn_enemy" region-table="AdventureView" region-kicker-key="region_kicker" region-name-key="region_combat">
+    <widgets:Banner name="banner" class="banner banner--region" picking-mode="Ignore" turn-table="AdventureView" player-turn-key="turn_player" enemy-turn-key="turn_enemy" region-table="AdventureView" region-kicker-key="region_kicker" region-name-key="region_combat" result-table="AdventureView" victory-key="combat_victory" defeat-key="combat_defeat">
         <ui:VisualElement name="banner-region" class="banner__region" picking-mode="Ignore">
             <ui:Label name="banner-region-kicker" text="" class="banner__kicker" picking-mode="Ignore"/>
             <ui:Label name="banner-region-name" text="" class="banner__region-name" picking-mode="Ignore"/>

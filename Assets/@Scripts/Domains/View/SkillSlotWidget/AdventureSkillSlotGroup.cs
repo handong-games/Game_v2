@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Core.Managers.View;
 using Game.Scenes.Adventure.Events.Widgets;
@@ -15,6 +16,7 @@ namespace Domains.View.Widgets
 
         private readonly List<SkillSlotWidget> _slots = new();
         private AdventureSkillSlotWidgetEvents _events;
+        private AdventureScreenWidgetTemplates _templates;
         private bool _isShown;
 
         public IReadOnlyList<SkillSlotWidget> Slots => _slots;
@@ -31,9 +33,17 @@ namespace Domains.View.Widgets
 
         public void Bind(
             IReadOnlyList<AdventureSkillSlotViewModel> skillSlots,
-            AdventureSkillSlotWidgetEvents events)
+            AdventureSkillSlotWidgetEvents events,
+            AdventureScreenWidgetTemplates templates)
         {
+            if (events == null)
+                throw new ArgumentNullException(nameof(events));
+
+            if (templates == null)
+                throw new ArgumentNullException(nameof(templates));
+
             _events = events;
+            _templates = templates;
             int count = skillSlots?.Count ?? 0;
             EnsureSlotCount(count);
 
@@ -58,16 +68,24 @@ namespace Domains.View.Widgets
         public void Unbind()
         {
             _events = null;
+            _templates = null;
+
+            SetValueWithoutNotify(new ToggleButtonGroupState(0ul, _slots.Count));
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                _slots[i].Unbind();
+            }
         }
 
-        public async Awaitable Show()
+        public async Awaitable Show(ViewTransitionManager transitionManager)
         {
             if (_isShown)
                 return;
 
             _isShown = true;
             RemoveFromClassList(HiddenClass);
-            await ViewTransitionManager.Instance.Play(this, EnterClass);
+            if (transitionManager != null)
+                await transitionManager.Play(this, EnterClass);
         }
 
         public void Hide()
@@ -137,7 +155,7 @@ namespace Domains.View.Widgets
         {
             while (_slots.Count < count)
             {
-                SkillSlotWidget slot = new();
+                SkillSlotWidget slot = new(_templates.SkillSlot);
                 slot.AddToClassList("skill-slot-group__slot");
                 slot.RegisterCallback<PointerDownEvent>(OnSlotPointerDown, TrickleDown.TrickleDown);
                 slot.AvailableChanged += OnSlotAvailableChanged;

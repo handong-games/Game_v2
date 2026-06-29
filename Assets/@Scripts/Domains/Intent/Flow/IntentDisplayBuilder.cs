@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Domains.Intent.Data;
 using Domains.Intent.Runtime;
-using UnityEngine;
 
 namespace Domains.Intent.Flow
 {
@@ -10,31 +9,30 @@ namespace Domains.Intent.Flow
     // Builds cached intent display data from a resolved monster action.
     public sealed class IntentDisplayBuilder
     {
-        private static readonly IReadOnlyList<IntentDisplayData> EmptyDisplays =
-            Array.Empty<IntentDisplayData>();
-
         private readonly List<IntentDisplayData> _buffer = new();
 
         public IReadOnlyList<IntentDisplayData> Build(MonsterActionModel actionModel)
         {
+            if (actionModel == null)
+                throw new ArgumentNullException(nameof(actionModel));
+
             _buffer.Clear();
 
             IReadOnlyList<IntentDisplayDefinition> definitions = actionModel.IntentDisplays;
+            if (definitions.Count == 0)
+                throw new InvalidOperationException($"Monster action has no intent display definitions. Action: {actionModel.name}.");
+
             for (int i = 0; i < definitions.Count; i++)
             {
                 IntentDisplayDefinition definition = definitions[i];
                 if (definition == null)
-                {
-                    Debug.LogError($"Intent display definition is null. Action: {actionModel.name}, Index: {i}.");
-                    continue;
-                }
+                    throw new InvalidOperationException(
+                        $"Intent display definition is null. Action: {actionModel.name}, Index: {i}.");
 
                 IntentDisplayModel displayModel = definition.DisplayModel;
                 if (displayModel == null)
-                {
-                    Debug.LogError($"Intent display model is null. Action: {actionModel.name}, Index: {i}.");
-                    continue;
-                }
+                    throw new InvalidOperationException(
+                        $"Intent display model is null. Action: {actionModel.name}, Index: {i}.");
 
                 IntentNumberData number = displayModel.RequiresNumber
                     ? BuildRequiredNumber(actionModel, definition, i)
@@ -47,9 +45,7 @@ namespace Domains.Intent.Flow
                         number.CountValue));
             }
 
-            return _buffer.Count == 0
-                ? EmptyDisplays
-                : _buffer.ToArray();
+            return _buffer.ToArray();
         }
 
         private static IntentNumberData BuildRequiredNumber(
@@ -59,11 +55,8 @@ namespace Domains.Intent.Flow
         {
             IntentNumberRuleModel numberRule = definition.NumberRule;
             if (numberRule == null)
-            {
-                Debug.LogError(
+                throw new InvalidOperationException(
                     $"Intent display requires number but has no number rule. Action: {actionModel.name}, Index: {definitionIndex}.");
-                return new IntentNumberData(0, 1);
-            }
 
             return numberRule.BuildNumber();
         }

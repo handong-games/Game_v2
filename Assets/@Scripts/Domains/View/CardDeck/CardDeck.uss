@@ -1,8 +1,45 @@
 .card-deck {
     width: 60px;
     height: 82px;
+    position: relative;
+    overflow: visible;
     background-color: rgba(18, 18, 18, 0.88);
     border-width: 1px;
     border-color: rgba(255, 255, 255, 0.24);
     border-radius: 4px;
+    transition-property: translate;
+    transition-duration: var(--motion-duration-fast-120ms);
+    transition-timing-function: ease-out;
+}
+
+.card-deck__card {
+    position: absolute;
+    width: 54px;
+    height: 76px;
+    border-width: 1px;
+    border-color: rgba(255, 244, 218, 0.54);
+    border-radius: 4px;
+    background-color: rgb(245, 224, 174);
+}
+
+.card-deck__card--shadow {
+    left: 6px;
+    top: 6px;
+    opacity: 0.36;
+}
+
+.card-deck__card--middle {
+    left: 3px;
+    top: 3px;
+    opacity: 0.58;
+}
+
+.card-deck__card--top {
+    left: 0;
+    top: 0;
+    opacity: 1;
+    translate: 0 0;
+    transition-property: translate;
+    transition-duration: var(--motion-duration-fast-120ms);
+    transition-timing-function: ease-out;
 }

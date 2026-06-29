@@ -16,8 +16,8 @@ namespace Game.Core.Adapters
             ISceneTransitionPlayer transitionPlayer,
             ScenePreloadService preloadService)
         {
-            _transitionPlayer = transitionPlayer;
-            _preloadService = preloadService;
+            _transitionPlayer = transitionPlayer ?? throw new ArgumentNullException(nameof(transitionPlayer));
+            _preloadService = preloadService ?? throw new ArgumentNullException(nameof(preloadService));
             SceneManager.sceneLoaded += OnSceneLoaded;
         }
 
@@ -27,12 +27,16 @@ namespace Game.Core.Adapters
                 return;
 
             _isLoading = true;
+            AsyncOperation loadOperation = null;
 
             try
             {
                 Awaitable fadeOut = _transitionPlayer.FadeOut();
                 Awaitable preload = _preloadService.Preload(sceneId);
-                AsyncOperation loadOperation = SceneManager.LoadSceneAsync(GameSceneNames.ToSceneName(sceneId));
+                loadOperation = SceneManager.LoadSceneAsync(GameSceneNames.ToSceneName(sceneId));
+                if (loadOperation == null)
+                    throw new InvalidOperationException($"Failed to start scene load: {sceneId}");
+
                 loadOperation.allowSceneActivation = false;
 
                 await fadeOut;
@@ -45,10 +49,11 @@ namespace Game.Core.Adapters
 
                 loadOperation.allowSceneActivation = true;
             }
-            catch
+            catch (Exception exception)
             {
                 _isLoading = false;
-                throw;
+                ReleasePendingSceneActivation(loadOperation);
+                Debug.LogException(exception);
             }
         }
 
@@ -60,6 +65,16 @@ namespace Game.Core.Adapters
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             _isLoading = false;
+        }
+
+        private static void ReleasePendingSceneActivation(AsyncOperation loadOperation)
+        {
+            if (loadOperation == null || loadOperation.isDone)
+                return;
+
+            // Unity scene load operations cannot be cancelled. If a parallel preload fails while
+            // activation is blocked, release the operation so Unity's async queue is not stalled.
+            loadOperation.allowSceneActivation = true;
         }
     }
 }

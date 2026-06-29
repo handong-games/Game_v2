@@ -31,7 +31,7 @@ Legacy manager access remains only in explicit Legacy* bridge registrations.
 
 This document records the intended VContainer scope ownership for current game services.
 
-Phase 1 does not transfer existing runtime services/controllers to VContainer ownership. The map exists to prevent accidental duplicate creation while the existing `DependencyManager` still owns runtime instances.
+This map records the current VContainer ownership surface so that old `DependencyManager` or service-boundary names are not accidentally reintroduced.
 
 ## Package / Content Boundary
 
@@ -54,13 +54,13 @@ Game-specific scope skeletons, composition roots, and registration maps belong h
 ## Phase 1 Registration Rule
 
 ```text
-Do not connect VContainer registrations for existing [Dependency] services/controllers to runtime flow.
-Do not connect SceneLifetimeScope to runtime flow.
-Do not create AdventureSessionLifetimeScope in runtime flow until session ownership is ready.
-Do not resolve game services from VContainer.
+Do not register the same runtime state owner in both DependencyManager and VContainer.
+Do not reintroduce old AdventureService/CardDeckService/CardService/PlayerService/CombatService boundaries without a fresh ownership reason.
+Do not let views/controllers call GameBootstrap.ResolveRoot directly.
+Do not let scene views use legacy ViewManager Push ownership.
 ```
 
-This prevents duplicate instances between VContainer and `DependencyManager`.
+This prevents duplicate runtime state and hidden scene lifetime leaks.
 
 ## Root Scope Candidates
 
@@ -81,11 +81,23 @@ Root first-phase adapter candidates:
 
 | Interface | First implementation | Purpose | Notes |
 | --- | --- | --- | --- |
-| `IAudioPlayer` | `AudioManagerAdapter` | Let VContainer-owned objects request BGM play/stop without directly using `AudioManager.Instance`. | Legacy bridge. Replace with a VContainer-native audio player only after audio ownership is redesigned. |
 | `IViewHost` | `ViewManager` | Let scene-owned views attach/detach without transferring disposal ownership to `ViewManager`. | Host path only. It must not be used as a second owner for views already in the legacy stack. |
-| `ISceneLoader` | `UnitySceneLoader` | Let controllers request scene loads without directly depending on Unity scene APIs. | New call sites should use `Load(GameSceneId)`. `UnitySceneLoader` owns fade-out and coordinates `BaseSceneLifecycleRunner` only for remaining legacy BaseScene scenes before calling Unity `SceneManager.LoadScene`. `SceneManagerEx` and `SceneManagerAdapter` have been removed. |
-| `ISceneTransitionPlayer` | `ViewOverlaySceneTransitionPlayer` | Let scene objects request scene fade transitions without directly using `ViewManager.OverlayLayer` or `ViewTransitionManager.Instance`. | Legacy bridge. Keeps UI Toolkit overlay details behind a narrow transition boundary. |
-| `IViewFactory` | `LegacyViewFactory` or later `VContainerViewFactory` | Centralize view creation. | Factory choice must not duplicate controller/view creation between `DependencyManager` and VContainer. |
+| `SceneManagerEx` | Root singleton | Let controllers request scene loads through one app-level scene transition boundary. | Coordinates fade-out, scene preload, and Unity `SceneManager.LoadSceneAsync` activation. It logs exceptions at the `async void` boundary, resets loading state through `sceneLoaded`, and releases pending `allowSceneActivation=false` operations on failure so Unity's async queue is not left stalled. |
+| `ScenePreloadService` | Root singleton delegate registration | Dispatch scene-specific preload work before scene activation. | Uses explicit preloader registration. `AdventureSceneLoader` currently owns Adventure payload preparation. |
+| `AdventureSceneLoader` | Root singleton | Preload AdventureScene startup models/templates and hand a payload to `AdventureSceneScope`. | Releases any unconsumed payload before a new preload or RootScope disposal, transfers Addressables handle ownership to `AdventureSceneScope` on `Consume`, and asks `ViewManager` to preload the `AdventureView` root UXML before scene activation. |
+| `ISceneTransitionPlayer` | `ViewOverlaySceneTransitionPlayer` | Let scene objects request scene fade transitions without directly using `ViewManager.OverlayLayer` or constructing transition objects. | Legacy bridge. Keeps UI Toolkit overlay details behind a narrow transition boundary. |
+| `SceneManagerEx` | Root singleton | Centralize scene transition, preload, and Unity scene activation. | This is the current root scene-loading boundary. It is not the old manager-owned SceneManagerEx. |
+
+SceneManagerEx failure tradeoff:
+
+```text
+SceneManagerEx starts fade-out, scene preload, and LoadSceneAsync in parallel.
+If preload fails after LoadSceneAsync has started, Unity scene loading cannot be cancelled.
+The current implementation releases allowSceneActivation=false to avoid stalling Unity's async operation queue.
+For AdventureScene this can still activate the scene without AdventureScenePayload, and AdventureSceneScope will fail fast.
+This is intentional for the current implementation, but a later transition API should add an explicit failure-recovery path
+such as fade-in to the current scene or a loading-error scene.
+```
 
 Do not create one adapter per manager by default. Add a root adapter only when a VContainer-owned object needs a narrow boundary.
 
@@ -97,13 +109,14 @@ Assets/@Scripts/Core/Adapters/
 Assets/@Scripts/Core/Composition/
 ```
 
-Existing `IViewFactory` and `LegacyViewFactory` remain under `Assets/@Scripts/Core/Manager/View/` for now to avoid unnecessary file movement.
+No generic view factory is currently registered. Scene-specific navigators resolve their scoped views through their scene container.
 
 Current root registrations:
 
 | Type / Interface | Registration | Lifetime | Notes |
 | --- | --- | --- | --- |
-| `ViewManager` | `Register<ViewManager>().AsSelf().As<IViewHost>()` | Root singleton | VContainer-created root UI host. `AsSelf` remains because root startup and scene transition still inject the concrete type. |
+| `ViewManager` | `Register<ViewManager>().AsSelf().As<IViewHost>()` | Root singleton | VContainer-created root UI host. `AsSelf` remains because root startup and scene transition still inject the concrete type. It owns the root `PanelSettings`, theme, and root-loaded view UXML Addressables handles until Root disposal. |
+| `ViewTransitionManager` | `Register<ViewTransitionManager>()` | Root singleton | VContainer-created transition executor. Static `Instance` access has been removed; callers must receive it through DI or a narrow adapter. |
 | `GameRootEntryPoint` | `RegisterEntryPoint<GameRootEntryPoint>()` | Root singleton | Stateless root initialization orchestrator. Calls `ViewManager.Initialize()` once. |
 | `ISceneTransitionPlayer` | `ViewOverlaySceneTransitionPlayer` | Root singleton | Uses concrete `ViewManager` until a narrower overlay host port exists. |
 
@@ -113,16 +126,14 @@ Current `ViewManager` concrete-type injection audit:
 | --- | --- | --- |
 | `GameRootEntryPoint` | Needs to call `ViewManager.Initialize()` during root startup. | Keep direct while `ViewManager` is the only root UI object needing ordered initialization. |
 | `ViewOverlaySceneTransitionPlayer` | Needs `OverlayLayer` for scene fade transitions. | Split `IViewOverlayHost` exposing only overlay access. |
+| `AdventureSceneLoader` | Needs ViewManager-owned view template handle caching so `AdventureView` root UXML can be preloaded before scene activation. | Split a narrow view-template preload port if more scene preloaders need the same operation. |
 | `ViewManagerBehavior` | Unity MonoBehaviour forwards viewport changes to its owning `ViewManager`. | Acceptable internal helper; not a composition boundary leak. |
 
 | Type | Current owner | Final target | Notes |
 | --- | --- | --- | --- |
-| `ProgressState` | `DependencyManager` | Root | Save state. Must not be duplicated. |
-| `AudioSettingsState` | `DependencyManager` | Root | Save state. Must be shared with `AudioManager`. |
-| `GraphicSettingsState` | `DependencyManager` | Root | Save state. Must be shared with `GraphicManager`. |
-| `LocalizationSettingsState` | `DependencyManager` | Root | Save state. Must be shared with `LocaleManager`. |
-| `CharacterService` | `DependencyManager` | Root | Static data lookup through `DBManager`. |
-| `MonsterService` | `DependencyManager` | Root | Static data lookup through `DBManager`. |
+| `AdventureStartState` | `RootLifetimeScope` | Root singleton | Temporary handoff state from CharacterSelect to AdventureSceneLoader. |
+| `AdventureSceneLoader` | `RootLifetimeScope` | Root singleton | Preloads Adventure startup data and transfers payload ownership to AdventureSceneScope. |
+| `ScenePreloadService` | `RootLifetimeScope` | Root singleton | Dispatches scene-specific preloaders. |
 
 ## Scene Scope Candidates
 
@@ -134,78 +145,79 @@ TitleScene-specific ownership and migration notes are tracked in `docs/title-sce
 | --- | --- | --- | --- |
 | `TitleViewController` | `TitleSceneScope` registration | Title scene scope | Removed from DependencyManager. Created by VContainer when TitleSceneScope is present. |
 | `CharacterSelectController` | `TitleSceneScope` registration | Title scene scope | Removed from DependencyManager registration. Created by VContainer when TitleSceneScope is present. |
-| `ICharacterSelectCatalog` / `LegacyCharacterSelectCatalog` | `TitleSceneScope` registration | Transitional Title scene bridge, later character catalog boundary | Lets `CharacterSelectController` read character selection data without directly using `CharacterService`. The legacy catalog still resolves `CharacterService` from `DependencyManager`; do not treat character catalog ownership as VContainer-owned yet. |
 | `ICharacterUnlockGateway` / `LegacyCharacterUnlockGateway` | `TitleSceneScope` registration | Transitional Title scene bridge, later save/progress boundary | Lets `CharacterSelectController` read unlock state without directly using `SaveManager`. The legacy gateway still uses `SaveManager` and `ProgressState`; do not treat save state as VContainer-owned yet. |
-| `IAdventureSessionStarter` / `LegacyAdventureSessionStarter` | `TitleSceneScope` direct registration | Transitional boundary, later AdventureSession factory/starter | Creates AdventureSessionLifetimeScope and loads AdventureScene. `TitleSceneScope` no longer resolves the adventure service list directly. CardBoardService is VContainer-owned; the remaining run-state services are exposed through DependencyManager-created aliases in AdventureSessionLifetimeScope. Removed from DependencyRegistry so DependencyManager no longer creates this TitleScene bridge. |
+| `CharacterService` | `TitleSceneScope` registration | Title scene scope | Used by CharacterSelectController to build selection presentation. |
 | `TitleView` | `TitleSceneScope` | Title scene scope | Scoped view. Receives `TitleViewController` through constructor injection; display goes through `ISceneViewNavigator`, not ViewManager-owned Push. |
 | `SettingsView` | `TitleSceneScope` | Title scene scope | Scoped view. Display goes through `ISceneViewNavigator`; ViewManager attaches/detaches but does not dispose it. Close delegates to `SettingsViewController.OnClose`; there is no post-construction close callback injection. Internal manager dependencies are deferred cleanup. |
-| `CharacterSelectView` | `TitleSceneScope` | Title scene scope | Scoped view. Receives `CharacterSelectController` through constructor injection; display goes through `ISceneViewNavigator`, not ViewManager-owned Push. Back close animation completion delegates to `CharacterSelectController.OnBackClosed`; there is no post-construction back callback injection. |
-| `ITitleSceneNavigator` / `TitleSceneNavigator` | `TitleSceneScope` registration | Title scene scope | Single TitleScene navigation port. Shows Title, CharacterSelect, and Settings through `ISceneViewNavigator`. Resolves scoped views at display time with `IObjectResolver` to avoid the constructor cycle through `TitleViewController`. |
+| `CharacterSelectView` | `TitleSceneScope` | Title scene scope | Scoped view. Receives `CharacterSelectController` through constructor injection; display goes through `ISceneViewNavigator`, not ViewManager-owned Push. Before display, `TitleSceneNavigator` injects `CardFaceWidgetTemplates` prepared by `TitleSceneCardFaceTemplateLoader` and the `SkillSlotWidget` template prepared by `TitleSceneSkillSlotTemplateLoader`. CharacterSelect dynamic widgets no longer use no-template `WaitForCompletion` fallback. |
+| `TitleSceneCardFaceTemplateLoader` | `TitleSceneScope` registration | Title scene scope | Loads shared Portrait/Locked card face UXML templates for TitleScene-owned screens and releases the Addressables handles when TitleSceneScope is disposed. |
+| `TitleSceneSkillSlotTemplateLoader` | `TitleSceneScope` registration | Title scene scope | Loads the shared SkillSlotWidget UXML template for CharacterSelect before the screen is shown and releases the Addressables handle when TitleSceneScope is disposed. |
+| `TitleSceneLocalizationOwner` | `TitleSceneScope` registration | Title scene scope | Preloads Title/CharacterSelect/Settings localization tables asynchronously during `TitleSceneEntryPoint.Start`; releases the tables when TitleSceneScope is disposed. It must not use `WaitForCompletion`. |
+| `TitleSceneBgmOwner` | `TitleSceneScope` registration | Title scene scope | Loads Title menu BGM asynchronously during `TitleSceneEntryPoint.Start`, plays it after load, and releases the Addressables handle when TitleSceneScope is disposed. It must not use `WaitForCompletion`. |
+| `TitleSceneNavigator` | `TitleSceneScope` registration | Title scene scope | Single TitleScene navigation object. Shows Title, CharacterSelect, and Settings through `ISceneViewNavigator`. Resolves scoped views at display time with `IObjectResolver` to avoid the constructor cycle through `TitleViewController`. CharacterSelect display is asynchronous because required card face and skill slot templates are loaded before showing the screen. |
 | `ISceneViewNavigator` / `SceneViewNavigator` | `TitleSceneScope` registration | Title scene scope | Uses `IViewHost` Attach/Detach and does not dispose views. Connected for TitleScene-scoped views only; do not reuse for legacy transient views without a disposal owner. |
-| `AdventureController` | `AdventureSceneScope` | Adventure scene scope | Removed from DependencyManager registration. Constructed directly by VContainer with session-owned CardBoard/Card/Player services and remaining legacy aliases. |
-| `AdventureView` | `AdventureSceneScope` | Adventure scene scope | Receives `AdventureController` through constructor injection. Attached through `IViewHost`, not legacy `ViewManager.Push` ownership. |
-| `AdventureSceneStartup` | `AdventureSceneScope` | Adventure scene scope | VContainer entry point for AdventureScene startup. Preloads localization, attaches view, and starts controller. |
-| `AdventureSceneScope` | Runtime-created by remaining `AdventureScene` BaseScene bridge | Adventure scene scope | Connected as an interim bridge. It uses `AdventureSessionRuntime.CurrentScope` as parent when available, otherwise falls back to `RootLifetimeScope`. Final target is a scene-placed/session-child scope after AdventureSessionLifetimeScope owns run state. |
-| `AdventureSceneLocalizationOwner` | `AdventureSceneScope` | Adventure scene scope | Owns AdventureScene localization preload/release. |
+| `AdventureScreenController` | `AdventureSceneScope` | Adventure scene scope | Constructed directly by VContainer. Owns Adventure screen/game startup and user interaction flow entry methods. |
+| `AdventureStageAdvanceFlow` | `AdventureSceneScope` | Adventure scene scope | Centralizes post-encounter stage advance/complete branching. Returns `Advanced` only when the next stage should continue into immediate encounter checks. |
+| `AdventureView` | `AdventureSceneScope` | Adventure scene scope | Receives `AdventureScreenController` and UI flows through constructor injection. Attached through `IViewHost`, not legacy `ViewManager.Push` ownership. |
+| `AdventureSceneEntryPoint` | `AdventureSceneScope` | Adventure scene scope | VContainer entry point for AdventureScene startup. Binds screen event routes, initializes runtime, awaits async localization preload, attaches view, then starts the controller. |
+| `AdventureSceneScope` | Adventure scene LifetimeScope | Adventure scene scope | Consumes AdventureScenePayload from AdventureSceneLoader and uses RootLifetimeScope as parent. |
+| `AdventureSceneLocalization` | `AdventureSceneScope` | Adventure scene scope | Owns AdventureScene localization preload/release. Preload is async and must not use `WaitForCompletion`. |
 
-## Adventure Session Scope Candidates
+## Adventure Scene Runtime Candidates
 
-Adventure session scope is for run-specific state. These are currently global but should not remain root-owned long term.
-
-Read `docs/adventure-session-vcontainer-design.md` before moving any of these services.
+Adventure currently uses scene-scoped runtime/state/flow objects instead of the old broad service graph.
 
 Current rule:
 
 ```text
-Do not register these services as VContainer-created services while DependencyManager still owns them.
+Do not reintroduce AdventureService, CardDeckService, CardService, PlayerService, or CombatService as broad owners.
+Keep mutable state in explicit runtime/state classes.
+Keep orchestration in explicit flow classes.
+Keep presentation conversion in AdventurePresenter.
 ```
 
-Current session-scope support:
+Current AdventureSceneScope support:
 
 ```text
-AdventureSessionRuntime can store the active AdventureSessionLifetimeScope.
-AdventureSessionLifetimeScope uses RootLifetimeScope as parent.
-AdventureSceneScope can use AdventureSessionRuntime.CurrentScope as parent when it exists.
-LegacyAdventureSessionStarter creates the session scope at adventure start.
-AdventureSessionLifetimeScope registers AdventureSessionInitializer, VContainer-owned Adventure/CardDeck/CardBoard/Card/Player run-state services, and remaining DependencyManager-created aliases.
-AdventureSessionInitializer receives AdventureService, CardDeckService, CardBoardService, CardService, and PlayerService from VContainer and the remaining legacy dependencies through alias registrations.
-AdventureService, CardDeckService, CardBoardService, CardService, and PlayerService are VContainer-owned in AdventureSessionLifetimeScope.
+AdventureSceneLoader prepares AdventureScenePayload before scene activation.
+AdventureSceneScope consumes the payload and registers scene-local runtime/state/flow/UI objects.
+AdventureSceneEntryPoint binds event routes, initializes runtime, shows AdventureView, then starts AdventureScreenController.
+AdventureScreenController coordinates game flows and emits presentation events.
+AdventureView owns screen lifecycle and delegates UI operations to UIFlow objects.
 ```
 
-| Type | Current owner | Final target | Why not root long term | Migration blocker |
-| --- | --- | --- | --- | --- |
-| `AdventureSessionState` | `AdventureSessionLifetimeScope` | AdventureSession | Holds current adventure session. | Moved with AdventureService and CardDeckService to keep seed/deck identity aligned. |
-| `AdventureSessionFactory` | `AdventureSessionLifetimeScope` | AdventureSession | Creates AdventureSession from content data and seed. | Moved with AdventureService and CardDeckService. |
-| `AdventureService` | `AdventureSessionLifetimeScope` | AdventureSession | Public session API over AdventureSessionState/AdventureSessionFactory. | Removed from DependencyRegistry and no longer registered by LegacyAdventureRunStateInstaller. |
-| `CardDeckState` | `AdventureSessionLifetimeScope` | AdventureSession | Holds deck, pools, random state, draw index. | Moved with AdventureService and CardDeckService. |
-| `CardDeckBuilder` | `AdventureSessionLifetimeScope` | AdventureSession | Builds deck and initial pools from content data and seed. | Moved with AdventureService and CardDeckService. |
-| `CardDeckService` | `AdventureSessionLifetimeScope` | AdventureSession | Draws cards and resolves choice cards through CardDeckState. | Removed from DependencyRegistry and no longer registered by LegacyAdventureRunStateInstaller. |
-| `CardRegistry` | `AdventureSessionLifetimeScope` | AdventureSession | Holds card dictionary and next card id. | Moved with CardService and PlayerService to avoid split player-card state. |
-| `CardFactory` | `AdventureSessionLifetimeScope` | AdventureSession | Creates and mutates Card model/face/tag/attribute setup. | Moved with CardService and PlayerService. |
-| `CardService` | `AdventureSessionLifetimeScope` | AdventureSession | Public card API over CardRegistry/CardFactory. | Removed from DependencyRegistry and no longer registered by LegacyAdventureRunStateInstaller. |
-| `CardBoardState` | `AdventureSessionLifetimeScope` | AdventureSession | Holds card zone placement. | Split from CardBoardService so state and mutation logic are separate. |
-| `CardBoardService` | `AdventureSessionLifetimeScope` | AdventureSession | Mutates card board placement state. | First moved run-state service. Removed from DependencyRegistry and no longer registered by LegacyAdventureRunStateInstaller. |
-| `PlayerRunState` | `AdventureSessionLifetimeScope` | AdventureSession | Holds current player and player card. | Moved with CardService to avoid split player-card state. |
-| `PlayerService` | `AdventureSessionLifetimeScope` | AdventureSession | Public player run API over PlayerRunState. | Removed from DependencyRegistry and no longer registered by LegacyAdventureRunStateInstaller. |
-| `CombatService` | `DependencyManager` | AdventureSession or combat sub-scope decision | Holds combat state and `GameplayMessageManager` death subscription. | Disposal timing must be explicit before scope migration. |
+Representative ownership map:
+
+| Type | Current owner | Lifetime | Notes |
+| --- | --- | --- | --- |
+| `AdventureRunState` | `AdventureSceneScope` | Adventure scene | Holds the current run identity. |
+| `AdventureProgress` | `AdventureSceneScope` | Adventure scene | Holds Adventure phase/intro completion. |
+| `AdventureInputState` | `AdventureSceneScope` | Adventure scene | Holds game-side input mode. |
+| `AdventureCards` / `CardRegistry` / `CardFactory` | `AdventureSceneScope` | Adventure scene | Owns runtime card instances by CardId. |
+| `AdventureBoard` / `CardBoardState` | `AdventureSceneScope` | Adventure scene | Owns board-side CardId placement. |
+| `AdventurePlayer` | `AdventureSceneScope` | Adventure scene | Holds selected character and player card. |
+| `AdventureStageRuntime` | `AdventureSceneScope` | Adventure scene | Holds current stage offers and selected offer binding. |
+| `AdventureCombatRuntime` | `AdventureSceneScope` | Adventure scene | Holds current combat participants and turn side. |
+| `IntentRuntime` | `AdventureSceneScope` | Adventure scene | Holds current intent display/execution state. |
+| `AdventureScreenController` | `AdventureSceneScope` | Adventure scene | Coordinates gameplay flows and presentation events. |
+| `AdventureView` / UIFlow objects | `AdventureSceneScope` | Adventure scene | Owns screen lifecycle and UI presentation operations. |
+| `AdventureCardDealAnimator` | `AdventureSceneScope` | Adventure scene | Plays intro deck-to-board card deal motion. `AdventureBoardLayout` owns slots/anchors and delegates this motion detail to the animator. |
 
 ## Object Creation Migration Order
 
 Already established:
 
 ```text
-1. IViewFactory boundary exists.
-2. LegacyViewFactory exists.
-3. Root adapter interfaces exist.
-4. TitleScene resource owners exist and are created through TitleSceneScope.
-5. RootLifetimeScope is created after ManagerRegistry initialization.
-6. TitleSceneScope inherits root-level ports from RootLifetimeScope through its parent lookup.
-7. Unity Scene + VContainer LifetimeScope is adopted as the target scene architecture.
-8. TitleSceneScope composition verification passes in batchmode.
-9. TitleSceneScope filtered PlayMode verification passes through Game.PlayMode.Tests.
-10. ViewManager legacy stack ownership has explicit PushAndOwn / PopAndDispose / ClearOwnedViewsAndDetachAll methods.
-11. TitleScene scoped views are displayed through SceneViewNavigator and are no longer disposed by ViewManager.
-12. LegacyAdventureSessionStarter is removed from DependencyRegistry and resolved through TitleSceneScope as IAdventureSessionStarter.
+1. Root adapter interfaces exist for view host and scene transition.
+2. TitleScene resource owners exist and are created through TitleSceneScope.
+3. RootLifetimeScope is created after ManagerRegistry initialization.
+4. TitleSceneScope inherits root-level ports from RootLifetimeScope through its parent lookup.
+5. Unity Scene + VContainer LifetimeScope is adopted as the target scene architecture.
+6. TitleSceneScope composition verification passes.
+7. ViewManager legacy stack ownership has explicit PushAndOwn / PopAndDispose / ClearOwnedViewsAndDetachAll methods.
+8. TitleScene scoped views are displayed through SceneViewNavigator and are no longer disposed by ViewManager.
+9. CharacterSelectController starts Adventure through AdventureStartState + SceneManagerEx.
+10. AdventureSceneScope owns AdventureScreenController, AdventureView, runtime state, game flows, UI flows, and event binders.
 ```
 
 Recommended remaining migration order:
@@ -222,14 +234,14 @@ Recommended remaining migration order:
 9. Move TitleScene controllers to VContainer ownership. Done.
 10. Move TitleScene views to SceneScope ownership. Done for TitleScene.
 11. Place TitleSceneScope in the Unity TitleScene only after duplicate ownership is prevented. Done.
-12. Remove LegacyAdventureSessionStarter from DependencyRegistry. Done.
-13. Document AdventureSessionScope ownership boundary. Done.
-14. Add AdventureSceneScope skeleton. Done.
-15. Extract AdventureScene localization owner. Done.
-16. Design AdventureScene startup entry point.
-17. Move AdventureController to VContainer ownership.
-18. Move stateful adventure services into AdventureSessionScope.
-19. Remove custom DependencyManager after all ownership is transferred.
+12. Replace the old adventure-start bridge with AdventureStartState + SceneManagerEx. Done.
+13. Add AdventureSceneScope. Done.
+14. Extract AdventureSceneLocalization. Done.
+15. Add AdventureSceneEntryPoint. Done.
+16. Move AdventureScreenController to VContainer ownership. Done.
+17. Move Adventure runtime state into explicit scene-scoped runtime/state classes. Done for current AdventureScene path.
+18. Continue removing stale service/controller names from docs, tests, and validation scripts.
+19. Remove custom DependencyManager after all remaining ownership has an explicit VContainer replacement.
 ```
 
 ## MonoBehaviour Principle

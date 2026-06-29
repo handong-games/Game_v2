@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using Domains.Adventure;
 using Domains.Combat;
 using Domains.Intent.Runtime;
@@ -24,11 +25,11 @@ namespace Domains.Intent.Flow
             IntentActionResolver resolver,
             IntentDisplayBuilder displayBuilder)
         {
-            _cards = cards;
-            _combat = combat;
-            _runtime = runtime;
-            _resolver = resolver;
-            _displayBuilder = displayBuilder;
+            _cards = cards ?? throw new ArgumentNullException(nameof(cards));
+            _combat = combat ?? throw new ArgumentNullException(nameof(combat));
+            _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+            _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+            _displayBuilder = displayBuilder ?? throw new ArgumentNullException(nameof(displayBuilder));
         }
 
         public void PrepareAll()
@@ -43,14 +44,14 @@ namespace Domains.Intent.Flow
         public bool Prepare(uint enemyCardId)
         {
             if (!_cards.TryGet(enemyCardId, out CardActor enemyCard))
-                return false;
+                throw new InvalidOperationException(
+                    $"Cannot prepare intent because enemy card is missing. Card: {enemyCardId}.");
 
             if (!IsAlive(enemyCard))
                 return false;
 
             IntentRuntimeState state = _runtime.GetOrCreate(enemyCardId);
-            if (!_resolver.TryResolve(enemyCard, state, out ResolvedIntentActionData resolvedAction))
-                return false;
+            ResolvedIntentActionData resolvedAction = _resolver.Resolve(enemyCard, state);
 
             state.SetCache(
                 resolvedAction,

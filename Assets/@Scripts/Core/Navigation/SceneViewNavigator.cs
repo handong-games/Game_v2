@@ -73,7 +73,7 @@ namespace Game.Core.Navigation
 
         public void Dispose()
         {
-            _views.Clear();
+            HideAll();
         }
     }
 }

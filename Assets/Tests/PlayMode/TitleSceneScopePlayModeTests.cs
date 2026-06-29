@@ -17,7 +17,7 @@ namespace Game.Tests.PlayMode
         public IEnumerator TitleScene_BuildsConnectedScopeWithoutDuplicateControllers()
         {
             VerifyDependencyManagerDoesNotOwnTitleSceneScopedTypes();
-            VerifySceneManagerExIsRemoved();
+            VerifyLegacySceneManagerExIsRemoved();
             VerifyPureCSharpTitleSceneIsRemoved();
 
             AsyncOperation load = SceneManager.LoadSceneAsync(SceneName, LoadSceneMode.Single);
@@ -49,26 +49,25 @@ namespace Game.Tests.PlayMode
             Assert.IsNotNull(titleScope, "TitleSceneScope was not created.");
             Assert.IsNotNull(titleContainer, "TitleSceneScope container was not built.");
 
-            Type sceneLoaderInterfaceType = RequiredType("Game.Core.Ports.ISceneLoader");
-            Type unitySceneLoaderType = RequiredType("Game.Core.Adapters.UnitySceneLoader");
+            Type sceneManagerExType = RequiredType("Game.Core.Adapters.SceneManagerEx");
+            Type scenePreloadServiceType = RequiredType("Game.Core.SceneLoading.ScenePreloadService");
             Type adventureStartStateType = RequiredType("Domains.Adventure.AdventureStartState");
             Type titleControllerType = RequiredType("Views.TitleView.TitleViewController");
             Type characterControllerType = RequiredType("Domains.CharacterSelect.CharacterSelectController");
-            Type viewFlowType = RequiredType("Domains.Scene.Title.TitleSceneViewFlow");
+            Type titleNavigatorType = RequiredType("Domains.Scene.Title.TitleSceneNavigator");
 
-            object sceneLoader = Resolve(rootContainer, sceneLoaderInterfaceType);
+            object sceneManagerEx = Resolve(rootContainer, sceneManagerExType);
+            object scenePreloadService = Resolve(rootContainer, scenePreloadServiceType);
             object adventureStartState = Resolve(rootContainer, adventureStartStateType);
             object titleControllerA = Resolve(titleContainer, titleControllerType);
             object titleControllerB = Resolve(titleContainer, titleControllerType);
             object characterControllerA = Resolve(titleContainer, characterControllerType);
             object characterControllerB = Resolve(titleContainer, characterControllerType);
-            MethodInfo sceneLoadMethod = sceneLoaderInterfaceType.GetMethod("Load");
 
-            Assert.AreEqual(unitySceneLoaderType, sceneLoader.GetType(), "Root ISceneLoader must resolve to UnitySceneLoader.");
-            Assert.IsNotNull(sceneLoadMethod, "ISceneLoader.Load method was not found.");
-            Assert.IsFalse(sceneLoadMethod.IsGenericMethod, "ISceneLoader must use GameSceneId loading, not generic BaseScene loading.");
+            Assert.AreEqual(sceneManagerExType, sceneManagerEx.GetType(), "Root SceneManagerEx must resolve to the adapter-owned scene loader.");
+            Assert.IsNotNull(scenePreloadService, "ScenePreloadService could not be resolved from RootLifetimeScope.");
             Assert.IsNotNull(adventureStartState, "AdventureStartState could not be resolved from RootLifetimeScope.");
-            Assert.IsNotNull(Resolve(titleContainer, viewFlowType), "TitleSceneViewFlow could not be resolved.");
+            Assert.IsNotNull(Resolve(titleContainer, titleNavigatorType), "TitleSceneNavigator could not be resolved.");
             Assert.AreSame(titleControllerA, titleControllerB, "TitleViewController is not scoped as a single instance.");
             Assert.AreSame(characterControllerA, characterControllerB, "CharacterSelectController is not scoped as a single instance.");
         }
@@ -91,7 +90,7 @@ namespace Game.Tests.PlayMode
             }
         }
 
-        private static void VerifySceneManagerExIsRemoved()
+        private static void VerifyLegacySceneManagerExIsRemoved()
         {
             const string sceneManagerExFullName = "Game.Core.Managers.Scene.SceneManagerEx";
             Type sceneManagerExType = Type.GetType($"{sceneManagerExFullName}, Assembly-CSharp");

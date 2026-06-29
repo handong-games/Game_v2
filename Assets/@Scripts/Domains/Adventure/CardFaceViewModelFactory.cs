@@ -8,6 +8,14 @@ namespace Domains.Adventure
         public static CardFaceViewModel Create(CardFaceModel model)
         {
             if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
+            return CreateOptional(model);
+        }
+
+        public static CardFaceViewModel CreateOptional(CardFaceModel model)
+        {
+            if (model == null)
                 return null;
 
             return model switch

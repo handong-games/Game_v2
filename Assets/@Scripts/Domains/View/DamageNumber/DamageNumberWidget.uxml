@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:widgets="Domains.View.Widgets" editor-extension-mode="False">
+    <Style src="DamageNumberWidget.uss"/>
+    <widgets:DamageNumberWidget name="damage-number-widget" class="damage-number-widget" picking-mode="Ignore"/>
+</ui:UXML>

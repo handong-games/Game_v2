@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -22,7 +22,7 @@ MonoBehaviour:
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: 81e97c12ad7b420c954c800da3dccf8d, type: 3}
   _ussClassName: choice-card--shop
   references:
     version: 2

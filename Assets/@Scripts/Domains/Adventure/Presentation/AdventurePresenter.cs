@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Domains.Card;
-using Domains.Combat;
 using Domains.View.Widgets;
 using Game.AbilitySystem;
 using Game.AbilitySystem.Abilities;
@@ -20,53 +19,68 @@ namespace Domains.Adventure
         private readonly AdventureCards _cards;
         private readonly AdventureBoard _board;
         private readonly AdventureStageRuntime _stage;
-        private readonly AdventureCombatRuntime _combat;
         private readonly AdventureRegionData _region;
+        private readonly AdventureProgress _progress;
 
         public AdventurePresenter(
             AdventurePlayer player,
             AdventureCards cards,
             AdventureBoard board,
             AdventureStageRuntime stage,
-            AdventureCombatRuntime combat,
-            AdventureRegionData region)
+            AdventureRegionData region,
+            AdventureProgress progress)
         {
-            _player = player;
-            _cards = cards;
-            _board = board;
-            _stage = stage;
-            _combat = combat;
-            _region = region;
+            _player = player ?? throw new ArgumentNullException(nameof(player));
+            _cards = cards ?? throw new ArgumentNullException(nameof(cards));
+            _board = board ?? throw new ArgumentNullException(nameof(board));
+            _stage = stage ?? throw new ArgumentNullException(nameof(stage));
+            _region = region ?? throw new ArgumentNullException(nameof(region));
+            _progress = progress ?? throw new ArgumentNullException(nameof(progress));
         }
 
         public AdventureEntryPresentationViewModel CreateEntryPresentation()
         {
             AdventureEntryPresentationModel presentation = _region.Adventure.EntryPresentation;
+            if (presentation == null)
+                throw new InvalidOperationException("Adventure entry presentation is missing.");
+
             return new AdventureEntryPresentationViewModel(
+                _region.Adventure.LocalizedRegionName,
                 presentation.Title,
                 presentation.Subtitle,
                 presentation.Background,
                 presentation.Emblem);
         }
 
-        public IReadOnlyList<AdventureCardViewModel> CreateBoardCards()
+        public AdventureInitialPresentationViewModel CreateInitialPresentation()
+        {
+            return new AdventureInitialPresentationViewModel(
+                CreateEntryPresentation(),
+                CreateResourceStatus(),
+                CreateBoardPresentation(),
+                CreateSkillSlots());
+        }
+
+        public AdventureResourceStatusViewModel CreateResourceStatus()
+        {
+            return new AdventureResourceStatusViewModel(
+                _region.Adventure.LocalizedRegionName);
+        }
+
+        public AdventureBoardPresentationViewModel CreateBoardPresentation()
+        {
+            IReadOnlyList<AdventureCardViewModel> runtimeCards = CreateBoardCards();
+            return new AdventureBoardPresentationViewModel(
+                CreateBoardDisplayCards(runtimeCards),
+                runtimeCards);
+        }
+
+        private IReadOnlyList<AdventureCardViewModel> CreateBoardCards()
         {
             List<AdventureCardViewModel> cards = new();
             AddBoardZoneCards(cards, ECardZone.Left);
             AddBoardZoneCards(cards, ECardZone.Right);
             return cards;
-        }
-
-        public IReadOnlyList<AdventureBoardCardViewModel> CreateBoardDisplayCards()
-        {
-            return CreateBoardDisplayCards(CreateBoardCards());
-        }
-
-        public CombatTurnViewModel CreateCombatTurnViewModel()
-        {
-            return new CombatTurnViewModel(
-                _combat.CurrentSide,
-                _combat.RoundNumber);
         }
 
         public IReadOnlyList<AdventureSkillSlotViewModel> CreateSkillSlots()
@@ -112,7 +126,8 @@ namespace Domains.Adventure
             {
                 uint cardId = cardIds[i];
                 if (!_cards.TryGet(cardId, out CardActor card))
-                    continue;
+                    throw new InvalidOperationException(
+                        $"Adventure board contains card id {cardId}, but AdventureCards does not contain the runtime card.");
 
                 result.Add(CreateCardViewModel(card, zone));
             }
@@ -155,6 +170,7 @@ namespace Domains.Adventure
             AdventureCardViewModel card)
         {
             if (card.Zone == ECardZone.Right &&
+                ShouldDisplayChoiceCard() &&
                 _stage.TryGetBindingByOfferCardId(card.CardId, out AdventureStageOfferBinding binding) &&
                 TryGetChoiceType(binding.Offer, out EChoiceCardType choiceType))
             {
@@ -167,6 +183,11 @@ namespace Domains.Adventure
                 ToBoardSide(card.Zone),
                 card.CardId,
                 card.Card);
+        }
+
+        private bool ShouldDisplayChoiceCard()
+        {
+            return _progress.CurrentPhase == AdventurePhase.Choice;
         }
 
         private static AdventureBoardSide ToBoardSide(ECardZone zone)

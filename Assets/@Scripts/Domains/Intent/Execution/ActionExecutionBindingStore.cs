@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Domains.Intent.Data;
 using Gameplay.GAS;
-using UnityEngine;
 
 namespace Domains.Intent.Execution
 {
@@ -28,9 +27,8 @@ namespace Domains.Intent.Execution
 
             if (!abilitySpecHandle.IsValid)
             {
-                Debug.LogError(
+                throw new InvalidOperationException(
                     $"Cannot bind invalid ability spec handle. Monster: {monsterCardId}, Action: {actionModel.name}.");
-                return false;
             }
 
             if (!_handlesByMonsterCardId.TryGetValue(
@@ -43,9 +41,8 @@ namespace Domains.Intent.Execution
 
             if (handles.ContainsKey(actionModel))
             {
-                Debug.LogError(
+                throw new InvalidOperationException(
                     $"Duplicate action execution binding. Monster: {monsterCardId}, Action: {actionModel.name}.");
-                return false;
             }
 
             handles.Add(actionModel, abilitySpecHandle);

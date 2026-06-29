@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using System;
 using Domains.Intent.Data;
 using Domains.Intent.Runtime;
 using Game.Data;
-using UnityEngine;
 using CardActor = Domains.Card.Card;
 
 namespace Domains.Intent.Flow
@@ -18,51 +18,41 @@ namespace Domains.Intent.Flow
             _overrideRuleSet = overrideRuleSet;
         }
 
-        public bool TryResolve(
+        public ResolvedIntentActionData Resolve(
             CardActor monster,
-            IntentRuntimeState state,
-            out ResolvedIntentActionData resolvedAction)
+            IntentRuntimeState state)
         {
-            resolvedAction = default;
-
             if (monster == null)
-                return false;
+                throw new ArgumentNullException(nameof(monster));
+
+            if (state == null)
+                throw new ArgumentNullException(nameof(state));
 
             if (monster.Model is not MonsterModel monsterModel)
-            {
-                Debug.LogError($"Intent resolution requires MonsterModel. Card: {monster.CardId}.");
-                return false;
-            }
+                throw new InvalidOperationException(
+                    $"Intent resolution requires MonsterModel. Card: {monster.CardId}.");
 
             IReadOnlyList<MonsterActionModel> actionSequence = monsterModel.ActionSequence;
             if (actionSequence.Count == 0)
-            {
-                Debug.LogError($"Monster has no intent action sequence. Monster: {monsterModel.name}.");
-                return false;
-            }
+                throw new InvalidOperationException(
+                    $"Monster has no intent action sequence. Monster: {monsterModel.name}.");
 
             int actionIndex = state.CurrentIntentActionIndex % actionSequence.Count;
             MonsterActionModel baseAction = actionSequence[actionIndex];
             if (baseAction == null)
-            {
-                Debug.LogError(
+                throw new InvalidOperationException(
                     $"Monster intent action sequence has null action. Monster: {monsterModel.name}, Index: {actionIndex}.");
-                return false;
-            }
 
             IntentOverrideRule appliedOverrideRule = FindOverrideRule(monster);
             MonsterActionModel finalAction = appliedOverrideRule?.ReplacementAction ?? baseAction;
             if (finalAction == null)
-            {
-                Debug.LogError($"Intent override selected null replacement action. Monster: {monsterModel.name}.");
-                return false;
-            }
+                throw new InvalidOperationException(
+                    $"Intent override selected null replacement action. Monster: {monsterModel.name}.");
 
-            resolvedAction = new ResolvedIntentActionData(
+            return new ResolvedIntentActionData(
                 baseAction,
                 finalAction,
                 appliedOverrideRule);
-            return true;
         }
 
         private IntentOverrideRule FindOverrideRule(CardActor monster)
@@ -91,7 +81,7 @@ namespace Domains.Intent.Flow
 
                 if (rule.Priority == selectedRule.Priority)
                 {
-                    Debug.LogError(
+                    throw new InvalidOperationException(
                         $"Duplicate matching intent override priority. Monster: {monster.CardId}, Priority: {rule.Priority}.");
                 }
             }

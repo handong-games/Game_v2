@@ -1,5 +1,6 @@
 using Domains.Card;
 using Gameplay.GAS;
+using System;
 
 namespace Domains.Adventure
 {
@@ -13,7 +14,7 @@ namespace Domains.Adventure
         {
             CardId = cardId;
             Zone = zone;
-            Card = card;
+            Card = card ?? throw new ArgumentNullException(nameof(card));
             AbilitySystem = abilitySystem;
         }
 

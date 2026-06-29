@@ -9,9 +9,6 @@ namespace Domains.Intent.Presentation
     // Converts cached intent runtime data into UI-ready view models.
     public sealed class IntentPresenter
     {
-        private static readonly IReadOnlyList<IntentItemViewModel> EmptyItems =
-            Array.Empty<IntentItemViewModel>();
-
         private readonly AdventureCombatRuntime _combat;
         private readonly IntentRuntime _runtime;
 
@@ -19,8 +16,8 @@ namespace Domains.Intent.Presentation
             AdventureCombatRuntime combat,
             IntentRuntime runtime)
         {
-            _combat = combat;
-            _runtime = runtime;
+            _combat = combat ?? throw new ArgumentNullException(nameof(combat));
+            _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         }
 
         public IReadOnlyList<MonsterIntentRevealViewModel> CreateRevealSequence()
@@ -29,28 +26,22 @@ namespace Domains.Intent.Presentation
             IReadOnlyList<uint> enemyCardIds = _combat.EnemyCardIds;
             for (int i = 0; i < enemyCardIds.Count; i++)
             {
-                if (TryCreate(enemyCardIds[i], out MonsterIntentRevealViewModel viewModel))
-                    result.Add(viewModel);
+                result.Add(Create(enemyCardIds[i]));
             }
 
             return result;
         }
 
-        public bool TryCreate(
-            uint enemyCardId,
-            out MonsterIntentRevealViewModel viewModel)
+        public MonsterIntentRevealViewModel Create(uint enemyCardId)
         {
-            viewModel = null;
-
             if (!_runtime.TryGet(enemyCardId, out IntentRuntimeState state))
-                return false;
+                throw new InvalidOperationException(
+                    $"Cached intent runtime state is missing. Card: {enemyCardId}.");
 
             IReadOnlyList<IntentDisplayData> displays = state.CachedIntentDisplays;
             if (displays.Count == 0)
-            {
-                viewModel = new MonsterIntentRevealViewModel(enemyCardId, EmptyItems);
-                return true;
-            }
+                throw new InvalidOperationException(
+                    $"Cached intent display is empty. Card: {enemyCardId}.");
 
             List<IntentItemViewModel> items = new(displays.Count);
             for (int i = 0; i < displays.Count; i++)
@@ -58,8 +49,7 @@ namespace Domains.Intent.Presentation
                 items.Add(CreateItem(displays[i]));
             }
 
-            viewModel = new MonsterIntentRevealViewModel(enemyCardId, items);
-            return true;
+            return new MonsterIntentRevealViewModel(enemyCardId, items);
         }
 
         private static IntentItemViewModel CreateItem(IntentDisplayData data)

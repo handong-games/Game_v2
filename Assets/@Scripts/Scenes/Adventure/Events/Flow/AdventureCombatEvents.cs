@@ -1,16 +1,17 @@
 using System;
-using System.Collections.Generic;
 using Domains.Combat;
 using Domains.Intent.Presentation;
+using UnityEngine;
 
 namespace Game.Scenes.Adventure.Events.Flow
 {
+    // Role:
+    // Carries combat presentation requests emitted by Adventure game flow.
+    // Awaitable callbacks are used when game flow must wait for UI presentation completion.
     public sealed class AdventureCombatEvents
     {
-        public Action PlayerTurnBannerRequested;
-        public Action<IReadOnlyList<MonsterIntentRevealViewModel>> IntentRevealRequested;
-        public Action<uint> IntentTriggeredRequested;
-        public Action EnemyTurnCompleted;
-        public Action<ECombatEndResult> ResultRequested;
+        public Func<MonsterIntentRevealViewModel, Awaitable> IntentRefreshRequested;
+        public Func<uint, Awaitable<bool>> IntentTriggeredRequested;
+        public Func<ECombatEndResult, Awaitable<bool>> ResultRequested;
     }
 }

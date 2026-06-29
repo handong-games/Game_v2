@@ -65,7 +65,7 @@ namespace Domains.View.Widgets
                 : TailsTarget;
         }
 
-        public async Awaitable Show()
+        public async Awaitable Show(ViewTransitionManager transitionManager)
         {
             if (_isShown)
                 return;
@@ -73,7 +73,8 @@ namespace Domains.View.Widgets
             _isShown = true;
             SetHidden();
 
-            await ViewTransitionManager.Instance.Play(this, EnterClass);
+            if (transitionManager != null)
+                await transitionManager.Play(this, EnterClass);
         }
 
         public void Hide()

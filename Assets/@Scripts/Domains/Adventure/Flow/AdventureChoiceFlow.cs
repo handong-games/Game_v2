@@ -19,22 +19,24 @@ namespace Domains.Adventure
             AdventureStageRuntime stage,
             AdventureBoard board)
         {
-            _input = input;
-            _stage = stage;
-            _board = board;
+            _input = input ?? throw new ArgumentNullException(nameof(input));
+            _stage = stage ?? throw new ArgumentNullException(nameof(stage));
+            _board = board ?? throw new ArgumentNullException(nameof(board));
         }
 
         public AdventureChoiceSelectionResult Select(uint offerCardId)
         {
-            if (_input.CurrentMode != AdventureInputMode.ChoiceSelection)
-                return AdventureChoiceSelectionResult.None;
-
-            if (!_stage.TryGetBindingByOfferCardId(offerCardId, out AdventureStageOfferBinding binding))
+            if (!TryGetSelectableBinding(offerCardId, out AdventureStageOfferBinding binding))
                 return AdventureChoiceSelectionResult.None;
 
             _stage.SelectBinding(binding);
             _input.Clear();
             return new AdventureChoiceSelectionResult(true, offerCardId);
+        }
+
+        public bool CanSelect(uint offerCardId)
+        {
+            return TryGetSelectableBinding(offerCardId, out _);
         }
 
         public AdventureChoiceCommitResult CommitSelection()
@@ -75,6 +77,18 @@ namespace Domains.Adventure
                 binding.Offer.EncounterType,
                 binding.Offer.EncounterCard);
             return true;
+        }
+
+        private bool TryGetSelectableBinding(
+            uint offerCardId,
+            out AdventureStageOfferBinding binding)
+        {
+            binding = null;
+
+            if (_input.CurrentMode != AdventureInputMode.ChoiceSelection)
+                return false;
+
+            return _stage.TryGetBindingByOfferCardId(offerCardId, out binding);
         }
     }
 }

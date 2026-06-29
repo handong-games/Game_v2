@@ -1,5 +1,127 @@
 # AdventureView UIFlow Redesign
 
+## Current Implementation Update: Intro Deal and Turn Start Presentation
+
+이 절은 2026-06-29 기준 구현 상태를 문서 기준으로 고정한다.
+아래의 기존 "Current Implementation-Ready Direction"에 남아 있는 예전 범위 설명보다 이 절의 내용이 우선한다.
+
+### Intro 카드 딜링 순서
+
+현재 Intro는 다음 순서를 따른다.
+
+```text
+AdventureSceneEntryPoint.Start
+-> AdventureScreenController.StartAdventure
+-> AdventureScreenEvents.InitialPresentationPrepared(viewModel)
+-> AdventureView.OnGameInitialPresentationPrepared
+-> AdventureIntroUIFlow.Play
+```
+
+`AdventureIntroUIFlow.Play`의 현재 책임:
+
+```text
+1. intro shown class 제거
+2. background / emblem 적용
+3. ResourceStatusBar 초기 표시 데이터 준비
+4. 1 frame 대기
+5. CardDeck enter transition 완료 대기 등록
+6. region banner presentation 시작
+7. adventure-view--intro-shown class 추가
+8. CardDeck enter transition 완료 대기
+9. AdventureBoardUIFlow.ReplaceBoardWithEnter(viewModel.BoardCards, cardDeck, canContinue)
+10. region banner 완료 대기
+11. InitialPresentationPrepared Awaitable 완료 반환
+```
+
+카드 딜링은 `AdventureBoardUIFlow`와 `AdventureBoardLayout`이 담당한다.
+deck deal motion 세부 구현은 `AdventureCardDealAnimator`가 담당한다.
+`AdventureIntroUIFlow`는 카드 widget 생성, board slot 계산, card event binding을 알지 않는다.
+
+### CardDeck Top-Card Deal Motion
+
+현재 딜링 연출은 "덱 전체가 카드를 뿜는 것"이 아니라 "덱의 맨 위 카드가 딜러처럼 전달되는 것"으로 정의한다.
+
+```text
+CardDeck
+-> card-deck-top-card worldBound center를 출발 좌표로 사용
+
+AdventureBoardLayout
+-> destination anchor는 보드 최종 좌표에 고정
+-> placement.Card 내부의 실제 카드 본체만 이동
+-> Player/Monster/Display: 내부 CardWidget 이동
+-> Choice: 내부 .card-widget 이동
+
+AdventureCardDealAnimator
+-> top-card 기준 시작 transform 적용
+-> card body transition 실행
+-> deck nudge / settle motion 실행
+```
+
+연출 규칙:
+
+```text
+1. card anchor는 destination slot에 고정한다.
+2. 실제 card body만 top-card 위치에서 시작한다.
+3. 시작 scale은 0.28이다.
+4. 이동 경로는 목적지 방향 직선이다.
+5. 회전은 사용하지 않는다.
+6. 여러 장은 0.12초 stagger로 겹쳐 출발한다.
+7. 덱은 카드가 빠져나가는 방향으로 짧게 nudge한다.
+8. 덱은 줄어들거나 사라지지 않는다.
+9. 도착 시 0.98 scale + 2px down으로 짧게 눌렸다가 복귀한다.
+```
+
+이 구조를 선택한 이유:
+
+```text
+anchor를 움직이면 Health/Intent 예약 공간까지 움직인다.
+그러면 "카드 본체를 딜링한다"가 아니라 "보드 슬롯 전체를 이동한다"가 된다.
+따라서 anchor는 layout 좌표를 고정하고, 실제 card body만 animation target으로 삼는다.
+```
+
+주의할 점:
+
+```text
+딜링은 실제 보드 카드 widget을 이동시키는 연출이다.
+연출용 임시 카드 clone을 만들지 않는다.
+CardDeck의 top-card는 출발 좌표와 시각 기준만 제공한다.
+덱은 그대로 남고, 보드에 붙은 실제 카드 본체가 top-card 위치에서 목적지로 들어온다.
+```
+
+이유:
+
+```text
+임시 clone을 사용하면 "clone 연출 완료 후 실제 card widget 표시"라는 두 번째 동기화 문제가 생긴다.
+Health/Intent/Avatar/event binding이 붙는 실제 카드를 처음부터 움직이면,
+연출 완료 후 별도 교체 없이 그대로 게임 UI가 된다.
+```
+
+### PlayerTurn 시작 표시 순서
+
+Intro가 끝난 뒤 전투가 시작되면 `AdventureScreenEvents.PlayerTurnStarted(viewModel)`이 화면에 전달된다.
+현재 PlayerTurn 시작 UI 순서는 다음과 같다.
+
+```text
+1. Intent reveal 시작
+2. Turn banner 표시 시작
+3. HealthBar 표시 시작
+4. Turn banner와 HealthBar 완료 대기
+5. Intent reveal 완료는 기다리지 않음
+6. CoinStatus 표시
+7. Pouch 표시
+```
+
+HealthBar는 카드 배치 중 표시하지 않는다.
+`AdventureCardWidgetFactory`는 card placement 시 `ShowHealthAsync`를 호출하지 않는다.
+HealthBar 표시는 `AdventureBoardUIFlow.ShowHealthBars(viewTransitionManager)`를 통해 PlayerTurn 시작 presentation에서 호출한다.
+
+Intent는 PlayerTurnStarted 처리 초반에 표시를 시작한다.
+다만 Intent reveal은 현재 PlayerTurn UI gate를 막지 않는다.
+이 결정은 Pouch/CoinStatus 표시가 Intent animation 완료에 묶여 전체 템포가 느려지는 것을 피하기 위한 임시 기준이다.
+구현은 `async void`가 아니라 `Awaitable` 기반 fire-and-forget 래퍼를 사용한다.
+Screen lifetime이 끊긴 경우 intent reveal은 시작하지 않거나 중간에 중단된다.
+추후 UX 확인 결과 Pouch가 너무 빨리 보이면 Intent reveal을 다시 await 대상으로 바꿀 수 있다.
+
 ## Current Implementation-Ready Direction
 
 이 문서의 최신 방향은 아래 흐름을 기준으로 한다.
@@ -53,24 +175,40 @@ C#은 state class 변경과 실행 순서만 소유한다.
 
 ```text
 AdventureSceneEntryPoint.Start
--> AdventureStartFlow.StartAdventure()
+-> AdventureStartFlow.InitializeRuntime()
    Runtime 상태 초기화
--> AdventureSceneNavigator.ShowAdventure()
-   Screen 생성/표시/Event 구독 준비 완료
--> AdventureSceneController.StartAdventure()
+-> AdventureScreenController.InitializeAdventure()
    Stage 시작
+   초기 board/runtime presentation state 준비
+-> AdventureSceneLocalization.Preload()
+   화면 표시 전에 필요한 localization 준비
+-> AdventureSceneNavigator.ShowAdventure()
+   Screen 생성/표시
+-> AdventureScreenController.StartAdventure()
    AdventureInitialPresentationViewModel 생성
-   InitialPresentationPrepared 이벤트 발행
+   InitialPresentationPrepared 이벤트 await
+   Intro 완료 시 AdventureProgress.MarkIntroCompleted
+   Intro 완료 후 즉시 encounter 확인
+```
+
+`StartAdventure()` 내부 책임은 두 단계로 나눈다.
+
+```text
+RequestInitialPresentation()
+  InitialPresentationPrepared를 발행하고 Screen intro 완료를 기다린다.
+
+ContinueAfterInitialPresentation()
+  Intro 완료 이후 AdventureProgress, choice input, immediate encounter 흐름을 진행한다.
 ```
 
 ### Screen Flow
 
 ```text
-AdventureView.OnInitialPresentationPrepared(viewModel)
--> InitializeScreen(viewModel)
-   AdventureIntroUIFlow.Prepare(viewModel)
--> RequestIntroAnimation()
-   AdventureIntroUIFlow.Play()
+AdventureView.OnGameInitialPresentationPrepared(viewModel)
+-> attach/widget 준비 대기
+-> PrepareInitialPresentation(viewModel)
+-> AdventureIntroUIFlow.Play(viewModel)
+-> Intro 완료를 StartAdventure 흐름에 반환
 ```
 
 `AdventureView`는 초기 데이터가 도착해도 바로 세부 애니메이션을 실행하지 않는다.
@@ -113,7 +251,6 @@ Panel에 attach되어야 runtime UI가 render/event 대상이 된다.
 ```csharp
 private bool _screenAttached;
 private bool _introStarted;
-private AdventureInitialPresentationViewModel _pendingInitialPresentation;
 ```
 
 예상 형태:
@@ -123,41 +260,35 @@ protected override void OnAttachedToPanel(AttachToPanelEvent evt)
 {
     base.OnAttachedToPanel(evt);
 
+    if (!_screenWidgets.IsInitialized)
+    {
+        _screenWidgets.Initialize(LogicalRoot);
+        _screenUIFlow.Bind(_screenWidgets.EffectLayer);
+    }
+
     _screenAttached = true;
-    TryStartIntro();
 }
 
-public void OnInitialPresentationPrepared(
+public async Awaitable<bool> OnGameInitialPresentationPrepared(
     AdventureInitialPresentationViewModel viewModel)
 {
-    _pendingInitialPresentation = viewModel;
-    TryStartIntro();
-}
+    int screenLifetimeVersion = _screenLifetimeVersion;
+    if (!await WaitUntilScreenReady(screenLifetimeVersion))
+        return false;
 
-private void TryStartIntro()
-{
-    if (_introStarted)
-        return;
-
-    if (!_screenAttached)
-        return;
-
-    if (_pendingInitialPresentation == null)
-        return;
-
-    _introStarted = true;
-
-    InitializeScreen(_pendingInitialPresentation);
-    RequestIntroAnimation();
+    PrepareInitialPresentation(viewModel);
+    return await PlayIntroOnce(screenLifetimeVersion, viewModel);
 }
 ```
 
 규칙:
 
 ```text
-OnAttachedToPanel은 화면이 실제 Panel에 올라온 사실만 기록한다.
-OnInitialPresentationPrepared는 초기 표시 데이터를 보관한다.
-TryStartIntro만 Intro 시작 여부를 판단한다.
+OnVisualTreeCloned는 UXML clone 완료 시점만 의미한다.
+OnAttachedToPanel은 화면이 실제 Panel에 올라온 뒤 LogicalRoot 기준으로 Screen 하위 widget 참조를 확정한다.
+OnGameInitialPresentationPrepared는 초기 표시 데이터를 장기 field로 보관하지 않는다.
+OnGameInitialPresentationPrepared는 attach/widget 준비를 기다린 뒤 Intro 완료까지 반환한다.
+AdventureInitialPresentationViewModel은 요청 단위 데이터이며, screen lifetime이 끊기면 폐기된다.
 ```
 
 ### AdventureIntroUIFlow
@@ -167,6 +298,7 @@ TryStartIntro만 Intro 시작 여부를 판단한다.
 허용 책임:
 
 - 지역 배너 표시 요청
+- 지역 배너 표시 완료 대기
 - 보드 카드 intro 준비 요청
 - 보드 카드 intro 완료 대기
 - intro 완료 후 `AdventureView` 또는 Controller 흐름으로 반환
@@ -183,36 +315,54 @@ TryStartIntro만 Intro 시작 여부를 판단한다.
 ```csharp
 public sealed class AdventureIntroUIFlow
 {
-    public void Prepare(AdventureInitialPresentationViewModel viewModel);
-    public Awaitable Play();
+    public Awaitable Play(
+        VisualElement adventureRoot,
+        VisualElement background,
+        VisualElement emblem,
+        VisualElement cardDeck,
+        ResourceStatusBar resourceStatusBar,
+        Banner banner,
+        AdventureInitialPresentationViewModel viewModel,
+        Func<bool> canContinue);
 }
 ```
 
 ### AdventureBoardUIFlow Intro Contract
 
-초기 카드 intro는 세 단계로 분리한다.
+초기 카드 intro에서 Board 쪽은 별도 intro 전용 API를 만들지 않는다.
 
 ```text
-PrepareInitialCardsIntro(cards)
-WaitInitialCardsIntroEndOnly()
-StartInitialCardsIntro()
-```
-
-호출 순서:
-
-```text
-Prepare
--> Wait registration
--> NextFrame
--> Start
--> Await
+AdventureIntroUIFlow
+-> AdventureBoardUIFlow.ReplaceBoardWithEnter(initial display cards)
+-> 지역 배너와 card anchor의 USS transition 대기
 ```
 
 의미:
 
-- `PrepareInitialCardsIntro`: 카드 생성/배치, delay class 적용, intro shown class 제거, 마지막 wait target 저장
-- `WaitInitialCardsIntroEndOnly`: 마지막 카드의 `TransitionEndEvent` 대기
-- `StartInitialCardsIntro`: 보드 intro shown class 추가
+- `AdventureIntroUIFlow`: 첫 화면 연출 순서 조율
+- `AdventureBoardUIFlow`: 카드 생성/배치/교체/제거 경계 제공
+- `AdventureBoardLayout`: 실제 slot/anchor 구조와 transition target 제공
+- `AdventureCardDealAnimator`: 덱에서 실제 카드 본체가 들어오는 animation 실행
+
+현재 intro 딜링은 일반 board enter와 다르다.
+
+```text
+일반 enter:
+-> anchor 자체의 enter-pending / enter class로 처리
+
+intro deck deal:
+-> anchor는 최종 위치에 고정
+-> card body에 deck 기준 translate/scale/opacity 시작값 적용
+-> 다음 frame에 card body class를 추가해 목적지로 transition
+```
+
+이유:
+
+```text
+일반 enter는 "보드 슬롯이 나타남"을 표현한다.
+intro deck deal은 "덱에서 카드가 배달됨"을 표현한다.
+같은 board enter 계열 API라도 animation target은 다르다.
+```
 
 ### Animation Rules
 
@@ -227,19 +377,48 @@ Animation은 배치된 요소의 visual state 전환만 책임진다.
 C# WaitForSeconds 반복으로 단순 stagger를 만들지 않는다.
 ```
 
-```text
-기본 완료 방식은 End-only다.
-TransitionCancelEvent와 fallback timeout은 기본형에 넣지 않는다.
-TransitionEndEvent 누락은 우선 USS/design bug로 본다.
-```
-
-Intro 완료 후 Controller 메서드는 다음 이름을 사용한다.
+예외:
 
 ```text
-AdventureSceneController.OnIntroCompleted()
+Intro deck deal처럼 실제 card widget 생성 순서와 출발 순서를 runtime placement가 결정하는 경우에는 C# stagger를 사용한다.
+현재 기준은 0.12초 간격으로 다음 카드 deal을 시작한다.
+이때 USS는 한 카드의 이동/settle transition만 정의하고, 여러 카드의 시작 간격은 UIFlow/Layout가 조율한다.
 ```
 
-`OnInitialBoardShown`은 범위가 좁은 이름이므로 새 설계에서는 피한다.
+이유:
+
+```text
+USS delay만 사용하면 카드 수, 좌/우 side, 실제 생성 순서가 바뀔 때 delay class를 다시 설계해야 한다.
+반면 deck deal은 "이번에 배치된 placement list를 순서대로 출발시킨다"가 핵심 규칙이다.
+따라서 stagger는 placement를 알고 있는 Layout 쪽에서 조율한다.
+```
+
+```text
+기본 완료 기준은 TransitionEndEvent다.
+다만 화면 detach나 transition cancel은 screen lifetime 경계이므로 Awaitable 완료로 처리한다.
+fallback timeout은 기본형에 넣지 않는다.
+TransitionEndEvent가 정상 화면에서 누락되는 것은 우선 USS/design bug로 본다.
+```
+
+현재 구현 메모:
+
+```text
+ViewTransitionAwaiter.WaitForEnd는 DetachFromPanelEvent와 TransitionCancelEvent도 완료로 처리한다.
+이는 fallback timeout이 아니라 screen lifetime 정리용 완료 처리다.
+화면이 닫히거나 transition이 취소된 뒤 Awaitable이 영원히 남는 것을 막기 위한 경계이다.
+AdventureCardDealAnimator는 deal transition 완료 후에도 card/anchor/deck이 panel에 붙어 있을 때만 settle motion을 이어간다.
+AdventureCardDealAnimator가 적용한 card inline transform/opacity와 deck nudge inline translate는 정상 완료와 중단 경로 모두에서 animator가 정리한다.
+```
+
+Intro 완료 후 View callback 메서드는 만들지 않는다.
+
+```text
+AdventureScreenController.StartAdventure()
+-> await InitialPresentationPrepared
+-> AdventureEncounterStartFlow.TryStartImmediateEncounter()
+```
+
+`OnInitialBoardShown`, `OnIntroCompleted`처럼 View가 다시 Controller를 호출하는 완료 callback은 피한다.
 
 ## PlayerTurn Start UI Direction
 
@@ -291,12 +470,12 @@ public sealed class AdventurePlayerTurnStartViewModel
 ### PlayerTurn Start Flow
 
 ```text
-AdventureSceneController.StartPlayerTurnPresentation()
+AdventureScreenController.StartPlayerTurnPresentation()
 -> AdventureTurnGameFlow.StartPlayerTurn()
    combat/runtime/intent 준비
 -> AdventurePresenter.CreatePlayerTurnStartViewModel()
 -> AdventureScreenEvents.PlayerTurnStarted(viewModel)
--> AdventureView.OnPlayerTurnStarted(viewModel)
+-> AdventureView.OnGamePlayerTurnStarted(viewModel)
 -> AdventurePlayerTurnUIFlow.PlayStart(viewModel)
 ```
 
@@ -361,7 +540,7 @@ PouchWidget clicked
 -> WidgetEvents.Pouch.Clicked
 -> AdventureView.OnWidgetPouchClicked()
 -> AdventurePlayerTurnUIFlow.PlayPouchClicked()
--> AdventureSceneController.OnPouchClicked()
+-> AdventureScreenController.OnPouchClicked()
 ```
 
 이유:
@@ -500,11 +679,33 @@ Reward effect
 ```csharp
 public async void HandleCoinChangeCue(CoinChangeCueData data)
 {
-    await _coinUIFlow.PlayCoinChange(data);
+    try
+    {
+        int screenLifetimeVersion = _screenLifetimeVersion;
+        if (!IsCurrentScreenLifetime(screenLifetimeVersion))
+            return;
+
+        await _screenUIFlow.PlayCoinChange(
+            data,
+            _screenWidgets.CoinStatus,
+            () => IsCurrentScreenLifetime(screenLifetimeVersion));
+    }
+    catch (Exception exception)
+    {
+        Debug.LogException(exception);
+    }
 }
 ```
 
 `HandleCoinChangeCue`는 `AdventurePlayerTurnUIFlow.PlayAfterCoinFlip()`을 호출하지 않는다.
+
+Async boundary 규칙:
+
+```text
+async void는 Unity event, widget event, GameplayCue receiver 같은 외부 진입점에만 둔다.
+내부 GameFlow/ScreenFlow request는 Awaitable 또는 Awaitable<T>로 반환한다.
+async void 내부에서는 screen lifetime을 캡처하고, 예외는 Unity 콘솔에 남긴다.
+```
 
 ### Coin Animation Rule
 
@@ -527,7 +728,7 @@ Coin path motion: C# procedural animation
 
 ## Skill Targeting UI Direction
 
-현재 문제:
+기존 구조의 문제:
 
 ```text
 AdventureView가 active skill 상태를 가진다.
@@ -629,25 +830,29 @@ preview-only가 필요해지면 `RequiresConfirm` 또는 `PreviewOnly` 같은 �
 
 ```text
 Card pointer down
--> AdventureView
--> AdventureBoardUIFlow.TryGetCardId(element)
--> AdventureSkillUIFlow.OnBoardCardClicked(cardId)
--> AdventureCardInputResult
+-> AdventureCardWidgetEventBinder
+-> AdventureWidgetEvents.Card.Clicked(cardElement, cardId)
+-> AdventureWidgetToScreenEventBinder
 -> AdventureView
 -> Controller
 ```
 
-예상 형태:
+현재 형태:
 
 ```csharp
-public AdventureCardInputResult OnBoardCardClicked(uint cardId)
+internal async void OnWidgetCardClicked(VisualElement card, uint cardId)
 {
-    if (!_state.IsTargeting)
-        return AdventureCardInputResult.SelectCard(cardId);
+    if (!_skillUIFlow.IsTargetingActive)
+    {
+        await _controller.OnCardClicked(cardId);
+        return;
+    }
 
-    GameplayAbilitySpecHandle handle = _state.ActiveSkillHandle;
-    ClearTargeting();
-    return AdventureCardInputResult.UseSkillOnTarget(handle, cardId);
+    if (!_controller.CanUseSkillOnTarget(_skillUIFlow.ActiveSkillHandle, cardId))
+        return;
+
+    _skillUIFlow.HoverCard(card);
+    await ConfirmSkillTarget();
 }
 ```
 
@@ -657,6 +862,36 @@ public AdventureCardInputResult OnBoardCardClicked(uint cardId)
 Board는 어떤 카드인지 안다.
 SkillUIFlow는 지금 카드 클릭이 선택인지 타겟 확정인지 안다.
 Controller는 실제 gameplay command를 실행한다.
+```
+
+### Current Skill Target Rule
+
+현재 구현에서 `ESkillTargetType.Unit`은 "아무 카드나 선택 가능"이 아니다.
+
+```text
+Unit skill target
+-> runtime card가 존재해야 한다.
+-> AbilitySystem이 있어야 한다.
+-> Combat side가 Enemy여야 한다.
+```
+
+따라서 플레이어 카드, 선택지 카드, 비전투 카드는 현재 스킬 타겟이 될 수 없다.
+
+이 규칙은 UI가 아니라 gameplay 쪽에서 최종 보장한다.
+
+```text
+AdventureView hover/click
+-> AdventureScreenController.CanUseSkillOnTarget
+-> AdventureSkillFlow.CanUseSkillOnTarget
+-> AdventureCombatRuntime side check
+```
+
+이유:
+
+```text
+UI event binder는 left/right board widget에 모두 연결될 수 있다.
+따라서 UI만 믿으면 플레이어 카드나 선택지 카드도 hover/click 대상이 될 수 있다.
+최종 타겟 가능 여부는 game rule을 아는 AdventureSkillFlow가 판단해야 한다.
 ```
 
 ### Board Card Hover
@@ -730,7 +965,7 @@ VisualElement callback 안에 gameplay 판단을 숨기지 않는다.
 
 ## EnemyTurn UI Direction
 
-현재 문제:
+기존 구조의 문제:
 
 ```text
 EndTurnWidget clicked
@@ -750,10 +985,11 @@ EndTurnWidget clicked
 
 ```text
 EndTurn input
--> EnemyTurn start presentation
+-> AdventureTurnFlow.EndPlayerTurnAndStartEnemyTurn()
+-> AdventureScreenEvents.EnemyTurnStarted gate
 -> Enemy action execution
--> EnemyTurn action completed presentation
--> PlayerTurnStarted 재사용
+-> AdventureTurnFlow.CompleteEnemyTurn()
+-> AdventureScreenEvents.PlayerTurnStarted gate 재사용
 ```
 
 ### EndTurn Input
@@ -762,7 +998,7 @@ EndTurn input
 EndTurnWidget clicked
 -> AdventureView.OnWidgetEndTurnClicked()
 -> AdventurePlayerTurnUIFlow.PlayEndTurnClicked()
--> AdventureSceneController.OnEndTurnClicked()
+-> AdventureScreenController.OnEndTurnClicked()
 ```
 
 예상 형태:
@@ -770,8 +1006,41 @@ EndTurnWidget clicked
 ```csharp
 internal async void OnWidgetEndTurnClicked()
 {
-    await _playerTurnUIFlow.PlayEndTurnClicked();
-    _controller.OnEndTurnClicked();
+    bool commandStarted = false;
+
+    try
+    {
+        int screenLifetimeVersion = _screenLifetimeVersion;
+        if (!IsCurrentScreenLifetime(screenLifetimeVersion))
+            return;
+
+        if (!_controller.CanClickEndTurn())
+            return;
+
+        if (!TryBeginWidgetCommand())
+            return;
+
+        commandStarted = true;
+
+        await _screenUIFlow.PlayEndTurnClicked(
+            _screenWidgets.CoinStatus,
+            _screenWidgets.EndTurn,
+            () => IsCurrentScreenLifetime(screenLifetimeVersion));
+
+        if (!IsCurrentScreenLifetime(screenLifetimeVersion))
+            return;
+
+        await _controller.OnEndTurnClicked();
+    }
+    catch (Exception exception)
+    {
+        Debug.LogException(exception);
+    }
+    finally
+    {
+        if (commandStarted)
+            EndWidgetCommand();
+    }
 }
 ```
 
@@ -789,16 +1058,23 @@ CoinStatus reset/hide 정책 적용
 ### EnemyTurn Start
 
 Controller는 EndTurn을 받은 뒤 enemy action을 바로 실행하지 않는다.
+EnemyTurn presentation 완료 여부를 먼저 확인한다.
 
 ```csharp
-public void OnEndTurnClicked()
+public async Awaitable OnEndTurnClicked()
 {
     _turnGameFlow.EndPlayerTurn();
 
     AdventureEnemyTurnStartViewModel viewModel =
         _presenter.CreateEnemyTurnStartViewModel();
 
-    _events.Screen.EnemyTurnStarted?.Invoke(viewModel);
+    bool enemyTurnPresentationCompleted =
+        await _events.Screen.EnemyTurnStarted.Invoke(viewModel);
+
+    if (!enemyTurnPresentationCompleted)
+        return;
+
+    await _enemyActionFlow.ExecuteEnemyTurn();
 }
 ```
 
@@ -813,7 +1089,7 @@ Enemy action은 EnemyTurn start presentation이 끝난 뒤 실행되어야 한�
 ```csharp
 public sealed class AdventureScreenEvents
 {
-    public Action<AdventureEnemyTurnStartViewModel> EnemyTurnStarted;
+    public Func<AdventureEnemyTurnStartViewModel, Awaitable<bool>> EnemyTurnStarted;
 }
 
 public sealed class AdventureEnemyTurnStartViewModel
@@ -843,20 +1119,11 @@ public sealed class AdventureEnemyTurnUIFlow
 View 흐름:
 
 ```csharp
-internal async void OnEnemyTurnStarted(
+internal async Awaitable<bool> OnEnemyTurnStarted(
     AdventureEnemyTurnStartViewModel viewModel)
 {
     await _enemyTurnUIFlow.PlayStart(viewModel);
-    _controller.OnEnemyTurnStartPresentationCompleted();
-}
-```
-
-Controller 흐름:
-
-```csharp
-public void OnEnemyTurnStartPresentationCompleted()
-{
-    _turnGameFlow.StartEnemyTurn();
+    return IsCurrentScreenLifetime(screenLifetimeVersion);
 }
 ```
 
@@ -864,68 +1131,53 @@ public void OnEnemyTurnStartPresentationCompleted()
 
 Enemy action 실행 중 의도 발동 표시가 필요하다.
 
-피해야 할 이름:
+현재 구현 이름:
 
 ```text
 IntentTriggeredRequested
 ```
 
-권장 이름:
+규칙:
 
 ```text
-EnemyIntentTriggered
+IntentTriggeredRequested는 Awaitable<bool> gate이다.
+true이면 trigger presentation 완료 후 enemy action을 실행한다.
+false이면 scene/view lifetime이 끊겼으므로 enemy action을 실행하지 않는다.
 ```
 
 예상 형태:
 
 ```csharp
-public sealed class EnemyIntentTriggeredViewModel
+public sealed class AdventureCombatEvents
 {
-    public uint EnemyCardId { get; }
+    public Func<uint, Awaitable<bool>> IntentTriggeredRequested;
 }
 
-internal async void OnEnemyIntentTriggered(
-    EnemyIntentTriggeredViewModel viewModel)
+internal async Awaitable<bool> OnGameIntentTriggeredRequested(uint cardId)
 {
-    await _intentUIFlow.PlayEnemyIntentTriggered(viewModel);
+    return await _intentUIFlow.PlayTriggered(cardId);
 }
 ```
 
-### EnemyTurn Action Completed
+### EnemyTurn Completion
 
-Enemy action 실행이 모두 끝난 뒤:
+Enemy action 실행이 모두 끝난 뒤 View completion callback을 만들지 않는다.
 
 ```text
-EnemyTurnActionCompleted
--> AdventureView.OnEnemyTurnActionCompleted()
--> AdventureEnemyTurnUIFlow.PlayCompleted()
--> AdventureSceneController.OnEnemyTurnActionPresentationCompleted()
--> AdventureTurnGameFlow.CompleteEnemyTurn()
+AdventureEnemyActionFlow.ExecuteEnemyTurn()
+-> AdventureTurnFlow.CompleteEnemyTurn()
+-> AdventureCombatRuntime.StartPlayerTurn()
+-> IntentPrepareFlow.PrepareAll()
 -> AdventureScreenEvents.PlayerTurnStarted(viewModel)
+-> AdventureView.OnGamePlayerTurnStarted(viewModel)
+-> Awaitable<bool> gate result
 ```
 
-예상 형태:
+규칙:
 
-```csharp
-internal async void OnEnemyTurnActionCompleted()
-{
-    await _enemyTurnUIFlow.PlayCompleted();
-    _controller.OnEnemyTurnActionPresentationCompleted();
-}
-```
-
-Controller:
-
-```csharp
-public void OnEnemyTurnActionPresentationCompleted()
-{
-    _turnGameFlow.CompleteEnemyTurn();
-
-    AdventurePlayerTurnStartViewModel viewModel =
-        _presenter.CreatePlayerTurnStartViewModel();
-
-    _events.Screen.PlayerTurnStarted?.Invoke(viewModel);
-}
+```text
+EnemyTurn 종료 후 PlayerTurn 복귀도 PlayerTurnStarted gate를 재사용한다.
+View가 "enemy turn action completed"를 Controller로 다시 알려주는 흐름은 만들지 않는다.
 ```
 
 규칙:
@@ -942,15 +1194,15 @@ EnemyTurn 완료 후 View가 직접 PlayerTurn banner를 재생하지 않는다.
 ```text
 OnEnemyTurnBannerCompleted
 EnemyTurnCompleted
-IntentTriggeredRequested
+EnemyTurnActionCompleted
 ```
 
 사용한다:
 
 ```text
-OnEnemyTurnStartPresentationCompleted
-EnemyTurnActionCompleted
-EnemyIntentTriggered
+EnemyTurnStarted -> Awaitable<bool>
+PlayerTurnStarted -> Awaitable<bool>
+IntentTriggeredRequested -> Awaitable<bool>
 ```
 
 이유:
@@ -982,43 +1234,33 @@ ECombatEndResult enum만 전달하면 View가 다시 문맥을 추측해야 한�
 Victory 표시, Reward 처리, Choice refresh가 한 흐름에 섞일 위험이 있다.
 ```
 
-새 방향:
+현재 구현 방향:
 
 ```text
-CombatResultStarted
+ResultRequested(ECombatEndResult result) -> Awaitable<bool>
 RewardStarted
 ChoiceRefreshStarted
 ```
 
-이 섹션은 `CombatResultStarted`만 정의한다.
+이 섹션은 combat result presentation gate만 정의한다.
 
 Reward와 Choice refresh는 별도 후속 흐름이다.
 
 ### CombatResult Event
 
-피한다:
+현재 남아 있는 이름:
 
 ```text
 ResultRequested(ECombatEndResult result)
 OnCombatEnded(ECombatEndResult result)
 ```
 
-사용한다:
+규칙:
 
 ```text
-CombatResultStarted(AdventureCombatResultViewModel viewModel)
-OnCombatResultStarted(AdventureCombatResultViewModel viewModel)
-```
-
-예상 형태:
-
-```csharp
-public sealed class AdventureCombatResultViewModel
-{
-    public ECombatEndResult Result { get; }
-    public bool IsVictory => Result == ECombatEndResult.Victory;
-    public bool IsDefeat => Result == ECombatEndResult.Defeat;
-}
+ResultRequested는 Awaitable<bool> gate이다.
+true이면 combat result presentation 완료.
+false이면 scene/view lifetime이 끊겼으므로 reward/후속 흐름으로 진행하지 않는다.
 ```
 
 ### AdventureCombatResultUIFlow
@@ -1046,20 +1288,12 @@ public sealed class AdventureCombatResultViewModel
 ```csharp
 public sealed class AdventureCombatResultUIFlow
 {
-    public async Awaitable Play(
-        AdventureCombatResultViewModel viewModel)
+    public Awaitable Play(
+        ECombatEndResult result)
     {
-        await _playerTurnUIFlow.ClearForCombatResult();
-        await _enemyTurnUIFlow.ClearForCombatResult();
-        await _skillUIFlow.ClearForCombatResult();
-
-        if (viewModel.IsVictory)
-        {
-            await PlayVictory(viewModel);
-            return;
-        }
-
-        await PlayDefeat(viewModel);
+        return result == ECombatEndResult.Victory
+            ? _banner.PresentVictory()
+            : _banner.PresentDefeat();
     }
 }
 ```
@@ -1067,27 +1301,12 @@ public sealed class AdventureCombatResultUIFlow
 View:
 
 ```csharp
-internal async void OnCombatResultStarted(
-    AdventureCombatResultViewModel viewModel)
-{
-    await _combatResultUIFlow.Play(viewModel);
-    _controller.OnCombatResultPresentationCompleted(viewModel.Result);
-}
-```
-
-Controller:
-
-```csharp
-public void OnCombatResultPresentationCompleted(
+internal async Awaitable<bool> OnGameCombatEnded(
     ECombatEndResult result)
 {
-    if (result == ECombatEndResult.Victory)
-    {
-        StartRewardFlow();
-        return;
-    }
+    await _combatResultUIFlow.Play(result);
 
-    StartDefeatFlow();
+    return IsCurrentScreenLifetime(screenLifetimeVersion);
 }
 ```
 
@@ -1119,10 +1338,9 @@ Defeat 표시 이후에는 별도 Defeat flow가 진행된다.
 예:
 
 ```text
-CombatResultStarted(Defeat)
+ResultRequested(Defeat)
 -> AdventureCombatResultUIFlow.PlayDefeat()
--> Controller.OnCombatResultPresentationCompleted(Defeat)
--> Defeat flow
+-> returns true to AdventureCombatResultFlow
 ```
 
 Defeat flow는 나중에 다음 중 무엇을 할지 결정한다.
@@ -1168,8 +1386,8 @@ AdventureStageFlow.StartCurrentStage()
   다음 stage의 gameplay state를 만든다.
   오른쪽 board runtime state를 비우고 새 offer card를 배치한다.
 
-AdventureBoardUIFlow.PlaceCards()
-  전달받은 CardViewModel을 기준으로 board side를 즉시 교체한다.
+AdventureBoardUIFlow.ReplaceBoardAfterExit()
+  전달받은 CardViewModel을 기준으로 변경된 board side만 퇴장 후 교체한다.
 
 AdventureBoardLayout.ReplaceCards()
   VisualElement area를 즉시 Clear하고 새 card를 Add한다.
@@ -1214,7 +1432,7 @@ Screen event는 높은 수준의 요청 하나로 둔다.
 ```csharp
 public sealed class AdventureScreenEvents
 {
-    public Action<AdventureChoiceRefreshViewModel> ChoiceRefreshStarted;
+    public Func<AdventureChoiceRefreshViewModel, Awaitable<bool>> ChoiceRefreshStarted;
 }
 ```
 
@@ -1250,33 +1468,24 @@ BoardCards에 오른쪽 카드만 들어오면 오른쪽만 갱신한다.
 Player card는 stage refresh마다 바뀌는 대상이 아니다.
 매번 왼쪽까지 교체하면 불필요한 dispose/bind와 시각적 흔들림이 생긴다.
 
-### Controller Flow
+### Game Flow
 
 Reward 완료 후에는 gameplay state를 먼저 갱신하고, 그 결과를 UI에 요청한다.
 
 ```csharp
-public void OnRewardCompleted(
-    IReadOnlyList<uint> claimedRewardIds)
-{
-    _rewardGameFlow.CompleteReward(claimedRewardIds);
+AdventureRewardUIResult rewardResult =
+    await _events.Screen.RewardStarted.Invoke(rewardViewModel);
 
-    AdventureStageStartResult result =
-        _stageGameFlow.StartNextStage();
+await CompleteReward(rewardResult.ClaimedRewardIds);
 
-    if (result.IsAdventureCompleted)
-    {
-        AdventureCompleteViewModel completeViewModel =
-            _presenter.CreateAdventureCompleteViewModel();
+AdventureChoiceRefreshViewModel viewModel =
+    _presenter.CreateChoiceRefreshViewModel();
 
-        _events.Screen.AdventureCompleteStarted?.Invoke(completeViewModel);
-        return;
-    }
+bool choiceRefreshCompleted =
+    await _events.Screen.ChoiceRefreshStarted.Invoke(viewModel);
 
-    AdventureChoiceRefreshViewModel viewModel =
-        _presenter.CreateChoiceRefreshViewModel();
-
-    _events.Screen.ChoiceRefreshStarted?.Invoke(viewModel);
-}
+if (choiceRefreshCompleted)
+    await _encounterStartFlow.TryStartImmediateEncounter();
 ```
 
 핵심 규칙:
@@ -1285,6 +1494,8 @@ public void OnRewardCompleted(
 GameFlow는 runtime state를 바꾼다.
 Presenter는 state를 UI data로 변환한다.
 UIFlow는 UI data를 화면에 표현한다.
+ChoiceRefreshStarted는 request/response 이벤트이므로 GameFlow가 연출 완료 여부를 확인할 수 있다.
+완료되지 않았으면 즉시 encounter 확인으로 진행하지 않는다.
 ```
 
 ### UIFlow
@@ -1320,7 +1531,7 @@ public sealed class AdventureBoardUIFlow
 
 ### 완료 기준
 
-기본 규칙은 End-only completion이다.
+기본 정상 완료 기준은 TransitionEndEvent다.
 
 ```text
 Exit completion
@@ -1332,8 +1543,9 @@ Enter completion
   새 오른쪽 카드가 없으면 즉시 완료.
 ```
 
+화면 detach나 transition cancel은 screen lifetime 경계로 보고 완료 처리한다.
 Fallback timeout은 기본 규칙에 넣지 않는다.
-먼저 정상 End-only 경로를 가볍게 확립하고, 이후 animation reliability 정책으로 추가한다.
+정상 화면에서 TransitionEndEvent가 오지 않는다면 USS/design bug로 본다.
 
 ### BoardLayout 경계
 
@@ -1354,7 +1566,6 @@ placement 반환
 stage advance
 choice/monster 판정
 refresh animation 순서 결정
-Controller 호출
 ```
 
 이유:
@@ -1365,11 +1576,12 @@ Layout은 공간 문제이고 ChoiceRefresh는 시간 순서 문제이다.
 ### Screen Handler
 
 ```csharp
-private async void OnScreenChoiceRefreshStarted(
+private async Awaitable<bool> OnGameChoiceRefreshStarted(
     AdventureChoiceRefreshViewModel viewModel)
 {
-    await _choiceRefreshUIFlow.Play(viewModel);
-    _controller.OnChoiceRefreshPresentationCompleted();
+    return await _choiceRefreshUIFlow.Play(
+        viewModel,
+        () => IsCurrentScreenLifetime(screenLifetimeVersion));
 }
 ```
 
@@ -1377,18 +1589,27 @@ private async void OnScreenChoiceRefreshStarted(
 
 ```text
 Monster defeated
--> CombatResultStarted(Victory)
+-> ResultRequested(Victory)
 -> CombatResult UI completed
 -> RewardStarted
 -> Reward UI completed
--> RewardGameFlow applies reward
--> StageGameFlow advances stage
+-> CombatResultFlow applies reward
+-> CombatResultFlow advances stage
 -> Presenter creates AdventureChoiceRefreshViewModel
 -> ChoiceRefreshStarted
 -> right cards exit
 -> right cards prepared
 -> right cards enter
--> Controller.OnChoiceRefreshPresentationCompleted
+-> refresh presentation ends
+-> AdventureStageFlow.OpenChoiceSelection()
+-> CombatResultFlow checks immediate encounter through AdventureEncounterStartFlow
+```
+
+규칙:
+
+```text
+AdventureStageFlow.StartCurrentStage는 board/runtime state를 준비하지만 choice input을 열지 않는다.
+Choice card는 presentation을 위해 먼저 만들어질 수 있지만, 선택 입력은 intro 또는 choice-refresh presentation이 끝난 뒤 OpenChoiceSelection에서만 열린다.
 ```
 
 ## ResourceStatusBar UI Direction
@@ -1559,26 +1780,28 @@ CoinStatusWidget
 초기 화면 데이터는 하나로 묶는다.
 
 ```csharp
-public sealed class AdventureInitialScreenViewModel
+public sealed class AdventureInitialPresentationViewModel
 {
     public AdventureEntryPresentationViewModel Entry { get; }
     public AdventureResourceStatusViewModel ResourceStatus { get; }
     public IReadOnlyList<AdventureBoardCardViewModel> BoardCards { get; }
+    public IReadOnlyList<AdventureSkillSlotViewModel> SkillSlots { get; }
+    public IReadOnlyList<AdventureCardViewModel> RuntimeBoardCards { get; }
 }
 ```
 
 Screen 흐름:
 
 ```csharp
-private async void OnScreenInitialPresentationStarted(
-    AdventureInitialScreenViewModel viewModel)
+internal async Awaitable<bool> OnGameInitialPresentationPrepared(
+    AdventureInitialPresentationViewModel viewModel)
 {
-    _resourceStatusUIFlow.Prepare(viewModel.ResourceStatus);
-    _introUIFlow.Prepare(viewModel.Entry, viewModel.BoardCards);
+    int screenLifetimeVersion = _screenLifetimeVersion;
+    if (!await WaitUntilScreenReady(screenLifetimeVersion))
+        return false;
 
-    await _introUIFlow.Play();
-
-    _controller.OnInitialPresentationCompleted();
+    PrepareInitialPresentation(viewModel);
+    return await PlayIntroOnce(screenLifetimeVersion, viewModel);
 }
 ```
 
@@ -1592,7 +1815,15 @@ private async void OnScreenInitialPresentationStarted(
 현재 구조에는 다음 형태가 있다.
 
 ```text
-AdventureViewEventBinder : IStartable, IDisposable
+AdventureSceneEntryPoint.Start
+-> AdventureGameToScreenEventBinder.Bind()
+-> AdventureWidgetToScreenEventBinder.Bind()
+
+AdventureSceneEntryPoint.Dispose
+-> AdventureWidgetToScreenEventBinder.Dispose()
+-> AdventureGameToScreenEventBinder.Dispose()
+
+AdventureGameToScreenEventBinder + AdventureWidgetToScreenEventBinder : IDisposable
   AdventureGameEvents -> AdventureView
   AdventureWidgetEvents -> AdventureView
 ```
@@ -1601,6 +1832,7 @@ AdventureViewEventBinder : IStartable, IDisposable
 
 ```text
 scene-scoped event 구독이 scene-scoped disposable 객체에 묶인다.
+첫 presentation event보다 먼저 명시적으로 Bind된다.
 ```
 
 문제:
@@ -1628,18 +1860,49 @@ AdventureCardWidgetEventBinder
 ```text
 GameToScreenEventBinder
   VContainer scoped
-  IStartable + IDisposable
+  explicit Bind + IDisposable
   Game/Controller event -> Screen method
 
 WidgetToScreenEventBinder
   VContainer scoped
-  IStartable + IDisposable
+  explicit Bind + IDisposable
   static Widget event -> Screen method
 
 CardWidgetEventBinder
-  dynamic card binding lifetime
-  card 생성 시 bind
-  card 제거 시 dispose
+  VContainer scoped
+  dynamic board binding list 기준으로 pointer/click callback 갱신
+```
+
+AdventureView partial file rule:
+
+```text
+AdventureView.cs
+-> screen lifecycle, initial presentation gate, Dispose
+
+AdventureView.GameEvent.cs
+-> GameFlow/Controller output event 수신
+-> OnGame... methods
+
+AdventureView.WidgetInput.cs
+-> Widget-originated command 수신
+-> 모든 OnWidget... entrypoint
+
+AdventureView.Card.cs
+-> dynamic board card CRUD, board refresh, board runtime connection
+
+AdventureView.Skill.cs
+-> skill targeting helper and target confirmation
+
+AdventureView.GameplayCue.cs
+-> GameplayCue receiver bridge and card avatar binding
+```
+
+이유:
+
+```text
+AdventureView는 Screen의 bridge 역할을 유지하지만,
+Game event, Widget input, Card CRUD, Skill targeting, GameplayCue를 한 파일에 섞지 않는다.
+파일 이름이 이벤트 방향과 UI 책임을 먼저 드러내야 다음 변경 지점을 빠르게 찾을 수 있다.
 ```
 
 ### Game Events
@@ -1654,14 +1917,11 @@ public sealed class AdventureGameEvents
 
 public sealed class AdventureScreenEvents
 {
-    public Action<AdventureInitialScreenViewModel> InitialPresentationStarted;
-    public Action<AdventurePlayerTurnStartedViewModel> PlayerTurnStarted;
-    public Action<CoinFlipCueData> CoinFlipRequested;
-    public Action<AdventureEnemyTurnStartedViewModel> EnemyTurnStarted;
-    public Action<AdventureCombatResultViewModel> CombatResultStarted;
-    public Action<AdventureRewardViewModel> RewardStarted;
-    public Action<AdventureChoiceRefreshViewModel> ChoiceRefreshStarted;
-    public Action<AdventureResourceStatusViewModel> ResourceStatusChanged;
+    public Func<AdventureInitialPresentationViewModel, Awaitable<bool>> InitialPresentationPrepared;
+    public Func<AdventurePlayerTurnStartViewModel, Awaitable<bool>> PlayerTurnStarted;
+    public Func<AdventureEnemyTurnStartViewModel, Awaitable<bool>> EnemyTurnStarted;
+    public Func<AdventureRewardViewModel, Awaitable<AdventureRewardUIResult>> RewardStarted;
+    public Func<AdventureChoiceRefreshViewModel, Awaitable<bool>> ChoiceRefreshStarted;
 }
 ```
 
@@ -1698,33 +1958,36 @@ SkillSlotWidgetEvents
 ```csharp
 // Role:
 // Connects game-to-screen events to AdventureScreen handlers for the AdventureScene scope.
-public sealed class AdventureGameToScreenEventBinder : IStartable, IDisposable
+public sealed class AdventureGameToScreenEventBinder : IDisposable
 {
     private readonly AdventureGameEvents _events;
-    private readonly AdventureScreen _screen;
+    private readonly AdventureView _view;
 
-    public void Start()
+    public void Bind()
     {
-        _events.Screen.InitialPresentationStarted += _screen.OnGameInitialPresentationStarted;
-        _events.Screen.PlayerTurnStarted += _screen.OnGamePlayerTurnStarted;
-        _events.Screen.CoinFlipRequested += _screen.OnGameCoinFlipRequested;
-        _events.Screen.EnemyTurnStarted += _screen.OnGameEnemyTurnStarted;
-        _events.Screen.CombatResultStarted += _screen.OnGameCombatResultStarted;
-        _events.Screen.RewardStarted += _screen.OnGameRewardStarted;
-        _events.Screen.ChoiceRefreshStarted += _screen.OnGameChoiceRefreshStarted;
-        _events.Screen.ResourceStatusChanged += _screen.OnGameResourceStatusChanged;
+        _events.Screen.InitialPresentationPrepared = _view.OnGameInitialPresentationPrepared;
+        _events.Screen.PlayerTurnStarted = _view.OnGamePlayerTurnStarted;
+        _events.Screen.EnemyTurnStarted = _view.OnGameEnemyTurnStarted;
+        _events.Screen.RewardStarted = _view.OnGameRewardStarted;
+        _events.Screen.ChoiceRefreshStarted = _view.OnGameChoiceRefreshStarted;
     }
 
     public void Dispose()
     {
-        _events.Screen.InitialPresentationStarted -= _screen.OnGameInitialPresentationStarted;
-        _events.Screen.PlayerTurnStarted -= _screen.OnGamePlayerTurnStarted;
-        _events.Screen.CoinFlipRequested -= _screen.OnGameCoinFlipRequested;
-        _events.Screen.EnemyTurnStarted -= _screen.OnGameEnemyTurnStarted;
-        _events.Screen.CombatResultStarted -= _screen.OnGameCombatResultStarted;
-        _events.Screen.RewardStarted -= _screen.OnGameRewardStarted;
-        _events.Screen.ChoiceRefreshStarted -= _screen.OnGameChoiceRefreshStarted;
-        _events.Screen.ResourceStatusChanged -= _screen.OnGameResourceStatusChanged;
+        if (_events.Screen.InitialPresentationPrepared == _view.OnGameInitialPresentationPrepared)
+            _events.Screen.InitialPresentationPrepared = null;
+
+        if (_events.Screen.PlayerTurnStarted == _view.OnGamePlayerTurnStarted)
+            _events.Screen.PlayerTurnStarted = null;
+
+        if (_events.Screen.EnemyTurnStarted == _view.OnGameEnemyTurnStarted)
+            _events.Screen.EnemyTurnStarted = null;
+
+        if (_events.Screen.RewardStarted == _view.OnGameRewardStarted)
+            _events.Screen.RewardStarted = null;
+
+        if (_events.Screen.ChoiceRefreshStarted == _view.OnGameChoiceRefreshStarted)
+            _events.Screen.ChoiceRefreshStarted = null;
     }
 }
 ```
@@ -1732,23 +1995,23 @@ public sealed class AdventureGameToScreenEventBinder : IStartable, IDisposable
 ```csharp
 // Role:
 // Connects static widget input events to AdventureScreen handlers for the AdventureScene scope.
-public sealed class AdventureWidgetToScreenEventBinder : IStartable, IDisposable
+public sealed class AdventureWidgetToScreenEventBinder : IDisposable
 {
     private readonly AdventureWidgetEvents _events;
-    private readonly AdventureScreen _screen;
+    private readonly AdventureView _view;
 
-    public void Start()
+    public void Bind()
     {
-        _events.Turn.EndTurnClicked += _screen.OnWidgetEndTurnClicked;
-        _events.Pouch.Clicked += _screen.OnWidgetPouchClicked;
-        _events.SkillSlot.SelectionChanged += _screen.OnWidgetSkillSlotSelectionChanged;
+        _events.Turn.EndTurnClicked += _view.OnWidgetEndTurnClicked;
+        _events.Pouch.Clicked += _view.OnWidgetPouchClicked;
+        _events.SkillSlot.SelectionChanged += _view.OnWidgetSkillSlotSelectionChanged;
     }
 
     public void Dispose()
     {
-        _events.Turn.EndTurnClicked -= _screen.OnWidgetEndTurnClicked;
-        _events.Pouch.Clicked -= _screen.OnWidgetPouchClicked;
-        _events.SkillSlot.SelectionChanged -= _screen.OnWidgetSkillSlotSelectionChanged;
+        _events.Turn.EndTurnClicked -= _view.OnWidgetEndTurnClicked;
+        _events.Pouch.Clicked -= _view.OnWidgetPouchClicked;
+        _events.SkillSlot.SelectionChanged -= _view.OnWidgetSkillSlotSelectionChanged;
     }
 }
 ```
@@ -1791,30 +2054,42 @@ Event가 UIFlow를 직접 호출하면 입력 허용 여부, 중복 실행 방�
 
 ### Dynamic Card Events
 
-동적 카드 이벤트는 scene-scoped binder를 쓰지 않는다.
+동적 카드 이벤트는 scene-scoped `AdventureCardWidgetEventBinder`가 관리한다.
 
 ```csharp
 public sealed class AdventureCardWidgetEventBinder
 {
-    private readonly AdventureWidgetEvents _widgetEvents;
+    private readonly AdventureCardWidgetEvents _events;
+    private readonly List<CardRegistration> _registrations = new();
 
-    public IDisposable BindChoiceCard(
-        AdventureCardWidget card,
-        EChoiceCardType choiceType)
+    public void Bind(
+        IReadOnlyList<AdventureBoardCardWidgetBinding> bindings)
     {
-        void OnClicked()
-        {
-            _widgetEvents.ChoiceCard.Selected?.Invoke(choiceType);
-        }
+        // 현재 보드에 배치된 동적 카드에 pointer/click callback을 연결한다.
+    }
 
-        card.Clicked += OnClicked;
-        return Disposable.Create(() => card.Clicked -= OnClicked);
+    public void Unbind()
+    {
+        // 이전 보드 카드 callback을 모두 해제한다.
     }
 }
 ```
 
 카드 위젯은 board refresh 중 생성/제거된다.
-따라서 카드 이벤트 구독은 card binding과 함께 사라져야 한다.
+따라서 `AdventureBoardUIFlow`는 board binding list가 바뀐 직후 다음 순서로 이벤트를 갱신한다.
+
+```text
+1. 기존 card event callback 전부 해제
+2. 현재 Left/Right binding list 기준으로 다시 callback 등록
+```
+
+이유:
+
+```text
+Binding이 개별 event subscription까지 소유하면 카드 생성/배치/이벤트 연결 책임이 한 객체에 섞인다.
+현재 구조에서는 BoardUIFlow가 카드 생명주기를 알고,
+AdventureCardWidgetEventBinder가 pointer/click callback 등록 세부사항만 안다.
+```
 
 ## Asset/Data Implementation Gate
 
@@ -1948,26 +2223,23 @@ AdventureChoiceCardWidget UXML address exists
 
 ### Loading Policy
 
-최소 단계:
+현재 구현:
 
 ```text
-AdventureBoardUIFlow may use DBManager.ChoiceCardUI.Get(choiceType)
+AdventureSceneLoader.Preload
+-> AdventureChoiceCardUITable.LoadAsync(EChoiceCardType)
+-> AdventureChoiceCardUIModels
+-> AdventureSceneScope.RegisterInstance
+-> AdventureCardWidgetFactory
 ```
 
-선택지 종류가 작고 제한적이므로 과도기적으로 허용한다.
-
-향후 단계:
-
-```text
-AdventureSceneLoader preloads required AdventureChoiceCardUIModel rows.
-AdventureSceneAssetHandles owns and releases handles.
-AdventureBoardUIFlow consumes already-loaded UI models.
-```
+선택지 UI row는 scene activation 전에 preload된다.
 
 이유:
 
-`Get`은 내부에서 `WaitForCompletion` 경로로 이어질 수 있다.
-작은 과도기에는 허용하지만 일반 런타임 데이터 로딩 규칙으로 확장하면 안 된다.
+`AbstractTable.Get`은 내부에서 `WaitForCompletion` 경로로 이어질 수 있다.
+ChoiceCard는 board refresh, choice selection, combat transition 중 생성되므로,
+interaction 중 UIModel 로딩이 발생하면 transition과 main thread stall이 겹칠 수 있다.
 
 ### Completion Gate
 
@@ -2038,9 +2310,9 @@ public sealed class AdventureRewardItemViewModel
 
 하지만 그 경우도 fallback이 아니라 명시적인 empty reward로 본다.
 
-### AdventureRewardGameFlow
+### Reward Completion Owner
 
-`AdventureRewardGameFlow`는 gameplay reward 처리를 담당한다.
+Reward 완료 처리는 현재 `AdventureCombatResultFlow`가 소유한다.
 
 허용 책임:
 
@@ -2058,21 +2330,22 @@ public sealed class AdventureRewardItemViewModel
 예상 형태:
 
 ```csharp
-public sealed class AdventureRewardGameFlow
+public sealed class AdventureCombatResultFlow
 {
-    public AdventureRewardViewModel StartReward()
-    {
-        _progress.EnterReward();
-        return _presenter.CreateRewardViewModel();
-    }
-
-    public AdventureRewardCompletionResult CompleteReward(
+    private async Awaitable CompleteReward(
         IReadOnlyList<uint> claimedRewardIds)
     {
         ApplyRewards(claimedRewardIds);
         _runState.CurrentRun.AdvanceStage();
 
-        return AdventureRewardCompletionResult.Completed;
+        AdventureChoiceRefreshViewModel viewModel =
+            _presenter.CreateChoiceRefreshViewModel();
+
+        bool choiceRefreshCompleted =
+            await _events.Screen.ChoiceRefreshStarted.Invoke(viewModel);
+
+        if (choiceRefreshCompleted)
+            await _encounterStartFlow.TryStartImmediateEncounter();
     }
 }
 ```
@@ -2099,39 +2372,47 @@ public sealed class AdventureRewardUIFlow
 View:
 
 ```csharp
-internal async void OnRewardStarted(
+internal async Awaitable<AdventureRewardUIResult> OnRewardStarted(
     AdventureRewardViewModel viewModel)
 {
-    AdventureRewardUIResult result =
-        await _rewardUIFlow.Play(viewModel);
-
-    _controller.OnRewardCompleted(result.ClaimedRewardIds);
+    return await _rewardUIFlow.Play(viewModel);
 }
 ```
 
-Controller:
+Game Flow:
 
 ```csharp
-public void OnRewardCompleted(
-    IReadOnlyList<uint> claimedRewardIds)
+AdventureRewardUIResult result =
+    await _screenEvents.RewardStarted.Invoke(rewardViewModel);
+
+await CompleteReward(result.ClaimedRewardIds);
+```
+
+Controller는 reward completion을 다시 받지 않는다.
+
+```text
+RewardStarted는 request/response 이벤트다.
+View는 reward presentation 결과만 반환한다.
+Gameplay state 전이는 CombatResultFlow가 계속 소유한다.
+```
+
+이유:
+
+```text
+View -> Controller.OnRewardCompleted 방식은 흐름이 되돌아온다.
+CombatResultFlow가 reward를 시작했으므로, reward 결과도 같은 Flow가 받아 다음 상태로 진행하는 편이 단방향이다.
+```
+
+이전 형태:
+
+```csharp
+public void OnRewardCompleted(...)
 {
-    _rewardGameFlow.CompleteReward(claimedRewardIds);
-
-    AdventureChoiceRefreshViewModel viewModel =
-        _stageFlow.StartNextStageAndCreateChoiceRefresh();
-
-    _events.Screen.ChoiceRefreshStarted?.Invoke(viewModel);
+    // removed
 }
 ```
 
-`StartNextStageAndCreateChoiceRefresh`는 계획상의 이름이다.
-
-구현 시에는 다음처럼 나눌 수 있다.
-
-```text
-AdventureStageFlow.StartCurrentStage()
-AdventurePresenter.CreateChoiceRefreshViewModel()
-```
+Choice refresh view model 생성과 refresh 요청도 reward를 시작한 game flow가 이어서 처리한다.
 
 ### Empty Reward Rule
 
@@ -2140,7 +2421,7 @@ AdventurePresenter.CreateChoiceRefreshViewModel()
 ```text
 RewardStarted(empty)
 -> AdventureRewardUIFlow auto-complete
--> Controller.OnRewardCompleted(empty)
+-> CombatResultFlow receives AdventureRewardUIResult.Empty()
 -> ChoiceRefreshStarted
 ```
 
@@ -2151,15 +2432,30 @@ empty reward는 명시 상태다.
 누락 데이터 fallback으로 취급하지 않는다.
 ```
 
+Reward 결과는 정상 완료와 중단을 구분한다.
+
+```text
+AdventureRewardUIResult.Empty()
+-> reward item이 없는 정상 완료
+-> Completed == true
+
+AdventureRewardUIResult.Canceled()
+-> screen detach/dispose 또는 RewardStarted handler 부재
+-> Completed == false
+```
+
+`CombatResultFlow`는 `Completed == false`인 reward 결과를 받으면 다음 stage advance와 choice refresh를 진행하지 않는다.
+이렇게 해야 scene/view lifetime이 끊긴 뒤에 gameplay flow가 닫힌 화면으로 UI 요청을 계속 보내지 않는다.
+
 ### Reward vs ChoiceRefresh
 
 Reward UI는 다음 선택지 카드를 만들지 않는다.
 
 ```text
 Reward UI result
--> Controller
--> RewardGameFlow applies reward and advances stage
--> Stage/Presenter creates ChoiceRefreshViewModel
+-> CombatResultFlow
+-> CombatResultFlow applies reward and advances stage
+-> Presenter creates ChoiceRefreshViewModel
 -> ChoiceRefreshStarted
 ```
 
@@ -2175,7 +2471,7 @@ Choice refresh는 reward 적용 이후 상태를 기준으로 해야 한다.
 Defeat는 reward로 들어가지 않는다.
 
 ```text
-CombatResultStarted(Defeat)
+ResultRequested(Defeat)
 -> CombatResult presentation completed
 -> Defeat flow
 ```
@@ -2296,10 +2592,11 @@ Controller / Game Event with ViewModel -> AdventureView -> UIFlow -> Widgets
 View는 Game 결과 이벤트를 받을 때 가능한 한 ViewModel을 함께 받는다.
 
 ```csharp
-internal async void OnPlayerTurnStarted(
+internal async Awaitable<bool> OnGamePlayerTurnStarted(
     AdventurePlayerTurnStartViewModel viewModel)
 {
     await _playerTurnUIFlow.PlayStart(viewModel);
+    return true;
 }
 ```
 
@@ -2350,49 +2647,54 @@ AdventureIntroUIFlow
 
 ```text
 AdventureSceneEntryPoint.Start
--> AdventureStartFlow.StartAdventure()
+-> AdventureStartFlow.InitializeRuntime()
+-> AdventureScreenController.InitializeAdventure()
+-> AdventureSceneLocalization.Preload()
 -> AdventureSceneNavigator.ShowAdventure()
--> AdventureSceneController.StartAdventure()
+-> AdventureScreenController.StartAdventure()
 ```
 
 규칙:
 
-- `AdventureStartFlow.StartAdventure()`는 Runtime 상태만 초기화한다.
-- `AdventureSceneNavigator.ShowAdventure()`는 Screen 표시와 event subscription 준비 완료를 보장한다.
-- `AdventureSceneController.StartAdventure()`는 Stage 시작, InitialPresentation 생성, `InitialPresentationPrepared` 이벤트 발행을 담당한다.
+- `AdventureStartFlow.InitializeRuntime()`은 Runtime 상태만 초기화한다.
+- `AdventureScreenController.InitializeAdventure()`는 Stage 시작과 초기 board/runtime presentation state 준비를 담당한다.
+- `AdventureSceneNavigator.ShowAdventure()`는 Screen 표시만 담당한다.
+- `AdventureScreenController.StartAdventure()`는 InitialPresentation 생성, `InitialPresentationPrepared` await, intro 이후 즉시 encounter 확인을 담당한다.
 - Controller는 VisualElement/Widget/Animation을 모른다.
 
 ### 2. Screen Initial Setup
 
-`AdventureView.OnInitialPresentationPrepared(viewModel)`에서 수행한다.
+`AdventureView.OnGameInitialPresentationPrepared(viewModel)`에서 수행한다.
 
 ```text
-AdventureView.OnInitialPresentationPrepared
--> InitializeScreen(viewModel)
--> AdventureIntroUIFlow.Prepare(viewModel)
+AdventureView.OnGameInitialPresentationPrepared
+-> attach/widget 준비 대기
+-> PrepareInitialPresentation(viewModel)
+-> AdventureIntroUIFlow.Play(viewModel)
+-> Intro 완료 반환
 ```
 
 규칙:
 
-- Screen 초기 설정은 intro animation을 시작하지 않는다.
-- `Prepare`는 보드 카드 생성/배치, delay class 적용, shown class 제거 같은 시작 상태 준비만 한다.
+- Screen 초기 설정과 intro animation은 같은 request/response 이벤트 안에서 순서대로 실행한다.
+- View는 Intro 완료 후 Controller를 직접 호출하지 않고 Awaitable 완료로 반환한다.
 - Controller에서 추가 데이터를 pull하지 않는다.
 
-### 3. Intro Play
+### 3. Intro Completion
 
-Screen initial setup 이후 명시적으로 요청한다.
+Intro 완료 이후 흐름은 Controller/GameFlow가 이어간다.
 
 ```text
-AdventureView.RequestIntroAnimation
--> AdventureIntroUIFlow.Play()
--> AdventureSceneController.OnIntroCompleted()
+AdventureScreenController.StartAdventure()
+-> await InitialPresentationPrepared
+-> AdventureEncounterStartFlow.TryStartImmediateEncounter()
 ```
 
 규칙:
 
 - `OnShown()`은 Controller 시작이나 Intro 세부 실행을 직접 담당하지 않는다.
 - `AdventureIntroUIFlow.Play()`는 이미 준비된 UI 상태를 전환한다.
-- Intro 완료 후 `OnIntroCompleted()`를 호출한다.
+- Intro 완료 후 View callback을 만들지 않는다.
 
 ## Widgets
 
@@ -2496,7 +2798,8 @@ AdventureView god object
 
 ```text
 SkillUIState는 타겟팅 의미를 저장한다.
-Board card VisualElement와 hover class는 AdventureBoardUIFlow가 소유한다.
+Board card VisualElement와 click id 매핑은 AdventureCardWidgetEventBinder가 소유한다.
+Target hover USS class 상태는 AdventureSkillUIFlow가 소유한다.
 ```
 
 `AdventureSkillTargetingUIFlow`라는 이름은 사용하지 않는다. Skill 쪽 책임은 targeting보다 넓으므로 `AdventureSkillUIFlow`를 사용한다.
@@ -2510,11 +2813,8 @@ Board card VisualElement와 hover class는 AdventureBoardUIFlow가 소유한다.
 ```text
 AdventureIntroUIFlow
 -> Banner 표시
--> AdventureBoardUIFlow.PrepareInitialCardsIntro()
--> AdventureBoardUIFlow.WaitInitialCardsIntroEndOnly()
--> NextFrame
--> AdventureBoardUIFlow.StartInitialCardsIntro()
--> Await
+-> AdventureBoardUIFlow.ReplaceBoardWithEnter(...)
+-> Banner와 card board transition end 대기
 ```
 
 규칙:
@@ -2536,30 +2836,29 @@ AdventureIntroUIFlow
 
 ```text
 AdventureBoardUIFlow
-- VisualElement -> cardId 해석
 - 카드 생성/갱신/제거
-- 카드 registry 관리
 - cardId, avatar, part 조회 지원
+
+AdventureCardWidgetEventBinder
+- 현재 board binding list 기준으로 VisualElement -> cardId 해석
+- pointer/click callback 등록/해제
 
 AdventureSkillUIFlow
 - 현재 skill targeting 상태 확인
-- cardId 클릭 의미 판단
-- AdventureCardInputResult 반환
+- selected skill/target hover/arrow 상태 관리
 
 AdventureView
 - Widget/user interaction 최초 수신
-- BoardUIFlow를 통해 cardId 해석
-- Result를 Controller 호출로 변환
+- cardId와 현재 skill targeting 상태를 보고 Controller 호출로 변환
 ```
 
 확정 흐름:
 
 ```text
 Card pointer down
--> AdventureView
--> AdventureBoardUIFlow.TryGetCardId(element)
--> AdventureSkillUIFlow.HandleCardClicked(cardId)
--> AdventureCardInputResult
+-> AdventureCardWidgetEventBinder
+-> AdventureWidgetEvents.Card.Clicked(cardElement, cardId)
+-> AdventureWidgetToScreenEventBinder
 -> AdventureView
 -> Controller
 ```
@@ -2574,38 +2873,30 @@ Card pointer down
 
 ## Result Types
 
-UIFlow 입력 해석은 Result 타입으로 반환한다.
+UIFlow 입력 해석은 상태 전환이 복잡하거나 View가 판단 결과를 다시 써야 할 때만 Result 타입으로 반환한다.
 
 규칙:
 
 ```text
 UI 연출 실행 -> Awaitable 반환
-입력 해석 -> Result 타입 반환
+복잡한 입력 해석 -> Result 타입 반환
+단순 카드 클릭 명령 분기 -> AdventureView에서 Controller 호출
 단순 조회/검증 -> TryXXX 허용
 UIFlow event -> 최소화
 ```
 
-초기 필수 Result:
+현재 사용하는 Result:
 
-- `AdventureCardInputResult`
 - `AdventureSkillSelectionResult`
 
 예:
 
 ```csharp
-AdventureCardInputResult result =
-    _skillUIFlow.HandleCardClicked(cardId);
+AdventureSkillSelectionResult result =
+    _skillUIFlow.SelectSkill(selectedIndex, selectedButton);
 
-switch (result.Kind)
-{
-    case AdventureCardInputResultKind.SelectCard:
-        _controller.OnCardClicked(result.CardId);
-        break;
-
-    case AdventureCardInputResultKind.UseSkillOnTarget:
-        _controller.UseSkillOnTarget(result.SkillHandle, result.CardId);
-        break;
-}
+if (result.ShouldActivateImmediately)
+    await _controller.UseSkill(result.Handle);
 ```
 
 ## Game Events
@@ -2619,10 +2910,11 @@ Game Event with ViewModel -> AdventureView -> UIFlow -> Widgets
 예:
 
 ```csharp
-internal async void OnPlayerTurnStarted(
+internal async Awaitable<bool> OnGamePlayerTurnStarted(
     AdventurePlayerTurnStartViewModel viewModel)
 {
     await _playerTurnUIFlow.PlayStart(viewModel);
+    return true;
 }
 ```
 
@@ -2631,7 +2923,7 @@ internal async void OnPlayerTurnStarted(
 ```text
 Game event는 가능한 한 해당 화면 요청에 필요한 ViewModel을 포함한다.
 AdventureView가 이벤트를 받은 뒤 Controller에서 다시 데이터를 pull하지 않는다.
-AdventureViewEventBinder는 계속 AdventureView에 연결할 수 있다.
+AdventureGameToScreenEventBinder + AdventureWidgetToScreenEventBinder는 계속 AdventureView에 연결할 수 있다.
 AdventureView 내부 구현은 직접 처리하지 않고 UIFlow 호출로 제한한다.
 ```
 
@@ -2645,11 +2937,11 @@ AdventureView 내부 구현은 직접 처리하지 않고 UIFlow 호출로 제�
 4. `AdventureInitialPresentationViewModel` 추가
 5. `AdventureView.OnVisualTreeCloned()`에서 `_controller.StartInitialStage()` 제거
 6. `AdventureScreenEvents.InitialPresentationPrepared` 추가
-7. `AdventureSceneController.StartAdventure()`에서 initial presentation 이벤트 발행
-8. `AdventureView.OnInitialPresentationPrepared()`에서 `InitializeScreen`과 `RequestIntroAnimation` 분리
+7. `AdventureScreenController.StartAdventure()`에서 initial presentation 이벤트 발행
+8. `AdventureView.OnGameInitialPresentationPrepared()`가 초기 설정과 Intro 완료를 Awaitable로 반환
 9. `AdventureIntroUIFlow` 추가
-10. `AdventureBoardUIFlow`에 `PrepareInitialCardsIntro`, `WaitInitialCardsIntroEndOnly`, `StartInitialCardsIntro` 추가
-11. `AdventureBoardUIFlow`와 `AdventureSkillUIFlow`로 card/skill input 분리
+10. `AdventureBoardUIFlow`에 `ReplaceBoardWithEnter`, `ReplaceBoardAfterExit`, `RemoveCardAfterExit` 같은 board CRUD/transition 경계 추가
+11. `AdventureCardWidgetEventBinder`와 `AdventureSkillUIFlow`로 card input mapping / skill targeting state 분리
 12. `AdventureScreenEvents.PlayerTurnStarted(viewModel)` 추가
 13. `AdventurePlayerTurnStartViewModel` 추가
 14. `AdventurePlayerTurnUIFlow.PlayStart(viewModel)` 추가
@@ -2836,7 +3128,7 @@ ChoiceCardFaceWidget
 
 - `ChoiceCardFaceModel`은 `AbstractModel<EChoiceCardType>` 기반 row가 아니다.
 - `ChoiceCardFaceWidget` 안에 `EChoiceCardType -> USS class` 분기가 하드코딩되어 있다.
-- fallback label이 Widget 안에 있다.
+- fallback label이 Widget 안에 있던 기존 구조는 제거 대상이다.
 - 새 설계의 `UITable -> UIModel -> Widget` 흐름과 책임이 겹친다.
 
 정리 방향:
@@ -2850,30 +3142,31 @@ ChoiceCardFaceWidget
 
 ### AdventureCardWidgetFactory
 
-Factory는 public 명시 Create 함수를 제공한다.
-
-외부 Flow는 generic Create를 직접 호출하지 않는다.
+Factory는 보드에 올라갈 구체 카드 Widget을 생성한다.
 
 ```csharp
 public sealed class AdventureCardWidgetFactory
 {
-    public AdventureChoiceCardWidget CreateChoiceCard(
-        uint boardCardId,
-        AdventureChoiceCardViewModel viewModel,
-        AdventureChoiceCardUIModel uiModel)
+    public AdventureBoardCardWidgetBinding Create(
+        AdventureBoardCardViewModel viewModel)
     {
-        AdventureChoiceCardWidget widget = new AdventureChoiceCardWidget();
-        widget.Bind(boardCardId, viewModel, uiModel);
-        return widget;
+        return viewModel switch
+        {
+            AdventureChoiceCardViewModel choice => CreateChoiceCard(choice),
+            AdventureBoardCardViewModel card => CreateBoardCard(card),
+        };
     }
 }
 ```
 
 규칙:
 
-- Flow는 `CreateChoiceCard(...)`처럼 의도가 드러나는 함수를 호출한다.
-- Factory는 어떤 카드를 만들지 판단하지 않는다.
-- generic Create는 아직 도입하지 않는다.
+- Factory는 `AdventureBoardCardViewModel`의 타입과 `AdventureBoardSide`를 보고 구체 Widget만 선택한다.
+- Factory는 board 배치를 하지 않는다.
+- Factory는 Controller/GameFlow를 호출하지 않는다.
+- Factory는 UI-local id를 만들지 않는다.
+- 선택지 카드의 클릭 id는 `AdventureChoiceCardViewModel.OfferCardId`다.
+- 일반 카드의 클릭 id는 `AdventureBoardCardViewModel.CardId`다.
 
 ### AdventureChoiceCardWidget
 
@@ -2882,7 +3175,6 @@ public sealed class AdventureCardWidgetFactory
 책임:
 
 - 선택지 카드 UXML/USS 구조 보유
-- `BoardCardId` 보관
 - `EChoiceCardType` 보관
 - Icon 표시
 - DisplayName 표시
@@ -2901,15 +3193,12 @@ public sealed class AdventureCardWidgetFactory
 public sealed class AdventureChoiceCardWidget
     : BaseCardWidget
 {
-    public uint BoardCardId { get; private set; }
     public EChoiceCardType ChoiceType { get; private set; }
 
     public void Bind(
-        uint boardCardId,
         AdventureChoiceCardViewModel viewModel,
         AdventureChoiceCardUIModel uiModel)
     {
-        BoardCardId = boardCardId;
         ChoiceType = viewModel.ChoiceType;
 
         // Icon = uiModel.Icon
@@ -2921,57 +3210,43 @@ public sealed class AdventureChoiceCardWidget
 
 ### AdventureBoardUIFlow
 
-`AdventureBoardUIFlow`는 ChoiceCard 생성 흐름을 조율한다.
+`AdventureBoardUIFlow`는 보드 단위의 카드 생성/배치/교체 흐름을 조율한다.
 
 ```csharp
 public sealed class AdventureBoardUIFlow
 {
     private readonly AdventureCardWidgetFactory _factory;
-    private readonly DBManager _dbManager;
 
-    public IReadOnlyList<AdventureChoiceCardWidget> CreateChoiceCards(
-        IReadOnlyList<AdventureChoiceCardViewModel> viewModels)
-    {
-        List<AdventureChoiceCardWidget> widgets = new(viewModels.Count);
-        uint nextBoardCardId = 0;
+    public Awaitable<AdventureBoardPlacementResult> ReplaceBoardWithEnter(
+        IReadOnlyList<AdventureBoardCardViewModel> cards,
+        Func<bool> canContinue);
 
-        foreach (AdventureChoiceCardViewModel viewModel in viewModels)
-        {
-            uint boardCardId = nextBoardCardId++;
-            AdventureChoiceCardUIModel uiModel =
-                _dbManager.ChoiceCardUI.Get(viewModel.ChoiceType);
-
-            AdventureChoiceCardWidget widget =
-                _factory.CreateChoiceCard(boardCardId, viewModel, uiModel);
-
-            widgets.Add(widget);
-        }
-
-        return widgets;
-    }
+    public Awaitable<AdventureBoardPlacementResult> ReplaceBoardAfterExit(
+        IReadOnlyList<AdventureBoardCardViewModel> cards,
+        Func<bool> canContinue);
 }
 ```
 
 규칙:
 
 - Widget은 UI model lookup을 하지 않는다.
-- Factory는 생성만 한다.
-- BoardUIFlow가 `DBManager`를 통해 `AdventureChoiceCardUITable`에 접근한다.
-- BoardUIFlow가 UI-local `BoardCardId`를 지역 변수로 생성한다.
-- 클릭 후 GameFlow에 전달하는 값은 선택 의도에 따라 `OfferCardId` 또는 `EChoiceCardType`이다.
+- Factory는 생성만 한다. 선택지 UIModel lookup도 Factory 내부에서 끝낸다.
+- BoardUIFlow는 어떤 side에 어떤 카드가 놓일지 조율한다.
+- BoardUIFlow는 UI-local id를 만들지 않는다.
+- 클릭 후 GameFlow에 전달하는 값은 `AdventureCardWidgetEventBinder`가 ViewModel에서 얻는다.
+- 선택지 클릭은 `OfferCardId`, 일반 카드 클릭은 `CardId`를 사용한다.
 
 ### ChoiceCard 단계의 문제와 다음 확장
 
 이 단계가 해결하는 것:
 
-- 같은 `EChoiceCardType`이 여러 장 나와도 UI 인스턴스를 구분할 수 있다.
+- 같은 `EChoiceCardType`이 여러 장 나와도 `OfferCardId`로 runtime offer를 구분할 수 있다.
 - 선택지 표시 정보가 Widget에 하드코딩되지 않는다.
 - 선택지별 이름/아이콘/USS class가 ScriptableObject asset으로 분리된다.
 
 이 단계 이후 실제 문제가 되면 추가할 것:
 
-- `AdventureChoiceCardRegistry`
-- VisualElement -> BoardCardId / OfferCardId 조회
+- VisualElement -> OfferCardId / RuntimeCardId 조회 고도화
 - hover/selected 상태
 - choice card 제거 animation
 - player/enemy combat card
@@ -3061,7 +3336,7 @@ AdventureCardWidgetFactory
   board 배치, event bind, Controller 호출 금지.
 
 AdventureCardWidgetEventBinder
-  동적 card input event 구독/해제 담당.
+  현재 board binding list 기준으로 동적 card input event 구독/해제 담당.
 
 AdventureBoardLayout
   공간 배치 담당.
@@ -3070,7 +3345,8 @@ AdventureBoardLayout
 AdventureBoardUIFlow
   board-level CRUD 조율.
   Create/Place/Update/Remove 순서 결정.
-  registry와 binding 생명주기 소유.
+  binding 생명주기와 card event binder 갱신 시점 소유.
+  VContainer scope 종료 시 IDisposable로 남은 card event binding과 board card binding을 정리.
 
 AdventureChoiceRefreshUIFlow
   stage choice refresh라는 화면 sequence 담당.
@@ -3082,10 +3358,9 @@ AdventureChoiceRefreshUIFlow
 동적 카드는 조회가 필요하다.
 
 ```text
-VisualElement -> BoardCardId
-BoardCardId -> AdventureBoardCardBinding
-OfferCardId -> AdventureBoardCardBinding
-Runtime CardId -> AdventureBoardCardBinding
+VisualElement -> runtime click id
+OfferCardId -> AdventureBoardCardWidgetBinding
+Runtime CardId -> AdventureBoardCardWidgetBinding
 ```
 
 단, 모든 id를 처음부터 다 넣지 않는다.
@@ -3094,11 +3369,9 @@ Runtime CardId -> AdventureBoardCardBinding
 
 ```text
 Choice card
-  BoardCardId
   OfferCardId
 
 Combat card
-  BoardCardId
   Runtime CardId
 ```
 
@@ -3106,22 +3379,21 @@ Combat card
 
 Choice card 선택은 runtime offer를 찾아야 한다.
 Combat card 선택/targeting은 runtime card를 찾아야 한다.
+UI-only board id를 만들면 다시 runtime id로 매핑해야 하므로 현재 단계에서는 사용하지 않는다.
 
-### AdventureBoardCardBinding
+### AdventureBoardCardWidgetBinding
 
 카드 하나의 UI 생명주기를 묶는다.
 
 ```csharp
-public sealed class AdventureBoardCardBinding : IDisposable
+public sealed class AdventureBoardCardWidgetBinding : IDisposable
 {
-    public uint BoardCardId { get; }
-    public uint? OfferCardId { get; }
-    public uint? RuntimeCardId { get; }
-    public AdventureBoardSide Side { get; }
-    public AdventureCardWidget Widget { get; }
-    public AdventureBoardCardPlacement Placement { get; private set; }
+    private readonly Action<AdventureBoardCardPlacement> _onPlaced;
+    private Action _dispose;
 
-    private readonly IDisposable _eventSubscription;
+    public AdventureBoardCardViewModel ViewModel { get; }
+    public VisualElement Element { get; }
+    public AdventureBoardCardPlacement Placement { get; private set; }
 
     public void BindPlacement(
         AdventureBoardCardPlacement placement)
@@ -3131,18 +3403,19 @@ public sealed class AdventureBoardCardBinding : IDisposable
 
     public void Dispose()
     {
-        _eventSubscription?.Dispose();
-        Widget?.Unbind();
-        Widget?.RemoveFromHierarchy();
+        _dispose?.Invoke();
+        _dispose = null;
     }
 }
 ```
 
 규칙:
 
-- Binding은 동적 카드의 event subscription을 소유한다.
-- Binding은 Widget의 `Unbind`와 hierarchy removal을 책임진다.
+- Binding은 동적 카드의 ViewModel, Element, Placement를 묶는다.
+- Binding dispose는 Widget 내부 bind/unbind, timeline/avatar release 같은 카드 단위 정리를 수행한다.
+- 동적 card pointer/click callback은 `AdventureCardWidgetEventBinder`가 소유한다.
 - BoardUIFlow는 Binding collection을 소유한다.
+- BoardUIFlow는 Binding collection 변경 직후 `AdventureCardWidgetEventBinder`를 갱신한다.
 
 ### BoardUIFlow API
 
@@ -3151,38 +3424,45 @@ public sealed class AdventureBoardCardBinding : IDisposable
 ```csharp
 public sealed class AdventureBoardUIFlow
 {
-    public IReadOnlyList<AdventureBoardCardBinding> CreateCards(
-        IReadOnlyList<AdventureBoardCardViewModel> viewModels);
+    public Awaitable<AdventureBoardPlacementResult> ReplaceBoardWithEnter(
+        IReadOnlyList<AdventureBoardCardViewModel> cards,
+        Func<bool> canContinue);
 
-    public void PlaceCards(
-        IReadOnlyList<AdventureBoardCardBinding> bindings);
+    public Awaitable<AdventureBoardPlacementResult> ReplaceBoardAfterExit(
+        IReadOnlyList<AdventureBoardCardViewModel> cards);
 
-    public Awaitable PlayRemoveSide(
-        AdventureBoardSide side);
+    public Awaitable<bool> RemoveCardAfterExit(
+        uint cardId);
 
-    public void RemoveSideImmediate(
-        AdventureBoardSide side);
+    public void ClearAll();
 
-    public bool TryGetBindingByBoardCardId(
-        uint boardCardId,
-        out AdventureBoardCardBinding binding);
+    public bool TryGetCardId(
+        VisualElement element,
+        out uint cardId);
 
-    public bool TryGetBindingByRuntimeCardId(
-        uint runtimeCardId,
-        out AdventureBoardCardBinding binding);
+    public bool TryGetCardWidget<T>(
+        AdventureBoardSide side,
+        uint cardId,
+        out T widget)
+        where T : class;
 
-    public bool TryGetBindingByOfferCardId(
-        uint offerCardId,
-        out AdventureBoardCardBinding binding);
+    public bool TrySetCardHealth(
+        uint cardId,
+        int currentHealth,
+        int maxHealth);
 }
 ```
 
-`CreateCards`와 `PlaceCards`를 나누는 이유:
+`CreateWidgets`와 `ReplaceBoard...`를 나누는 이유:
 
 ```text
 Create는 UI 인스턴스 생성을 다룬다.
-Place는 보드 공간 배치를 다룬다.
-ChoiceRefresh는 새 카드를 미리 만들고 hidden 상태로 둔 뒤 enter animation을 시작할 수 있어야 한다.
+Replace는 보드 공간의 현재 표현 상태를 어떤 전환 정책으로 바꿀지 다룬다.
+Intro는 기존 카드가 없어도 enter 연출이 필요하므로 ReplaceBoardWithEnter를 사용한다.
+ChoiceRefresh는 기존 카드가 퇴장한 뒤 새 카드를 보여야 하므로 ReplaceBoardAfterExit를 사용한다.
+전달받은 cards에 특정 side가 없으면 그 side는 유지한다.
+즉시 Place 계열 API는 enter/exit 정책을 우회할 수 있어 공개하지 않는다.
+side를 실제로 비워야 하면 Refresh가 아니라 SideClearRequested를 사용한다.
 ```
 
 ### Update Rule
@@ -3193,15 +3473,15 @@ ChoiceRefresh는 새 카드를 미리 만들고 hidden 상태로 둔 뒤 enter a
 
 ```text
 Enemy health changed
--> BoardUIFlow.TryGetBindingByRuntimeCardId(enemyCardId)
--> EnemyCombatCardWidget.SetHealth(...)
+-> BoardUIFlow 또는 IntentUIFlow가 RuntimeCardId로 기존 binding/widget 조회
+-> AdventureMonsterCardWidget.SetHealth(...)
 
 Enemy intent revealed
--> BoardUIFlow.TryGetBindingByRuntimeCardId(enemyCardId)
--> EnemyCombatCardWidget.ShowIntent(...)
+-> BoardUIFlow 또는 IntentUIFlow가 RuntimeCardId로 기존 binding/widget 조회
+-> AdventureMonsterCardWidget.ShowIntent(...)
 
 Choice card locked
--> BoardUIFlow.TryGetBindingByOfferCardId(offerCardId)
+-> BoardUIFlow가 OfferCardId로 기존 binding/widget 조회
 -> ChoiceCardWidget.SetLocked(...)
 ```
 
@@ -3232,6 +3512,64 @@ PlayRemove는 제거 대상 중 마지막 카드의 TransitionEndEvent를 기다
 대상이 없으면 즉시 완료한다.
 ```
 
+Create 이후 Enter 기준:
+
+```text
+ReplaceBoardWithEnter
+  intro처럼 기존 카드가 없어도 신규 카드 입장이 필요한 경우 사용한다.
+
+ReplaceBoardAfterExit
+  기존 카드 exit 완료 후 신규 카드를 enter-pending 상태로 배치하고 enter 완료를 기다린다.
+```
+
+Pooling은 현재 구현 범위에서 제외한다.
+
+```text
+카드는 퇴장 후 제거된다.
+Widget 재사용, 재초기화 순서, callback 재사용 문제는 별도 설계가 필요하므로 이번 CRUD 기반에서는 다루지 않는다.
+```
+
+Runtime card lifetime rule:
+
+```text
+Board UI에서 퇴장한 encounter card는 AdventureCards registry에서도 제거한다.
+선택 후 버려진 choice offer card는 board refresh 완료 후 Removed zone에서 제거한다.
+전투 중 사망한 enemy card는 퇴장 애니메이션 완료 후 제거한다.
+다음 stage로 넘어갈 때 이전 Right/Removed zone card id는 먼저 board state에서 분리하고,
+ChoiceRefreshStarted 또는 SideClearRequested 완료 후 AdventureCards registry에서 제거한다.
+Player card는 Adventure scene 동안 유지되므로 Left zone 정리 대상에 포함하지 않는다.
+```
+
+Non-combat encounter V1 rule:
+
+```text
+Event/Shop panel은 아직 구현하지 않는다.
+Event/Shop choice가 선택되면 선택된 display card를 board refresh로 보여준 뒤,
+해당 encounter를 즉시 완료 처리하고 다음 stage choice refresh로 넘어간다.
+이 임시 흐름은 UI 패널이 생기면 EventUIFlow/ShopUIFlow 완료 응답으로 교체한다.
+```
+
+Stage advance rule:
+
+```text
+AdventureStageAdvanceFlow가 encounter 완료 이후의 진행/완료 분기를 담당한다.
+결과는 NoCurrentRun, ScreenUnavailable, Advanced, Completed로 구분한다.
+Advanced일 때만 다음 stage의 immediate encounter를 다시 확인한다.
+Completed일 때는 Adventure complete 상태로 진입하고 오른쪽 board만 퇴장 후 제거한다.
+Event/Shop V1의 선택된 display card id는 AdvanceOrComplete에 전달되어,
+다음 board presentation await 이후 registry에서 제거된다.
+ScreenUnavailable은 screen lifetime이 끊긴 경우를 뜻한다.
+이 값은 gameplay rollback 신호가 아니며, 다음 immediate encounter를 이어가지 않기 위한 중단 신호다.
+```
+
+Reward V1 rule:
+
+```text
+Reward panel은 아직 구현하지 않는다.
+AdventureRewardUIFlow는 empty reward 계약을 유지하되 screen lifetime canContinue를 받는다.
+screen lifetime이 끊기면 Canceled를 반환하고 GameFlow는 다음 stage advance를 진행하지 않는다.
+```
+
 ### First Implementation Slice
 
 첫 구현 slice는 ChoiceCard만 대상으로 한다.
@@ -3243,10 +3581,10 @@ AdventureChoiceCardWidget
 AdventureChoiceCardUIModel
 AdventureChoiceCardUITable
 AdventureCardWidgetFactory.CreateChoiceCard
-AdventureCardWidgetEventBinder.BindChoiceCard
-AdventureBoardCardBinding
-AdventureBoardUIFlow.CreateCards / PlaceCards
-right-side ChoiceRefresh enter/remove path
+AdventureCardWidgetEventBinder.Bind
+AdventureBoardCardWidgetBinding
+AdventureBoardUIFlow.ReplaceBoardWithEnter / ReplaceBoardAfterExit
+right-side ChoiceRefresh exit/remove/place path
 AdventureChoiceCardUIAssetValidator
 ```
 
@@ -3269,7 +3607,7 @@ ChoiceCard는 health/intent/avatar가 없어서 동적 카드 CRUD 뼈대를 검
 
 이 섹션은 장기 확장 후보로 둔다.
 
-현재 최소 구현은 `AdventureChoiceCardWidget`, `AdventurePlayerCombatCardWidget`, `AdventureEnemyCombatCardWidget`처럼 고정 Widget 타입을 먼저 사용한다.
+현재 최소 구현은 `AdventureChoiceCardWidget`, `AdventurePlayerCardWidget`, `AdventureMonsterCardWidget`, `AdventureDisplayCardWidget`처럼 고정 Widget 타입을 먼저 사용한다.
 
 Shell + Part 조립 방식은 카드 기능 조합이 실제로 복잡해진 뒤 다시 검토한다.
 
@@ -3464,9 +3802,9 @@ Part UXML/USS/icon/slot 설정
 
 ## Board UIFlow and Card Creation
 
-`CardDealer`는 연결을 제거하고 파일은 임시 유지한다.
+`CardDealer`는 제거한다.
 
-`CardDealer`가 담당하던 카드 배치/딜링/애니메이션 조율은 단계적으로 `AdventureBoardUIFlow`로 이동한다.
+`CardDealer`가 담당하던 카드 배치/딜링/애니메이션 조율은 `AdventureBoardUIFlow`로 이동한다.
 
 책임:
 
@@ -3502,7 +3840,7 @@ AbilitySystem의 Avatar 설정은 UIFlow가 직접 하지 않는다.
 AdventureBoardUIFlow
 -> AdventureBoardRenderResult(cardId, avatar object)
 -> AdventureView
--> AdventureSceneController
+-> AdventureScreenController
 -> AdventureCardAvatarBindingGameFlow
 -> AbilitySystem.SetAvatar(object)
 ```
@@ -3533,16 +3871,57 @@ AdventureChoiceCardUIModel row assets 생성
 AdventureChoiceCardUITable asset 생성
 ModelTable Addressables label 등록
 AdventureChoiceCardWidget UXML address 등록
+AdventurePlayerCardWidget UXML address 등록
+AdventureMonsterCardWidget UXML address 등록
+AdventureDisplayCardWidget UXML address 등록
+Portrait/Locked face widget UXML address 등록
+SkillSlotWidget UXML address 등록
 Localization entries 수동 생성
 AdventureChoiceCardUIAssetValidator 추가
 ```
 
+Addressables address/label:
+
+```text
+AdventureSceneAddressables
+-> AdventureSceneLoader
+-> CodexAdventureChoiceCardUIAssetGenerator
+-> AdventureChoiceCardUIAssetValidator
+```
+
+주소 문자열은 preload/generator/validator가 공유하는 데이터 계약이다.
+따라서 각 클래스가 같은 문자열을 별도로 선언하지 않고 `AdventureSceneAddressables`를 참조한다.
+
 결정:
 
 ```text
-Localization entry는 우선 수동 생성한다.
-Editor generation tool은 후속 개선으로 둔다.
+CodexAdventureChoiceCardUIAssetGenerator는 ChoiceCard slice에 필요한
+table/model/localization/widget address를 같은 기준으로 생성 또는 갱신한다.
+Localization entry 자동 생성은 generator에 포함되어 있지만,
+새 테이블/언어 추가 자동화는 후속 개선으로 둔다.
 ```
+
+범위:
+
+```text
+generator가 맞추는 것:
+- AdventureChoiceCardUIModel row assets
+- AdventureChoiceCardUITable rows
+- ChoiceCard localization entries
+- AdventureView / dynamic card widget / SkillSlotWidget UXML Addressables address
+
+validator가 별도로 깨뜨리는 것:
+- AdventureView.uxml tree/style include
+- CardBoard.uxml / CardBoard.uss
+- CardDeck.uxml / CardDeck.uss
+- AdventureView.Animation.uss
+- DefaultViewTheme / ViewTransition.uss
+- AdventureTable / AdventureRegionModel
+```
+
+이 분리는 중요하다.
+generator는 반복 생성 가능한 데이터와 Addressables wiring만 보정한다.
+화면 구조, USS transition class, theme import는 설계 계약이므로 validator 실패 시 직접 수정해야 한다.
 
 ### Phase 1. Event/Screen Boundary
 
@@ -3561,7 +3940,7 @@ AdventureGameToScreenEventBinder
 AdventureWidgetToScreenEventBinder
 AdventureScreenEvents
 Screen handler source-prefix naming
-기존 AdventureViewEventBinder 분해
+기존 AdventureGameToScreenEventBinder + AdventureWidgetToScreenEventBinder 분해
 ```
 
 완료 조건:
@@ -3616,7 +3995,7 @@ Controller initial setup
 작업:
 
 ```text
-AdventureInitialScreenViewModel
+AdventureInitialPresentationViewModel
 AdventureResourceStatusViewModel
 AdventureIntroUIFlow
 AdventureResourceStatusUIFlow
@@ -3629,6 +4008,9 @@ AdventureBoardUIFlow initial card prepare/start/wait
 Screen이 attach되기 전에 animation을 시작하지 않는다.
 Intro는 Controller에서 데이터를 다시 pull하지 않는다.
 ResourceStatusBar와 Banner의 책임이 분리된다.
+AdventureView.Animation.uss는 intro completion target인 .adventure-view--intro-shown .card-deck selector를 유지한다.
+DefaultViewTheme는 ViewTransition.uss를 import해야 한다.
+ViewTransition.uss는 ui-transition--hidden/from-bottom/enter와 fade-in/out class를 유지한다.
 ```
 
 ### Phase 4. ChoiceCard Dynamic CRUD Slice
@@ -3642,12 +4024,11 @@ ResourceStatusBar와 Banner의 책임이 분리된다.
 작업:
 
 ```text
-AdventureBoardCardBinding
+AdventureBoardCardWidgetBinding
 AdventureCardWidgetFactory.CreateChoiceCard
-AdventureCardWidgetEventBinder.BindChoiceCard
-AdventureBoardUIFlow.CreateCards
-AdventureBoardUIFlow.PlaceCards
-AdventureBoardUIFlow.PlayRemoveSide
+AdventureCardWidgetEventBinder.Bind
+AdventureBoardUIFlow.ReplaceBoardWithEnter
+AdventureBoardUIFlow.ReplaceBoardAfterExit
 AdventureChoiceRefreshUIFlow
 ```
 
@@ -3656,20 +4037,20 @@ AdventureChoiceRefreshUIFlow
 ```text
 ChoiceCard 생성/배치/이벤트/제거가 BoardUIFlow 중심으로 동작한다.
 Factory는 생성만 한다.
-Card event subscription은 Binding dispose와 함께 해제된다.
-Right side ChoiceRefresh가 exit -> prepare -> enter 순서로 표현된다.
+Card event callback은 BoardUIFlow가 보드 binding list 변경 직후 EventBinder를 갱신하면서 해제/재등록한다.
+Right side ChoiceRefresh가 exit -> remove -> place 순서로 표현된다.
 ```
 
-과도기 허용:
+현재 로딩 규칙:
 
 ```text
-DBManager.ChoiceCardUI.Get(choiceType)
+AdventureChoiceCardUIModels.Get(choiceType)
 ```
 
 이유:
 
-`EChoiceCardType`은 작고 제한적이다.
-Preload 전환은 Phase 8에서 처리한다.
+ChoiceCard UI rows는 AdventureSceneLoader에서 preload되고,
+AdventureCardWidgetFactory는 preload된 lookup만 사용한다.
 
 ### Phase 5. Player Turn / Coin / Skill UIFlow
 
@@ -3687,7 +4068,6 @@ Skill targeting은 SkillUIFlow가 판단한다.
 AdventurePlayerTurnUIFlow
 AdventureCoinUIFlow
 AdventureSkillUIFlow
-AdventureCardInputResult
 AdventureSkillSelectionResult
 ```
 
@@ -3697,6 +4077,7 @@ AdventureSkillSelectionResult
 Pouch click은 Widget 내부 hide가 아니다.
 CoinStatusWidget과 ResourceStatusBar coin text는 섞이지 않는다.
 Card click은 View -> BoardUIFlow -> SkillUIFlow -> View -> Controller 흐름을 탄다.
+PlayerTurnStarted는 Awaitable<bool> gate로, Screen lifetime이 끊긴 경우 GameFlow가 완료로 오해하지 않는다.
 ```
 
 ### Phase 6. Enemy Turn / Combat Result / Reward
@@ -3713,17 +4094,23 @@ Card click은 View -> BoardUIFlow -> SkillUIFlow -> View -> Controller 흐름을
 AdventureEnemyTurnUIFlow
 AdventureCombatResultUIFlow
 AdventureRewardUIFlow
-AdventureRewardGameFlow
+AdventureCombatResultFlow reward completion
 CombatResultStarted
 RewardStarted
+Board.CardRemoveRequested
 ```
 
 완료 조건:
 
 ```text
 Enemy action은 EnemyTurn start presentation 완료 후 실행된다.
+Enemy death는 right-side board runtime에서 제거된 뒤 CardRemoveRequested를 통해 퇴장 후 제거된다.
+CardRemoveRequested 완료 후 남은 board runtime cards로 avatar/cue binding을 다시 구성한다.
+CardRemoveRequested가 false를 반환하면 CombatResult/Reward로 진행하지 않는다.
+최종 stage 완료처럼 right side를 비워야 하는 경우는 Board.SideClearRequested를 사용한다.
 CombatResult는 Reward를 직접 건너뛰지 않는다.
-Reward는 ChoiceRefresh를 직접 만들지 않는다.
+Reward UI는 ChoiceRefresh를 직접 만들지 않는다.
+Reward 결과를 받은 CombatResultFlow가 ChoiceRefresh를 요청한다.
 ```
 
 ### Phase 7. ChoiceRefresh / NextStage Completion
@@ -3737,11 +4124,10 @@ Reward 완료 후 gameplay state 갱신과 UI refresh를 분리한다.
 작업:
 
 ```text
-AdventureStageGameFlow.StartNextStage
+AdventureCombatResultFlow.CompleteReward
 AdventureChoiceRefreshViewModel
 ChoiceRefreshStarted
 AdventureChoiceRefreshUIFlow.Play
-Controller.OnChoiceRefreshPresentationCompleted
 ```
 
 완료 조건:
@@ -3749,7 +4135,25 @@ Controller.OnChoiceRefreshPresentationCompleted
 ```text
 NextStage는 game state 변경이다.
 ChoiceRefresh는 right-side board presentation이다.
+ChoiceSelection input은 ChoiceRefresh 완료 후 열린다.
 왼쪽 player card는 필요할 때만 교체된다.
+Controller completion callback을 만들지 않는다.
+```
+
+구현 규칙:
+
+```text
+AdventureBoardUIFlow는 board replace 중 AdventureCardWidgetEventBinder를 먼저 Unbind한다.
+새 card input은 exit -> remove/place -> enter가 완료된 뒤에만 Bind한다.
+```
+
+Screen detach 규칙:
+
+```text
+AdventureView.OnDetachedFromPanel은 screen lifetime을 끊고 gameplay cue/avatar binding을 즉시 해제한다.
+Widget event binding, dynamic board card binding, screen UIFlow binding도 즉시 해제한다.
+Scene scope Dispose까지 기다리지 않는다.
+AdventureSceneEntryPoint.Dispose는 Navigator.HideCurrent를 먼저 호출해 detach cleanup을 유도한 뒤 event route binder를 해제한다.
 ```
 
 ### Phase 8. Loading / Validation Hardening
@@ -3766,6 +4170,8 @@ ChoiceRefresh는 right-side board presentation이다.
 AdventureSceneLoader에서 ChoiceCard UI rows preload
 AdventureSceneAssetHandles가 handle 소유
 BoardUIFlow는 preload된 UIModel 사용
+AdventureView root UXML은 ViewManager template cache에 preload
+AdventureDisplayCardWidget UXML도 Player/Monster와 동일하게 preload
 Localization/Addressables validator 확장
 ```
 
@@ -3773,7 +4179,11 @@ Localization/Addressables validator 확장
 
 ```text
 runtime interaction 중 ChoiceCard UIModel을 WaitForCompletion으로 로드하지 않는다.
+AdventureScene 진입 직후 AdventureView root UXML을 WaitForCompletion으로 처음 로드하지 않는다.
 content wiring 오류는 editor validation에서 먼저 잡힌다.
+AdventureSceneLoader는 새 preload 전과 RootScope dispose 시점에 미소비 payload의 Addressables handle을 release한다.
+SceneManagerEx.Load async void boundary는 예외를 throw하지 않고 Unity 콘솔에 기록한다.
+parallel preload/fade/scene-load 중 실패해도 allowSceneActivation=false 상태로 Unity async queue를 stall시키지 않는다.
 ```
 
 ### Phase 9. Combat Card CRUD Expansion
@@ -3787,8 +4197,9 @@ ChoiceCard에서 검증한 dynamic card CRUD를 combat card로 확장한다.
 작업:
 
 ```text
-PlayerCombatCardWidget
-EnemyCombatCardWidget
+AdventurePlayerCardWidget
+AdventureMonsterCardWidget
+AdventureDisplayCardWidget
 Health update
 Intent reveal
 Ability avatar binding
@@ -3822,8 +4233,40 @@ Ability avatar binding은 card binding lifetime과 함께 정리된다.
 2. `AdventureChoiceCardUIAssetValidator`는 첫 구현 slice에 포함한다.
 3. LocalizationTable entry는 우선 수동으로 생성한다.
 4. LocalizationTable editor generation tool은 후속 개선으로 둔다.
-5. `DBManager.ChoiceCardUI.Get(...)` 과도기 사용은 허용한다.
-6. ChoiceCard UIModel preload 전환은 Phase 8에서 처리한다.
+5. `DBManager.ChoiceCardUI.Get(...)` 과도기 사용은 제거한다.
+6. ChoiceCard UIModel preload 전환은 구현되어 있다.
+
+## Current Implementation Notes
+
+Adventure UI transition 실행은 `ViewTransitionManager.Instance` 직접 호출을 사용하지 않는다.
+VContainer가 생성한 `ViewTransitionManager`를 UIFlow/Factory가 주입받아 호출 시점에 전달한다.
+
+현재 Adventure 화면 경로에서 적용된 규칙:
+
+```text
+Adventure UIFlow
+-> ViewTransitionManager 주입
+-> UXML에서 생성된 Widget/Banner에 호출 시점 전달
+```
+
+이유:
+
+```text
+Banner, Pouch, CoinStatusWidget, EndTurnWidget, SkillSlotGroup, HealthWidget은 UXML 또는 순수 UI 객체로 생성될 수 있다.
+따라서 Widget 생성자에 VContainer 주입을 강제하기보다,
+해당 Widget을 조율하는 UIFlow/Factory가 transition 실행 책임을 넘기는 방식이 현재 구조에 더 맞다.
+```
+
+현재 구현 규칙:
+
+```text
+Show(ViewTransitionManager)
+Hide(ViewTransitionManager)
+Present...(ViewTransitionManager)
+ShowHealthAsync(ViewTransitionManager)
+```
+
+전역 `ViewTransitionManager.Instance`는 제거한다.
 
 ## Pre-Implementation Completion Checklist
 
@@ -3838,7 +4281,7 @@ Ability avatar binding은 card binding lifetime과 함께 정리된다.
 | GameFlow responsibility exists | Complete | GameFlow는 runtime/progress 상태 변경을 담당하고 VisualElement를 모른다. |
 | Event direction exists | Complete | `Event -> Screen -> UIFlow / Controller` 규칙과 direction-based binder가 정의되어 있다. |
 | Initial presentation flow exists | Complete | Controller initial setup, Screen initial setup, Intro animation 경계가 정의되어 있다. |
-| Animation base rule exists | Complete | USS transition, C# class order, End-only completion 기준이 정의되어 있다. |
+| Animation base rule exists | Complete | USS transition, C# class order, TransitionEndEvent 중심 완료 기준과 detach/cancel 수명 경계가 정의되어 있다. |
 | ResourceStatusBar boundary exists | Complete | Banner와 ResourceStatusBar의 책임이 분리되어 있다. |
 | Dynamic card CRUD rule exists | Complete | Create, Place, Update, Remove가 분리되어 있다. |
 | ChoiceCard first slice exists | Complete | ChoiceCard asset/data, widget, board flow, validator gate가 정의되어 있다. |

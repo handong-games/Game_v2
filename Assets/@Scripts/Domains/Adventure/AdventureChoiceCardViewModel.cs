@@ -4,6 +4,7 @@ namespace Domains.Adventure
 {
     // Role:
     // Carries the game meaning needed to create one choice card in the adventure board UI.
+    // OfferCardId is the runtime click id for this choice, not a UI-only temporary id.
     public sealed class AdventureChoiceCardViewModel : AdventureBoardCardViewModel
     {
         public AdventureChoiceCardViewModel(

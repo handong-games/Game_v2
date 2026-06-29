@@ -33,7 +33,7 @@ Related goals:
 - Make scene unload and session end release the correct objects.
 - Reduce stale references, double dispose, and event subscription leaks.
 - Make ViewManager a UI host, not the owner of every scene view.
-- Keep SceneManagerEx removed by moving scene lifecycle to Unity Scene + LifetimeScope.
+- Keep the old manager-owned SceneManagerEx removed; the current `Game.Core.Adapters.SceneManagerEx` is a root scene-loading boundary, not a legacy manager.
 ```
 
 Cold assessment:
@@ -74,10 +74,10 @@ TitleScene
 -> TitleSceneEntryPoint owns startup ordering directly
 
 AdventureScene
--> AdventureSceneScope is created by the remaining BaseScene bridge
+-> AdventureSceneScope is the Adventure scene composition boundary
 -> Adventure scene-local objects are AdventureSceneScope-owned
--> AdventureService, CardDeckService, CardBoardService, CardService, and PlayerService are AdventureSessionLifetimeScope-owned
--> remaining Adventure run-state services are still DependencyManager-owned aliases
+-> Adventure runtime state is split into scene-scoped runtime/state/flow classes
+-> Adventure startup data is prepared by AdventureSceneLoader and consumed by AdventureSceneScope
 ```
 
 ## Completed
@@ -98,11 +98,11 @@ ViewManager is no longer a BaseManager or ManagerRegistry-owned manager.
 Current root adapters include:
 
 ```text
-IAudioPlayer
 IViewHost
-ISceneLoader
 ISceneTransitionPlayer
-IViewFactory
+SceneManagerEx
+ScenePreloadService
+AdventureSceneLoader
 ```
 
 Important current boundary:
@@ -146,18 +146,18 @@ TitleSceneEntryPoint delegates initial TitleView display to ITitleSceneNavigator
 TitleViewController delegates CharacterSelect/Settings navigation to ITitleSceneNavigator.
 CharacterSelectView reports completed back-close animation to CharacterSelectController, which delegates HideCurrent to ITitleSceneNavigator.
 SettingsView delegates close to SettingsViewController, which saves settings and delegates HideCurrent to ITitleSceneNavigator.
-CharacterSelectController delegates adventure start to IAdventureSessionStarter.
-CharacterSelectController reads character catalog data through ICharacterSelectCatalog.
+CharacterSelectController writes the selected character id to AdventureStartState.
+CharacterSelectController requests scene loading through SceneManagerEx.
+CharacterSelectController reads character data through CharacterService.
 CharacterSelectController reads character unlock state through ICharacterUnlockGateway.
 ```
 
-Current character catalog bridge:
+Current character catalog path:
 
 ```text
 CharacterSelectController
--> ICharacterSelectCatalog
--> LegacyCharacterSelectCatalog
--> DependencyManager / CharacterService / DBManager
+-> CharacterService
+-> DBManager
 ```
 
 Current unlock-state bridge:
@@ -173,8 +173,8 @@ Risk:
 
 ```text
 SaveManager is still the real state owner.
-CharacterService is still the real catalog owner.
-The important current improvement is that the TitleScene controller no longer directly reaches into SaveManager or CharacterService.
+CharacterService is a TitleSceneScope dependency used by CharacterSelectController.
+The important current improvement is that TitleScene controller/view creation is no longer DependencyManager-owned.
 ```
 
 ### TitleScene Views
@@ -212,8 +212,9 @@ Current check result:
 
 ```text
 TitleSceneScope has no direct DependencyManager.Resolve calls.
-TitleScene View/Controller types do not directly call SaveManager, AudioManager, GraphicManager, LocaleManager, ViewManager, or SceneManagerEx.
-Remaining TitleScene-related legacy access is intentionally isolated inside Legacy* bridge types.
+TitleScene View/Controller types do not directly call SaveManager, AudioManager, GraphicManager, LocaleManager, or ViewManager.
+CharacterSelectController depends on the root scene-loading boundary SceneManagerEx.
+Remaining TitleScene-related legacy access is intentionally isolated inside explicit gateway types.
 ```
 
 Allowed current legacy bridges:
@@ -221,8 +222,6 @@ Allowed current legacy bridges:
 ```text
 LegacySettingsGateway
 LegacyCharacterUnlockGateway
-LegacyCharacterSelectCatalog
-LegacyAdventureSessionStarter
 ```
 
 Cold assessment:
@@ -271,22 +270,6 @@ TitleScene uses non-disposing attach/detach.
 Unmigrated scenes still use legacy Push/Pop/Clear ownership.
 ```
 
-### LegacyAdventureSessionStarter
-
-```text
-LegacyAdventureSessionStarter is no longer in DependencyRegistry.
-DependencyManager no longer creates LegacyAdventureSessionStarter.
-TitleSceneScope registers it directly as IAdventureSessionStarter.
-TitleSceneScope no longer resolves the adventure service list itself.
-```
-
-Still true:
-
-```text
-LegacyAdventureSessionStarter still resolves adventure run-state services from DependencyManager internally.
-This is a bridge, not final ownership.
-```
-
 ### Scene Loading Surface
 
 Done:
@@ -294,59 +277,53 @@ Done:
 ```text
 GameSceneId exists.
 GameSceneNames maps GameSceneId to Unity scene names.
-ISceneLoader exposes Load(GameSceneId).
-LegacyAdventureSessionStarter calls Load(GameSceneId.Adventure).
-UnitySceneLoader is registered as the runtime ISceneLoader.
+SceneManagerEx exposes Load(GameSceneId).
+CharacterSelectController calls SceneManagerEx.Load(GameSceneId.Adventure) after setting AdventureStartState.
+ScenePreloadService dispatches scene preload work.
+AdventureSceneLoader preloads Adventure startup data before activation.
 ```
 
 Current runtime registration:
 
 ```text
-RootLifetimeScope registers UnitySceneLoader.
-UnitySceneLoader coordinates BaseSceneLifecycleRunner only for remaining legacy BaseScene scenes before SceneManager.LoadScene.
-SceneManagerEx is no longer in the active runtime loading path.
+RootLifetimeScope registers SceneManagerEx, ScenePreloadService, and AdventureSceneLoader.
+SceneManagerEx starts fade-out, scene preload, and Unity SceneManager.LoadSceneAsync in parallel.
+SceneManagerEx blocks activation until fade-out and preload have completed and load progress reaches Unity's activation threshold.
+The old manager-owned SceneManagerEx namespace is no longer in the active runtime loading path.
 ```
 
 Transition ownership:
 
 ```text
 FadeOut transition moved out of TitleScene.OnBeforeUnload.
-ISceneLoader implementations now play ISceneTransitionPlayer.FadeOut before loading.
+SceneManagerEx plays ISceneTransitionPlayer.FadeOut before scene activation.
 ```
 
 ### Adventure Skeletons
 
-Adventure session bridge:
+Adventure scene startup:
 
 ```text
-AdventureSessionLifetimeScope has RootLifetimeScope parent wiring.
-AdventureSessionRuntime exists and can store the current AdventureSessionLifetimeScope.
-LegacyAdventureSessionStarter creates AdventureSessionLifetimeScope at adventure start.
-AdventureSessionLifetimeScope registers AdventureSessionInitializer, VContainer-owned CardBoardState/CardBoardService, and remaining DependencyManager-created run-state aliases.
-AdventureSessionInitializer runs the current adventure-start initialization sequence.
-CardBoardService is VContainer-owned in AdventureSessionLifetimeScope.
-Other run-state services are not VContainer-owned yet.
-AdventureSceneScope exists and is runtime-created by AdventureScene.
-AdventureSceneLocalizationOwner is AdventureSceneScope-owned.
-AdventureSceneStartup is AdventureSceneScope-owned.
-AdventureScene dependency map exists in docs/adventure-session-vcontainer-design.md.
+AdventureStartState stores the selected character id before AdventureScene loading.
+AdventureSceneLoader preloads AdventureSceneInitialData, card UI models, widget templates, and AdventureView root UXML.
+AdventureScenePayload transfers preloaded data and Addressables handle ownership into AdventureSceneScope.
+AdventureSceneScope registers scene-local runtime/state/flow/presentation/UI objects.
+AdventureSceneLocalization is AdventureSceneScope-owned.
+AdventureSceneEntryPoint is AdventureSceneScope-owned.
 ```
 
 Current Adventure behavior:
 
 ```text
-AdventureScene still inherits BaseScene.
-AdventureScene creates @AdventureSceneScope from the remaining BaseScene bridge.
-AdventureSceneScope owns AdventureSceneStartup, AdventureController, AdventureView, and AdventureSceneLocalizationOwner.
-AdventureSceneStartup attaches AdventureView through IViewHost, not legacy ViewManager Push ownership.
-AdventureSceneScope registers AdventureController directly, not through a DependencyManager-backed factory.
-AdventureController is no longer DependencyManager-owned.
-AdventureController receives run-state services through VContainer constructor injection.
-AdventureService, CardDeckService, CardBoardService, CardService, and PlayerService are VContainer-owned by AdventureSessionLifetimeScope.
-CombatService and CharacterService are still DependencyManager-owned and exposed to VContainer as aliases.
-AdventureController guards duplicate StartAdventure event registration.
-AdventureView defensively unregisters static/widget/cue handlers during Dispose.
-AdventureView no longer receives AdventureController through custom DependencyManager field injection.
+AdventureSceneScope owns AdventureSceneEntryPoint, AdventureScreenController, AdventureView, and AdventureSceneLocalization.
+AdventureSceneEntryPoint attaches AdventureView through IViewHost, not legacy ViewManager Push ownership.
+AdventureSceneScope registers AdventureScreenController directly, not through a DependencyManager-backed factory.
+AdventureScreenController is not DependencyManager-owned.
+AdventureScreenController receives scene-scoped runtime/flow/presenter/events through VContainer constructor injection.
+AdventureView receives AdventureScreenController and UIFlow objects through constructor injection.
+Adventure card deal motion is scene-scoped through AdventureCardDealAnimator; AdventureBoardLayout keeps board slot/anchor rules and delegates deck-to-board motion.
+AdventureView defensively clears widget/cue/card bindings during detach and Dispose.
+AdventureView no longer receives any controller through custom DependencyManager field injection.
 ```
 
 ## Current Incomplete Areas
@@ -399,29 +376,27 @@ The legacy Push/Pop/Clear ownership path still exists as compatibility surface f
 Current status:
 
 ```text
-SceneManagerEx has been removed from code.
-SceneManagerEx is no longer a BaseManager and is no longer in ManagerRegistry.
-RootLifetimeScope now registers ISceneLoader as UnitySceneLoader.
-UnitySceneLoader coordinates BaseSceneLifecycleRunner only for remaining legacy BaseScene scenes before Unity SceneManager.LoadScene.
+The old manager-owned SceneManagerEx has been removed.
+The active SceneManagerEx is Game.Core.Adapters.SceneManagerEx and is VContainer root-owned.
+RootLifetimeScope registers SceneManagerEx directly.
+SceneManagerEx coordinates fade-out, scene preload, and Unity SceneManager.LoadSceneAsync activation.
 SceneManagerAdapter has been removed.
 ```
 
 Remaining SceneManagerEx responsibilities:
 
 ```text
-None in active runtime flow.
-None in compatibility flow.
+Start fade-out, preload, and LoadSceneAsync in parallel.
+Block scene activation until fade-out and preload complete.
+Release pending scene activation if preload/loading fails after LoadSceneAsync has started.
+Reset loading state when Unity reports sceneLoaded.
 ```
 
-Remaining BaseSceneLifecycleRunner responsibilities:
+Remaining scene-loading cleanup:
 
 ```text
-AdventureScene BaseScene object creation
-AdventureScene BaseScene.Loaded
-AdventureScene BaseScene.BeforeUnload
-AdventureScene BaseScene.Unloaded
-current/previous scene tracking
-Unity scene loaded/unloaded event subscription
+SceneManagerEx is still a broad concrete root service.
+Later cleanup can split narrower ports if multiple callers need only preload, transition, or activation behavior.
 ```
 
 Target:
@@ -433,9 +408,9 @@ BaseSceneLifecycleRunner should shrink as BaseScene startup/shutdown hooks move 
 
 ### Adventure
 
-Adventure run-state migration is active but must proceed through service redesign.
+Adventure run-state redesign is active and no longer follows the old service graph.
 
-Do not move these as-is:
+Do not reintroduce these old service boundaries as-is:
 
 ```text
 AdventureService
@@ -443,16 +418,15 @@ CardDeckService
 CardService
 PlayerService
 CombatService
-AdventureView
 ```
 
 Reason:
 
 ```text
-AdventureController consumes services through constructor injection from VContainer.
-AdventureService, CardDeckService, CardBoardService, CardService, and PlayerService are VContainer-owned; the other current service registrations are DependencyManager-created aliases.
-AdventureView consumes AdventureController through constructor injection and is AdventureSceneScope-owned.
-Moving more run-state services without first splitting state/service/factory responsibilities would create duplicate or drifting run state.
+AdventureScreenController consumes scene-scoped flows through constructor injection from VContainer.
+Adventure runtime is now split into state/runtime/flow/presenter classes under AdventureSceneScope.
+Reintroducing broad legacy services would hide ownership again and make duplicate state likely.
+Combat behavior should continue to move through explicit combat runtime/flow objects, not the old CombatService shape.
 ```
 
 ## Priority
@@ -468,7 +442,7 @@ Supporting considerations:
 ```text
 1. Memory/lifetime risk
 2. Small changes that stay inside TitleScene
-3. SceneManagerEx removal progress
+3. Old manager-owned SceneManagerEx removal remains protected
 ```
 
 ## Recommended Next Order
@@ -487,44 +461,35 @@ Current status:
 
 ```text
 AdventureScene dependency map is documented.
-AdventureScene still uses BaseScene.
-AdventureSceneScope is runtime-created by AdventureScene.
 AdventureView uses constructor injection and is AdventureSceneScope-owned.
-AdventureController uses constructor injection and is AdventureSceneScope-owned.
-AdventureSceneStartup attaches AdventureView through IViewHost, not legacy ViewManager Push ownership.
-CardBoardService is AdventureSessionLifetimeScope-owned.
-Remaining Adventure run-state services are still DependencyManager global dependencies exposed to VContainer as aliases.
+AdventureScreenController uses constructor injection and is AdventureSceneScope-owned.
+AdventureSceneEntryPoint attaches AdventureView through IViewHost, not legacy ViewManager Push ownership.
+Adventure scene runtime/state/flow objects are AdventureSceneScope-owned.
+AdventureSceneLoader prepares startup data before AdventureScene activation.
 ```
 
 Remaining work:
 
 ```text
-Use docs/adventure-run-state-service-redesign.md as the service refactor order.
-CardBoardState split is done.
-CardRegistry/CardFactory split is done.
-PlayerRunState split is done.
-CardService and PlayerService ownership move is done.
-AdventureSessionState/AdventureSessionFactory and CardDeckState/CardDeckBuilder splits are done.
-AdventureService and CardDeckService ownership move is done.
-CombatService lifetime and event subscription boundaries are documented in docs/combat-service-lifetime-inspection.md.
-CombatService is intentionally deferred.
-Do not move CombatService as-is.
+Finish dynamic UI interaction verification beyond AdventureScene startup.
+Keep removing stale service/controller names from docs and tests.
+Do not reintroduce broad AdventureService/CardDeckService/CardService/PlayerService/CombatService boundaries without a fresh ownership reason.
 ```
 
-### 2. SceneManagerEx Removal Prep
+### 2. Scene Loading Boundary Cleanup
 
 Reason:
 
 ```text
-GameSceneId and UnitySceneLoader already exist.
-FadeOut transition already moved to loader implementations.
+GameSceneId and SceneManagerEx.Load(GameSceneId) exist.
+FadeOut and preload are centralized in SceneManagerEx.
 ```
 
 Next safe step:
 
 ```text
-Identify remaining BaseScene startup/unload responsibilities.
-Keep BaseSceneLifecycleRunner limited to AdventureScene until AdventureSceneScope owns startup/unload.
+Keep SceneManagerEx as the single app-level scene loading boundary until more scene flows exist.
+If the class grows, split narrow ports for transition, preload, and activation rather than adding scene logic to controllers.
 ```
 
 ### 3. ViewManager Cleanup
@@ -546,7 +511,7 @@ Reduce remaining concrete ViewManager root bridge dependencies.
 Candidate ports: legacy owning stack port and overlay host port.
 ```
 
-### 4. AdventureSessionScope
+### 4. Adventure Run Lifetime
 
 Status:
 
@@ -557,10 +522,10 @@ Deferred.
 Resume only when ready to touch:
 
 ```text
-AdventureController
+AdventureScreenController
 AdventureView
 AdventureScene startup
-Adventure run-state services
+Adventure run-state objects
 ```
 
 ## Testing Policy

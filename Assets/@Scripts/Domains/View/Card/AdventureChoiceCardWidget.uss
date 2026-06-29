@@ -4,6 +4,12 @@
     position: relative;
 }
 
+.card-board__card .card-widget {
+    position: absolute;
+    left: 0;
+    top: 96px;
+}
+
 .card-widget__background {
     position: absolute;
     left: 0;

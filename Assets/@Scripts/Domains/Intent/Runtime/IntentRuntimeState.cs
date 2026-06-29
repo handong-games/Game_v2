@@ -27,8 +27,14 @@ namespace Domains.Intent.Runtime
             ResolvedIntentActionData resolvedAction,
             IReadOnlyList<IntentDisplayData> intentDisplays)
         {
+            if (intentDisplays == null)
+                throw new ArgumentNullException(nameof(intentDisplays));
+
+            if (intentDisplays.Count == 0)
+                throw new InvalidOperationException("Intent display cache cannot be empty.");
+
             _cachedResolvedAction = resolvedAction;
-            _cachedIntentDisplays = intentDisplays ?? EmptyDisplays;
+            _cachedIntentDisplays = intentDisplays;
             HasCachedResolvedAction = true;
         }
 

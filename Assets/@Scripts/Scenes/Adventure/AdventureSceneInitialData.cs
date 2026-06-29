@@ -1,5 +1,6 @@
 using Game.Data;
 using Game.Generated;
+using System;
 
 namespace Game.Scenes.Adventure
 {
@@ -15,8 +16,8 @@ namespace Game.Scenes.Adventure
             uint seed)
         {
             SelectedCharacterId = selectedCharacterId;
-            Character = character;
-            Adventure = adventure;
+            Character = character ?? throw new ArgumentNullException(nameof(character));
+            Adventure = adventure ?? throw new ArgumentNullException(nameof(adventure));
             Seed = seed;
         }
 

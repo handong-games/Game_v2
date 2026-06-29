@@ -1,126 +1,187 @@
 using Domains.Adventure;
-using Domains.Card;
-using Game.Scenes.Adventure.Events.Widgets;
-using Game.Core.Managers.DB;
 using Game.Data;
-using Gameplay.GAS;
+using System;
 using UnityEngine.UIElements;
 using CardActor = Domains.Card.Card;
 
 namespace Domains.View.Widgets
 {
     // Role:
-    // Creates concrete adventure card widgets. It does not decide which card type is needed.
+    // Creates concrete adventure card widgets from board card presentation data.
+    // Board placement stays outside this factory.
     public sealed class AdventureCardWidgetFactory
     {
-        private readonly DBManager _dbManager;
+        private readonly AdventureChoiceCardUIModels _choiceCardUIModels;
         private readonly AdventureCards _cards;
-        private readonly AdventureCardAvatarRegistry _avatarRegistry;
-        private readonly IntentBadgeWidgetEvents _intentBadgeEvents;
+        private readonly AdventureCardWidgetTemplates _templates;
 
         public AdventureCardWidgetFactory(
-            DBManager dbManager,
+            AdventureChoiceCardUIModels choiceCardUIModels,
             AdventureCards cards,
-            AdventureCardAvatarRegistry avatarRegistry,
-            IntentBadgeWidgetEvents intentBadgeEvents)
+            AdventureCardWidgetTemplates templates)
         {
-            _dbManager = dbManager;
-            _cards = cards;
-            _avatarRegistry = avatarRegistry;
-            _intentBadgeEvents = intentBadgeEvents;
+            _choiceCardUIModels = choiceCardUIModels ?? throw new ArgumentNullException(nameof(choiceCardUIModels));
+            _cards = cards ?? throw new ArgumentNullException(nameof(cards));
+            _templates = templates ?? throw new ArgumentNullException(nameof(templates));
         }
 
         public AdventureBoardCardWidgetBinding Create(
-            uint boardCardId,
             AdventureBoardCardViewModel viewModel)
         {
             return viewModel switch
             {
-                AdventureChoiceCardViewModel choice => CreateChoiceCard(boardCardId, choice),
+                AdventureChoiceCardViewModel choice => CreateChoiceCard(choice),
                 AdventureBoardCardViewModel boardCard => CreateBoardCard(boardCard),
-                _ => throw new System.ArgumentOutOfRangeException(nameof(viewModel), viewModel, null),
+                _ => throw new ArgumentOutOfRangeException(nameof(viewModel), viewModel, null),
             };
         }
 
         public AdventureChoiceCardWidget CreateChoiceCard(
-            uint boardCardId,
             AdventureChoiceCardViewModel viewModel,
             AdventureChoiceCardUIModel uiModel)
         {
-            AdventureChoiceCardWidget widget = new();
-            widget.Bind(boardCardId, viewModel, uiModel);
+            AdventureChoiceCardWidget widget = new(_templates.ChoiceCard);
+            widget.Bind(viewModel, uiModel);
             return widget;
         }
 
         private AdventureBoardCardWidgetBinding CreateChoiceCard(
-            uint boardCardId,
             AdventureChoiceCardViewModel viewModel)
         {
-            if (_dbManager.ChoiceCardUI == null)
-            {
-                throw new System.InvalidOperationException(
-                    "AdventureChoiceCardUITable is not loaded. Create and label the table asset before rendering choice cards.");
-            }
-
             AdventureChoiceCardUIModel uiModel =
-                _dbManager.ChoiceCardUI.Get(viewModel.ChoiceType);
+                _choiceCardUIModels.Get(viewModel.ChoiceType);
 
             AdventureChoiceCardWidget widget =
-                CreateChoiceCard(boardCardId, viewModel, uiModel);
+                CreateChoiceCard(viewModel, uiModel);
 
             return new AdventureBoardCardWidgetBinding(
                 viewModel,
                 widget,
                 onPlaced: null,
-                dispose: widget.Unbind);
+                dispose: widget.Unbind,
+                interactionTarget: widget.InteractionTarget);
         }
 
         private AdventureBoardCardWidgetBinding CreateBoardCard(
             AdventureBoardCardViewModel viewModel)
         {
+            return viewModel.Side switch
+            {
+                AdventureBoardSide.Left => CreatePlayerCard(viewModel),
+                AdventureBoardSide.Right => CreateRightSideCard(viewModel),
+                _ => throw new ArgumentOutOfRangeException(
+                    nameof(viewModel.Side),
+                    viewModel.Side,
+                    null),
+            };
+        }
+
+        private AdventureBoardCardWidgetBinding CreatePlayerCard(
+            AdventureBoardCardViewModel viewModel)
+        {
             if (!_cards.TryGet(viewModel.CardId, out CardActor cardActor))
             {
-                throw new System.InvalidOperationException(
+                throw new InvalidOperationException(
                     $"Adventure card runtime object is missing: {viewModel.CardId}");
             }
 
-            AdventureMonsterCardWidget widget = AdventureMonsterCardWidget.Create();
-            widget.Bind(viewModel.Card, cardActor.AbilitySystem, _intentBadgeEvents);
+            AdventurePlayerCardWidget widget = AdventurePlayerCardWidget.Create(_templates.PlayerCard);
+            widget.Bind(viewModel.Card, cardActor.AbilitySystem, _templates);
 
-            AbilitySystemComponent abilitySystem = cardActor.AbilitySystem;
+            return CreateRuntimeCardBinding(
+                viewModel,
+                widget,
+                cardActor,
+                widget.Unbind,
+                widget.InteractionTarget);
+        }
+
+        private AdventureBoardCardWidgetBinding CreateRightSideCard(
+            AdventureBoardCardViewModel viewModel)
+        {
+            if (!_cards.TryGet(viewModel.CardId, out CardActor cardActor))
+            {
+                throw new InvalidOperationException(
+                    $"Adventure card runtime object is missing: {viewModel.CardId}");
+            }
+
+            if (cardActor.Model is MonsterModel)
+                return CreateMonsterCard(viewModel, cardActor);
+
+            return CreateDisplayCard(viewModel);
+        }
+
+        private AdventureBoardCardWidgetBinding CreateMonsterCard(
+            AdventureBoardCardViewModel viewModel,
+            CardActor cardActor)
+        {
+            AdventureMonsterCardWidget widget = AdventureMonsterCardWidget.Create(_templates.MonsterCard);
+            widget.Bind(viewModel.Card, cardActor.AbilitySystem, _templates);
+
+            return CreateRuntimeCardBinding(
+                viewModel,
+                widget,
+                cardActor,
+                widget.Unbind,
+                widget.InteractionTarget);
+        }
+
+        private AdventureBoardCardWidgetBinding CreateDisplayCard(
+            AdventureBoardCardViewModel viewModel)
+        {
+            if (viewModel.Card == null)
+                throw new InvalidOperationException("Display card view model is missing card presentation data.");
+
+            AdventureDisplayCardWidget widget = AdventureDisplayCardWidget.Create(_templates.DisplayCard);
+            widget.Bind(viewModel.Card, _templates);
+
+            return new AdventureBoardCardWidgetBinding(
+                viewModel,
+                widget,
+                onPlaced: null,
+                dispose: widget.Unbind,
+                isInteractive: false,
+                interactionTarget: widget.InteractionTarget);
+        }
+
+        private AdventureBoardCardWidgetBinding CreateRuntimeCardBinding(
+            AdventureBoardCardViewModel viewModel,
+            VisualElement widget,
+            CardActor cardActor,
+            System.Action unbind,
+            VisualElement interactionTarget)
+        {
+            if (widget is not IAdventureHealthCardWidget)
+            {
+                throw new InvalidOperationException(
+                    $"{widget.GetType().Name} must implement {nameof(IAdventureHealthCardWidget)}.");
+            }
+
             VisualElement boundTimelineTarget = null;
-
-            abilitySystem?.SetAvatar(widget);
-            _avatarRegistry.Register(viewModel.CardId, widget);
 
             return new AdventureBoardCardWidgetBinding(
                 viewModel,
                 widget,
                 onPlaced: placement =>
                 {
-                    if (cardActor == null || cardActor.Timeline.IsBound)
-                        return;
+                    if (cardActor.Timeline.IsBound)
+                        throw new InvalidOperationException(
+                            $"Card timeline is already bound before board placement: {cardActor.CardId}");
 
                     boundTimelineTarget = placement.Anchor;
                     cardActor.Timeline.Bind(boundTimelineTarget);
                 },
                 dispose: () =>
                 {
-                    if (cardActor?.Timeline.IsBound == true && boundTimelineTarget != null)
+                    if (cardActor.Timeline.IsBound && boundTimelineTarget != null)
                     {
                         cardActor.Timeline.Release(boundTimelineTarget);
                         boundTimelineTarget = null;
                     }
 
-                    _avatarRegistry.Unregister(widget);
-
-                    if (ReferenceEquals(abilitySystem?.GetAvatar<AdventureMonsterCardWidget>(), widget))
-                    {
-                        abilitySystem.ClearAvatar();
-                    }
-
-                    widget.Unbind();
-                });
+                    unbind.Invoke();
+                },
+                interactionTarget: interactionTarget);
         }
     }
 }

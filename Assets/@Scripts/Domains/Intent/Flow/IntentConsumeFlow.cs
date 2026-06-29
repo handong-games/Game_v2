@@ -1,6 +1,7 @@
 using Domains.Adventure;
 using Domains.Intent.Runtime;
 using Game.Data;
+using System;
 using CardActor = Domains.Card.Card;
 
 namespace Domains.Intent.Flow
@@ -16,20 +17,27 @@ namespace Domains.Intent.Flow
             AdventureCards cards,
             IntentRuntime runtime)
         {
-            _cards = cards;
-            _runtime = runtime;
+            _cards = cards ?? throw new ArgumentNullException(nameof(cards));
+            _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         }
 
         public bool Consume(uint enemyCardId)
         {
             if (!_runtime.TryGet(enemyCardId, out IntentRuntimeState state))
-                return false;
+                throw new InvalidOperationException(
+                    $"Cannot consume intent because runtime state is missing. Card: {enemyCardId}.");
 
             if (!_cards.TryGet(enemyCardId, out CardActor enemyCard))
-                return false;
+                throw new InvalidOperationException(
+                    $"Cannot consume intent because enemy card is missing. Card: {enemyCardId}.");
 
             if (enemyCard.Model is not MonsterModel monsterModel)
-                return false;
+                throw new InvalidOperationException(
+                    $"Cannot consume intent because card model is not MonsterModel. Card: {enemyCardId}.");
+
+            if (!state.HasCachedResolvedAction)
+                throw new InvalidOperationException(
+                    $"Cannot consume intent because cached resolved action is missing. Card: {enemyCardId}.");
 
             return state.Consume(monsterModel.ActionSequence.Count);
         }

@@ -5,6 +5,10 @@ namespace Game.Core.Managers.View
 {
     internal sealed class ActiveTransition
     {
+        private const string UiTransitionEnterClass = "ui-transition--enter";
+        private const string UiTransitionHiddenClass = "ui-transition--hidden";
+        private const string UiTransitionFromBottomClass = "ui-transition--from-bottom";
+
         private readonly VisualElement _visualElement;
         private readonly string[] _transitionClasses;
         private readonly string _transitionClass;
@@ -12,6 +16,7 @@ namespace Game.Core.Managers.View
         private readonly AwaitableCompletionSource _completionSource = new();
         private readonly EventCallback<TransitionEndEvent> _onTransitionEnd;
         private readonly EventCallback<TransitionCancelEvent> _onTransitionCancel;
+        private readonly EventCallback<DetachFromPanelEvent> _onDetachedFromPanel;
         private bool _completed;
         private bool _disposed;
 
@@ -42,8 +47,11 @@ namespace Game.Core.Managers.View
                 }
             };
 
+            _onDetachedFromPanel = _ => Complete();
+
             _visualElement.RegisterCallback(_onTransitionEnd);
             _visualElement.RegisterCallback(_onTransitionCancel);
+            _visualElement.RegisterCallback(_onDetachedFromPanel);
         }
 
         public async Awaitable Play()
@@ -60,6 +68,12 @@ namespace Game.Core.Managers.View
 
             if (_enabled)
             {
+                if (_transitionClass == UiTransitionEnterClass)
+                {
+                    _visualElement.RemoveFromClassList(UiTransitionHiddenClass);
+                    _visualElement.RemoveFromClassList(UiTransitionFromBottomClass);
+                }
+
                 _visualElement.AddToClassList(_transitionClass);
             }
             else
@@ -83,6 +97,7 @@ namespace Game.Core.Managers.View
             _disposed = true;
             _visualElement.UnregisterCallback(_onTransitionEnd);
             _visualElement.UnregisterCallback(_onTransitionCancel);
+            _visualElement.UnregisterCallback(_onDetachedFromPanel);
         }
 
         private void Complete()

@@ -1,0 +1,31 @@
+.damage-number-widget {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 136px;
+    height: 72px;
+    translate: -68px -36px;
+    opacity: 1;
+    justify-content: center;
+    align-items: center;
+    transition-property: opacity, translate;
+    transition-duration: 2000ms;
+    transition-timing-function: ease-out;
+}
+
+.damage-number-widget--floating {
+    opacity: 0;
+    translate: -68px -108px;
+}
+
+.damage-number-widget__label {
+    margin: 0;
+    padding: 0;
+    color: rgb(255, 245, 220);
+    -unity-font-definition: url("project://database/Assets/@Resources/Fonts/Fredoka-Bold.ttf?fileID=12800000&guid=7a7ec8d6fac04e27873622314fce92e6&type=3#Fredoka-Bold");
+    -unity-font-style: bold;
+    font-size: 48px;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: rgb(46, 33, 28);
+}

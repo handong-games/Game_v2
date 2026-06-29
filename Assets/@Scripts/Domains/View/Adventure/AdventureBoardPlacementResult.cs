@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Domains.View.Widgets
 {
     // Role:
-    // Reports only the board sides changed by one PlaceCards call.
+    // Reports only the board sides changed by one board replacement call.
     public sealed class AdventureBoardPlacementResult
     {
         public AdventureBoardPlacementResult(

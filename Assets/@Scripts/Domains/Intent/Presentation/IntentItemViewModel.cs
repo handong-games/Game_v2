@@ -12,7 +12,9 @@ namespace Domains.Intent.Presentation
             int countValue,
             string numberText)
         {
-            Icon = icon;
+            Icon = icon != null
+                ? icon
+                : throw new System.ArgumentNullException(nameof(icon));
             NumberValue = numberValue;
             CountValue = countValue;
             NumberText = numberText ?? string.Empty;

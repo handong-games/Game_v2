@@ -1,3 +1,6 @@
+using System;
+using Domains.Intent.Execution;
+using Domains.Intent.Runtime;
 using Game.Scenes.Adventure;
 using CardActor = Domains.Card.Card;
 
@@ -21,6 +24,8 @@ namespace Domains.Adventure
         private readonly AdventureOfferFactory _offerFactory;
         private readonly AdventureCombatRuntime _combat;
         private readonly AdventureCardAvatarRegistry _avatarRegistry;
+        private readonly IntentRuntime _intentRuntime;
+        private readonly ActionExecutionBindingStore _actionBindings;
 
         public AdventureStartFlow(
             AdventureSceneInitialData initialData,
@@ -35,24 +40,28 @@ namespace Domains.Adventure
             AdventureEncounterSequenceRuntime encounterSequence,
             AdventureOfferFactory offerFactory,
             AdventureCombatRuntime combat,
-            AdventureCardAvatarRegistry avatarRegistry)
+            AdventureCardAvatarRegistry avatarRegistry,
+            IntentRuntime intentRuntime,
+            ActionExecutionBindingStore actionBindings)
         {
-            _initialData = initialData;
-            _runState = runState;
-            _region = region;
-            _progress = progress;
-            _player = player;
-            _cards = cards;
-            _board = board;
-            _stage = stage;
-            _input = input;
-            _encounterSequence = encounterSequence;
-            _offerFactory = offerFactory;
-            _combat = combat;
-            _avatarRegistry = avatarRegistry;
+            _initialData = initialData ?? throw new ArgumentNullException(nameof(initialData));
+            _runState = runState ?? throw new ArgumentNullException(nameof(runState));
+            _region = region ?? throw new ArgumentNullException(nameof(region));
+            _progress = progress ?? throw new ArgumentNullException(nameof(progress));
+            _player = player ?? throw new ArgumentNullException(nameof(player));
+            _cards = cards ?? throw new ArgumentNullException(nameof(cards));
+            _board = board ?? throw new ArgumentNullException(nameof(board));
+            _stage = stage ?? throw new ArgumentNullException(nameof(stage));
+            _input = input ?? throw new ArgumentNullException(nameof(input));
+            _encounterSequence = encounterSequence ?? throw new ArgumentNullException(nameof(encounterSequence));
+            _offerFactory = offerFactory ?? throw new ArgumentNullException(nameof(offerFactory));
+            _combat = combat ?? throw new ArgumentNullException(nameof(combat));
+            _avatarRegistry = avatarRegistry ?? throw new ArgumentNullException(nameof(avatarRegistry));
+            _intentRuntime = intentRuntime ?? throw new ArgumentNullException(nameof(intentRuntime));
+            _actionBindings = actionBindings ?? throw new ArgumentNullException(nameof(actionBindings));
         }
 
-        public void StartAdventure()
+        public void InitializeRuntime()
         {
             ClearRuntime();
 
@@ -75,6 +84,8 @@ namespace Domains.Adventure
         private void ClearRuntime()
         {
             _avatarRegistry.Clear();
+            _intentRuntime.Clear();
+            _actionBindings.Clear();
             _combat.Clear();
             _offerFactory.Clear();
             _encounterSequence.Clear();

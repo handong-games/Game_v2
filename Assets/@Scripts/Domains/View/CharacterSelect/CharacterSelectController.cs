@@ -27,11 +27,11 @@ namespace Domains.CharacterSelect
             ICharacterUnlockGateway unlockGateway,
             TitleSceneNavigator navigator)
         {
-            _characterService = characterService;
-            _adventureStartState = adventureStartState;
-            _sceneManager = sceneManager;
-            _unlockGateway = unlockGateway;
-            _navigator = navigator;
+            _characterService = characterService ?? throw new ArgumentNullException(nameof(characterService));
+            _adventureStartState = adventureStartState ?? throw new ArgumentNullException(nameof(adventureStartState));
+            _sceneManager = sceneManager ?? throw new ArgumentNullException(nameof(sceneManager));
+            _unlockGateway = unlockGateway ?? throw new ArgumentNullException(nameof(unlockGateway));
+            _navigator = navigator ?? throw new ArgumentNullException(nameof(navigator));
         }
 
         public CharacterSelectInitialViewModel CreateInitialViewModel()

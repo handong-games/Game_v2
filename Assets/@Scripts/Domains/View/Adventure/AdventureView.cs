@@ -1,106 +1,163 @@
 using Game.Core.Managers.View;
 using Domains.View.Widgets;
-using Game.Scenes.Adventure.Events.Widgets;
 using Game.Scenes.Adventure;
+using System;
 using UnityEngine.UIElements;
 
 namespace Domains.Adventure
 {
-    public sealed partial class AdventureView : BaseView, IAdventureGameplayCueReceiver
+    // Role:
+    // Owns the Adventure screen lifecycle and delegates UI sequences, board creation, and commands.
+    // It is the only Adventure UI object that talks directly to AdventureScreenController.
+    public sealed partial class AdventureView :
+        BaseView,
+        IAdventureCoinFlipCueReceiver,
+        IAdventureCoinChangeCueReceiver
     {
-        private readonly AdventureSceneController _controller;
-        private readonly AdventureWidgetEvents _widgetEvents;
-        private readonly AdventureCardAvatarRegistry _avatarRegistry;
-        private readonly ViewTransitionManager _viewTransitionManager;
-        private readonly AdventureBoardWidgets _boardWidgets;
+        private readonly AdventureScreenController _controller;
+        private readonly AdventureScreenWidgets _screenWidgets;
+        private readonly AdventureScreenWidgetBinder _screenWidgetBinder;
         private readonly AdventureBoardUIFlow _boardUIFlow;
+        private readonly AdventureScreenUIFlow _screenUIFlow;
+        private readonly AdventureSkillUIFlow _skillUIFlow;
+        private readonly AdventureGameplayCueAvatarBinder _gameplayCueAvatarBinder;
 
-        private VisualElement _adventureRoot;
-        private Banner _banner;
-        private VisualElement _resourceStatusBar;
-        private VisualElement _progressBar;
-        private VisualElement _progressBarTrackFill;
-        private VisualElement _effectLayer;
-        private Pouch _pouch;
-        private CoinStatusWidget _coinStatusWidget;
-        private EndTurnWidget _endTurnWidget;
-        private ArrowWidget _arrowWidget;
-        private CoinEffectPlayer _coinEffectPlayer;
-        private CoinChangeEffectPlayer _coinChangeEffectPlayer;
-        private AdventureEntryPresentationViewModel _entryPresentation;
+        private bool _initialPresentationPrepared;
+        private bool _screenAttached;
         private bool _introStarted;
+        private bool _widgetCommandRunning;
+        private int _screenLifetimeVersion;
+        private bool _isDisposed;
 
         public AdventureView(
-            AdventureSceneController controller,
-            AdventureWidgetEvents widgetEvents,
-            AdventureCardAvatarRegistry avatarRegistry,
-            ViewTransitionManager viewTransitionManager,
-            AdventureBoardWidgets boardWidgets,
-            AdventureBoardUIFlow boardUIFlow)
+            AdventureScreenController controller,
+            AdventureScreenWidgets screenWidgets,
+            AdventureScreenWidgetBinder screenWidgetBinder,
+            AdventureBoardUIFlow boardUIFlow,
+            AdventureScreenUIFlow screenUIFlow,
+            AdventureSkillUIFlow skillUIFlow,
+            AdventureGameplayCueAvatarBinder gameplayCueAvatarBinder)
         {
-            _controller = controller;
-            _widgetEvents = widgetEvents;
-            _avatarRegistry = avatarRegistry;
-            _viewTransitionManager = viewTransitionManager;
-            _boardWidgets = boardWidgets;
-            _boardUIFlow = boardUIFlow;
+            _controller = controller ?? throw new ArgumentNullException(nameof(controller));
+            _screenWidgets = screenWidgets ?? throw new ArgumentNullException(nameof(screenWidgets));
+            _screenWidgetBinder = screenWidgetBinder ?? throw new ArgumentNullException(nameof(screenWidgetBinder));
+            _boardUIFlow = boardUIFlow ?? throw new ArgumentNullException(nameof(boardUIFlow));
+            _screenUIFlow = screenUIFlow ?? throw new ArgumentNullException(nameof(screenUIFlow));
+            _skillUIFlow = skillUIFlow ?? throw new ArgumentNullException(nameof(skillUIFlow));
+            _gameplayCueAvatarBinder = gameplayCueAvatarBinder ?? throw new ArgumentNullException(nameof(gameplayCueAvatarBinder));
         }
 
         protected override void OnVisualTreeCloned(VisualElement root)
         {
-            _adventureRoot = Root.Q<VisualElement>("adventure-root");
-            _banner = Root.Q<Banner>("banner");
-            _resourceStatusBar = Root.Q<VisualElement>("resource-status-bar");
-            _progressBar = Root.Q<VisualElement>("progress-bar");
-            _progressBarTrackFill = Root.Q<VisualElement>("progress-bar-track-fill");
-            _effectLayer = Root.Q<VisualElement>("adventure-effect-layer");
-            _pouch = Root.Q<Pouch>("pouch");
-            _coinStatusWidget = Root.Q<CoinStatusWidget>("coin-status-widget");
-            _endTurnWidget = Root.Q<EndTurnWidget>("end-turn-widget");
-            _arrowWidget = Root.Q<ArrowWidget>("arrow-widget");
-            _cardBoard = Root.Q<VisualElement>("card-board");
-            _cardDeck = Root.Q<VisualElement>("card-deck");
-            
-            _endTurnWidget?.Bind(_widgetEvents.Turn);
-            _pouch?.Bind(_widgetEvents.Pouch);
-            _boardWidgets.Initialize(_cardBoard);
-
-            _controller.StartInitialStage();
-            _entryPresentation = _controller.GetEntryPresentation();
-            _skillSlots = _controller.GetSkillSlots();
-            _targetingEventRoot = Root.Q<VisualElement>("adventure-root") ?? Root;
-            _skillSlotGroup = Root.Q<AdventureSkillSlotGroup>("skill-slot-group");
-            _skillSlotGroup?.Bind(_skillSlots, _widgetEvents.SkillSlot);
-
-            _coinEffectPlayer = new CoinEffectPlayer();
-            _coinEffectPlayer.Bind(_effectLayer);
-            _coinChangeEffectPlayer = new CoinChangeEffectPlayer();
+            _isDisposed = false;
         }
 
-        protected override void OnShown()
+        protected override void OnAttachedToPanel(AttachToPanelEvent evt)
         {
-            if (_introStarted)
+            base.OnAttachedToPanel(evt);
+
+            if (!_screenWidgets.IsInitialized)
+            {
+                _screenWidgets.Initialize(LogicalRoot);
+                _screenUIFlow.Bind(_screenWidgets.EffectLayer);
+            }
+
+            _screenAttached = true;
+        }
+
+        protected override void OnDetachedFromPanel(DetachFromPanelEvent evt)
+        {
+            base.OnDetachedFromPanel(evt);
+
+            _screenAttached = false;
+            _screenLifetimeVersion++;
+            ClearScreenRuntimeBindings();
+            ResetScreenPresentationState();
+        }
+
+        private async UnityEngine.Awaitable<bool> WaitUntilScreenReady(int version)
+        {
+            while (IsCurrentScreenLifetime(version) &&
+                   (!_screenWidgets.IsInitialized || !_screenAttached))
+            {
+                await UnityEngine.Awaitable.NextFrameAsync();
+            }
+
+            return IsCurrentScreenLifetime(version);
+        }
+
+        private void PrepareInitialPresentation(AdventureInitialPresentationViewModel viewModel)
+        {
+            if (viewModel == null)
+                throw new ArgumentNullException(nameof(viewModel));
+
+            if (_initialPresentationPrepared)
                 return;
 
-            _introStarted = true;
-            
-            _ = PlayIntroAnimation();
+            if (!_screenWidgets.IsInitialized)
+                throw new InvalidOperationException("Adventure screen widgets are not initialized.");
+
+            _screenWidgetBinder.Bind(_screenWidgets, viewModel.SkillSlots);
+            _skillUIFlow.Bind(
+                viewModel.SkillSlots,
+                _screenWidgets.SkillSlots,
+                _screenWidgets.AdventureRoot,
+                _screenWidgets.Arrow);
+
+            _initialPresentationPrepared = true;
+        }
+
+        private bool IsCurrentScreenLifetime(int version)
+        {
+            return !_isDisposed && _screenLifetimeVersion == version;
         }
 
         public override void Dispose()
         {
-            UnbindGameplayCueReceivers();
-            ClearSkillPreview();
-            ClearCards();
-            _pouch?.Unbind();
-            _endTurnWidget?.Unbind();
-            _skillSlotGroup?.Unbind();
+            _isDisposed = true;
+            _screenLifetimeVersion++;
 
-            _coinEffectPlayer?.Clear();
-            _coinEffectPlayer = null;
-            _coinChangeEffectPlayer = null;
-            _entryPresentation = null;
+            ClearScreenRuntimeBindings();
+            ResetScreenPresentationState();
             base.Dispose();
+        }
+
+        private void ClearScreenRuntimeBindings()
+        {
+            UnbindGameplayCueReceivers();
+            _skillUIFlow.Unbind();
+            ClearCards();
+            _screenWidgetBinder.Unbind();
+
+            _screenUIFlow.Unbind();
+            _screenWidgets.Clear();
+        }
+
+        private void ResetScreenPresentationState()
+        {
+            _initialPresentationPrepared = false;
+            _introStarted = false;
+            _screenAttached = false;
+            _widgetCommandRunning = false;
+        }
+
+        private bool TryBeginWidgetCommand()
+        {
+            if (_widgetCommandRunning)
+                return false;
+
+            _widgetCommandRunning = true;
+            return true;
+        }
+
+        private void EndWidgetCommand()
+        {
+            _widgetCommandRunning = false;
+        }
+
+        private static void LogAsyncException(Exception exception)
+        {
+            UnityEngine.Debug.LogException(exception);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Views.TitleView
 
         public void OnNewGame()
         {
-            _navigator.ShowCharacterSelect();
+            _ = _navigator.ShowCharacterSelect();
         }
 
         public void OnSettings()

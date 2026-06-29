@@ -5,19 +5,11 @@ using UnityEngine.UIElements;
 
 namespace Game.Core.Managers.View
 {
-    // TODO: Remove Instance after UI Toolkit widgets receive ViewTransitionManager through Bind/context.
     public sealed class ViewTransitionManager : IDisposable
     {
         private readonly string[] _transitionClasses = new string[(int)EViewTransitionType.Count];
         private readonly Dictionary<VisualElement, ActiveTransition> _activeTransitions = new();
         private bool _initialized;
-
-        public static ViewTransitionManager Instance { get; private set; }
-
-        public ViewTransitionManager()
-        {
-            Instance = this;
-        }
 
         public void Initialize()
         {
@@ -41,7 +33,6 @@ namespace Game.Core.Managers.View
             }
 
             _activeTransitions.Clear();
-            Instance = null;
         }
 
         public async Awaitable Play(VisualElement visualElement, EViewTransitionType transitionType)

@@ -1,3 +1,5 @@
+using System;
+
 namespace Domains.Intent.Flow
 {
     // Role:
@@ -8,7 +10,7 @@ namespace Domains.Intent.Flow
 
         public IntentRefreshFlow(IntentPrepareFlow prepareFlow)
         {
-            _prepareFlow = prepareFlow;
+            _prepareFlow = prepareFlow ?? throw new ArgumentNullException(nameof(prepareFlow));
         }
 
         public bool Refresh(uint enemyCardId)

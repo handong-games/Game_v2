@@ -1,5 +1,6 @@
 using Game.Core.Managers.View;
 using Game.Scenes.Adventure.Events.Widgets;
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -25,7 +26,7 @@ namespace Domains.View.Widgets
 
         public void Bind(AdventureTurnWidgetEvents events)
         {
-            _events = events;
+            _events = events ?? throw new ArgumentNullException(nameof(events));
         }
 
         public void Unbind()
@@ -33,7 +34,7 @@ namespace Domains.View.Widgets
             _events = null;
         }
 
-        public async Awaitable Show()
+        public async Awaitable Show(ViewTransitionManager transitionManager)
         {
             if (_isShown)
                 return;
@@ -42,7 +43,8 @@ namespace Domains.View.Widgets
             SetHidden();
             SetClickable(true);
 
-            await ViewTransitionManager.Instance.Play(this, EnterClass);
+            if (transitionManager != null)
+                await transitionManager.Play(this, EnterClass);
         }
 
         public void Hide()

@@ -1,3 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <ui:VisualElement name="card-deck" class="card-deck"/>
+    <ui:VisualElement name="card-deck" class="card-deck">
+        <ui:VisualElement name="card-deck-shadow-card" class="card-deck__card card-deck__card--shadow"/>
+        <ui:VisualElement name="card-deck-middle-card" class="card-deck__card card-deck__card--middle"/>
+        <ui:VisualElement name="card-deck-top-card" class="card-deck__card card-deck__card--top"/>
+    </ui:VisualElement>
 </ui:UXML>

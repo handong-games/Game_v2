@@ -6,6 +6,86 @@
 
 기존 `Domains.Combat.Intent` 설계는 `CombatService`, `CombatCard` 중심의 과거 구조와 섞여 있다. 새 방향에서는 Intent를 Combat 하위 구현 세부사항이 아니라 별도 도메인으로 분리한다.
 
+## Current Implementation Update: PlayerTurn Intent Timing
+
+이 절은 2026-06-29 기준 구현 상태를 문서 기준으로 고정한다.
+아래의 기존 절에 남아 있는 `PlayerTurn UI 순서를 배너 -> Intent reveal -> CoinStatus/Pouch 표시` 설명보다 이 절의 내용이 우선한다.
+
+현재 PlayerTurn 시작 presentation은 다음 순서를 따른다.
+
+```text
+AdventureScreenEvents.PlayerTurnStarted(viewModel)
+-> AdventureView.OnGamePlayerTurnStarted
+-> AdventureScreenUIFlow.PlayPlayerTurnStart
+-> Intent reveal fire-and-forget 시작
+-> Turn banner와 HealthBar를 동시에 시작
+-> Turn banner와 HealthBar 완료 대기
+-> CoinStatus 표시
+-> Pouch 표시
+```
+
+Intent reveal은 PlayerTurn 시작 시점에 요청되지만, 현재는 Turn banner/HealthBar/CoinStatus/Pouch 표시를 막는 gate가 아니다.
+
+이유:
+
+```text
+Intent는 플레이어 턴 시작 후 보이면 된다.
+반면 CoinStatus/Pouch는 플레이어 입력 준비 상태를 보여주는 핵심 UI다.
+Intent reveal 완료까지 Pouch 표시를 막으면 턴 시작 템포가 느려질 수 있다.
+따라서 현재 구현은 Turn banner와 HealthBar만 PlayerTurn start gate로 묶고,
+Intent reveal은 PlayerTurn 시작 초반에 별도 비동기 표시로 분리한다.
+```
+
+주의:
+
+```text
+EnemyTurn에서 IntentTriggeredRequested는 여전히 gate다.
+적 행동은 intent trigger animation이 완료된 경우에만 시작한다.
+즉, "PlayerTurn 시작 reveal"은 non-blocking이고,
+"Enemy action 직전 trigger"는 blocking이다.
+
+구현 기준:
+
+```text
+IntentBadgeWidget.Show / Refresh / Trigger
+-> USS class 변경
+-> TransitionEndEvent 대기
+```
+
+`Trigger`가 `NextFrame`만 기다리면 EnemyTurn gate가 실제 애니메이션 완료를 보장하지 못한다.
+따라서 IntentBadgeWidget은 `ViewTransitionAwaiter.WaitForEnd`를 사용해 transition 종료를 await한다.
+
+재진입 규칙:
+
+```text
+Show
+-> hidden 상태를 먼저 1 frame 반영
+-> revealed class 추가
+-> TransitionEndEvent 대기
+
+Refresh
+-> refresh class 제거
+-> 1 frame 대기
+-> refresh class 추가
+-> TransitionEndEvent 대기
+-> refresh class 제거
+-> TransitionEndEvent 대기
+
+Trigger
+-> revealed 상태를 먼저 1 frame 반영
+-> triggered class 추가
+-> TransitionEndEvent 대기
+```
+
+이유:
+
+```text
+이미 revealed 상태인 배지에 다시 revealed class를 추가하면 computed style 변화가 없다.
+computed style 변화가 없으면 TransitionEndEvent가 발생하지 않을 수 있다.
+따라서 IntentBadgeWidget은 transition을 기다리기 전에 반드시 이전 상태를 명시적으로 만든다.
+```
+```
+
 ## Current Decision Summary
 
 ```text
@@ -114,6 +194,28 @@ IntentSystem
 3. Runtime은 상태만 들고, 흐름 판단은 Flow가 한다.
 4. Presentation은 숫자 문자열과 UI 표시 모델 생성을 담당한다.
 5. Scene은 VContainer 등록과 View/Event 연결만 담당한다.
+6. 필수 intent 표시 데이터가 없으면 빈 ViewModel을 만들지 않고 즉시 실패한다.
+```
+
+Fail-fast 계약:
+
+```text
+MonsterActionModel.IntentDisplays가 비어 있으면 데이터 작성 오류다.
+IntentDisplayDefinition이 null이면 데이터 작성 오류다.
+IntentDisplayModel이 null이면 데이터 작성 오류다.
+숫자가 필요한 표시인데 IntentNumberRuleModel이 없으면 데이터 작성 오류다.
+IntentRuntimeState.SetCache는 빈 IntentDisplayData 목록을 허용하지 않는다.
+MonsterIntentRevealViewModel은 빈 item 목록을 허용하지 않는다.
+ActionExecutionBindingStore는 invalid handle 또는 중복 binding을 로그 후 무시하지 않는다.
+EnemyTurn에서 cached intent action 또는 action binding이 없으면 적 행동을 건너뛰지 않고 실패한다.
+```
+
+이유:
+
+```text
+Intent는 "보여준 행동"과 "실제 실행 행동"을 맞추는 계약이다.
+빈 intent를 UI로 보내면 플레이어는 아무 예고도 보지 못했는데 EnemyTurn에서 행동이 실행될 수 있다.
+따라서 지금 단계에서는 fallback icon, 빈 reveal, 로그 후 진행을 허용하지 않는다.
 ```
 
 ## Adventure Turn Integration
@@ -131,29 +233,28 @@ PlayerTurn 시작
 -> IntentRuntime에 ResolvedIntentActionData 캐시
 -> IntentRuntime에 IntentDisplayData 캐시
 -> IntentPresenter가 MonsterIntentRevealViewModel[] 생성
--> AdventureCombatEvents.IntentRevealRequested 발행
--> AdventureView가 IntentBadge reveal animation 재생
--> 완료 후 AdventureSceneController.OnIntentRevealCompleted
--> 플레이어 입력 허용
+-> AdventureScreenEvents.PlayerTurnStarted 또는 InitialPresentationPrepared에 포함
+-> AdventureView / AdventureScreenUIFlow가 IntentBadge reveal animation 재생
+-> 화면 presentation 완료 후 GameFlow가 플레이어 입력 단계로 진행
 
 PlayerTurn 중 상태 변화
 -> 선언된 dependency가 바뀐 몬스터만 IntentRefreshFlow
 -> IntentRuntime 캐시 교체
 -> Presentation ViewModel 생성
--> View refresh animation 요청
+-> AdventureCombatEvents.IntentRefreshRequested 요청
 
 EndTurn
 -> 플레이어 입력 차단
--> EnemyTurnBannerRequested
--> 배너 완료 후 EnemyTurn 시작
+-> AdventureScreenEvents.EnemyTurnStarted 요청
+-> 적 턴 시작 presentation 완료 후 EnemyTurn 시작
 
 EnemyTurn
 -> AdventureEnemyActionFlow
 -> IntentRuntime의 cached FinalActionModel 읽기
 -> IntentExecutionBindingStore에서 AbilitySpecHandle 조회
--> AdventureCombatEvents.IntentTriggeredRequested 발행
--> IntentBadge trigger animation과 적 action을 동시에 시작
--> 해당 Ability 실행
+-> AdventureCombatEvents.IntentTriggeredRequested 요청
+-> IntentBadge trigger animation 완료 대기
+-> trigger presentation이 완료된 경우에만 해당 Ability 실행
 -> 실행 완료 후 IntentConsumeFlow
 -> sequence index advance
 
@@ -196,7 +297,7 @@ AdventureEnemyActionFlow 비책임:
 Trigger:
 - Presentation 동작
 - 예고된 intent가 실제 행동으로 전환되는 순간을 표현한다.
-- IntentBadge가 퇴장하며 enemy action이 시작된다.
+- IntentBadge가 퇴장한 뒤 enemy action이 시작된다.
 - Runtime의 ResolvedIntentActionData를 바로 삭제하지 않는다.
 
 Consume:
@@ -209,7 +310,7 @@ Consume:
 이 둘을 분리하는 이유:
 
 ```text
-행동 시작과 동시에 badge는 사라져야 한다.
+행동 직전에 badge는 사라져야 한다.
 하지만 action 실행 중에는 어떤 FinalActionModel을 실행 중인지 추적 가능해야 한다.
 실행 실패, interrupt, death, combat end 같은 예외 흐름에서 Runtime 계약을 너무 빨리 지우면 원인 추적이 어려워진다.
 ```
@@ -219,8 +320,8 @@ Consume:
 ```text
 1. cached ResolvedIntentActionData 읽기
 2. 실행할 FinalActionModel 확정
-3. IntentTriggeredRequested(cardId) 발행
-4. trigger exit animation 시작
+3. IntentTriggeredRequested(cardId) 요청
+4. trigger exit animation 완료 대기
 5. enemy action 시작
 6. enemy action 완료
 7. IntentConsumeFlow.Consume(cardId)
@@ -230,8 +331,9 @@ Consume:
 중요:
 
 ```text
-IntentTriggeredRequested는 trigger animation 완료를 기다리지 않는다.
-적 action과 trigger animation은 같은 시점에 시작될 수 있다.
+IntentTriggeredRequested는 Awaitable<bool> gate이다.
+true이면 trigger presentation이 완료되었으므로 enemy action을 시작한다.
+false이면 scene/view lifetime이 끊겼으므로 enemy action을 시작하지 않는다.
 ```
 
 ## Target Package Structure
@@ -523,6 +625,7 @@ IntentItemViewModel
 ```
 
 `IntentPresenter`는 `IntentDisplayData.DisplayModel.Icon`에서 Sprite를 읽어 `IntentItemViewModel`을 만든다.
+`IntentItemViewModel`은 null icon을 허용하지 않는다.
 
 ```csharp
 public IntentItemViewModel CreateItem(IntentDisplayData data)
@@ -621,6 +724,27 @@ AppliedOverrideRule:
 ## Dependency Model
 
 Intent refresh는 선언된 dependency 변화에만 반응한다.
+
+현재 구현 상태:
+
+```text
+AdventureSkillFlow.UseSkill / UseSkillOnTarget 성공
+-> IntentRefreshFlow.Refresh(enemyCardId)
+-> IntentPresenter.Create(enemyCardId)
+-> AdventureCombatEvents.IntentRefreshRequested(viewModel)
+-> AdventureView.OnGameIntentRefreshRequested(viewModel)
+-> AdventureScreenUIFlow.PlayIntentRefresh(viewModel)
+-> AdventureIntentUIFlow.PlayRefresh(viewModel)
+-> IAdventureIntentCardWidget.RefreshIntentAsync(items)
+```
+
+주의:
+
+```text
+현재는 스킬 성공 후 모든 visible enemy intent를 보수적으로 refresh한다.
+최종형에서는 skill/effect가 어떤 intent dependency를 변경했는지 선언하고,
+변경된 enemy만 refresh하는 방향으로 좁힌다.
+```
 
 ### Action / Override Dependency
 
@@ -778,12 +902,12 @@ Intent_Heal
 몬스터별 icon을 만들면 에셋 수가 빠르게 늘고, 같은 공격 의미가 서로 다른 그림으로 보인다.
 ```
 
-현재 구현 단계의 임시 예외:
+현재 구현 상태:
 
 ```text
-IntentDisplay_Attack.asset의 Sprite는 아직 비어 있을 수 있다.
-이는 Intent 계약, reveal, trigger, consume 흐름을 먼저 검증하기 위한 임시 상태다.
-최종 검증 단계에서는 IntentDisplayModel.Icon이 null이면 실패로 본다.
+IntentDisplayModel.Icon은 필수다.
+IntentAssetValidator는 null icon을 실패로 본다.
+IntentItemViewModel도 null icon을 허용하지 않는다.
 ```
 
 예상 구조:
@@ -838,153 +962,77 @@ Sprite 로딩/변환과 숫자 표시 문자열 생성은 Presentation 계층에
 
 `IntentBadgeWidget`은 `Sprite`, `NumberText`, 애니메이션만 처리한다. `IntentBadgeWidget`은 `NumberValue`, `CountValue`를 직접 포맷하지 않는다.
 
-### IntentBadgeWidget Events
+### IntentBadgeWidget Completion Direction
 
-`IntentBadgeWidget`은 직접 Controller나 Flow를 알지 않는다.
-
-Widget completion은 `AdventureWidgetEvents` 아래의 `IntentBadgeWidgetEvents`로 발행한다.
-
-예상 구조:
-
-```csharp
-public sealed class AdventureWidgetEvents
-{
-    public AdventureTurnWidgetEvents Turn { get; }
-    public AdventurePouchWidgetEvents Pouch { get; }
-    public AdventureSkillSlotWidgetEvents SkillSlot { get; }
-    public IntentBadgeWidgetEvents IntentBadge { get; }
-}
-
-public sealed class IntentBadgeWidgetEvents
-{
-    public Action RevealCompleted;
-    public Action RefreshCompleted;
-    public Action TriggerCompleted;
-}
-```
-
-`IntentBadgeWidget`은 생성자 주입을 사용하지 않는다.
-
-이유:
+현재 구현은 `IntentBadgeWidgetEvents`를 만들지 않는다.
 
 ```text
-- UI Toolkit VisualElement는 UXML/CloneTree로 생성된다.
-- VContainer 생성자 주입 대상으로 보기 어렵다.
-- 현재 프로젝트는 View의 OnVisualTreeCloned에서 widget을 찾고 Bind하는 흐름을 사용한다.
+Game flow
+-> AdventureCombatEvents.IntentRefreshRequested / IntentTriggeredRequested
+-> AdventureView
+-> AdventureScreenUIFlow
+-> AdventureIntentUIFlow
+-> IAdventureIntentCardWidget
+-> IntentBadgeWidget
 ```
 
-따라서 `Bind` 함수로 events를 전달한다.
+`IntentBadgeWidget`은 직접 Controller, Flow, Events를 알지 않는다.
 
 ```csharp
 public sealed partial class IntentBadgeWidget : VisualElement
 {
-    private IntentBadgeWidgetEvents _events;
-
-    public void Bind(IntentBadgeWidgetEvents events)
-    {
-        _events = events;
-    }
-
-    public async Awaitable Show(IntentItemViewModel item)
-    {
-        Apply(item);
-        await PlayReveal();
-        _events?.RevealCompleted?.Invoke();
-    }
-
-    public async Awaitable Refresh(IntentItemViewModel item)
-    {
-        Apply(item);
-        await PlayRefresh();
-        _events?.RefreshCompleted?.Invoke();
-    }
-
-    public async Awaitable Trigger()
-    {
-        await PlayTrigger();
-        _events?.TriggerCompleted?.Invoke();
-    }
+    public Awaitable Show(IntentItemViewModel item);
+    public Awaitable Refresh(IntentItemViewModel item);
+    public Awaitable Trigger();
 }
 ```
 
-`AdventureView`는 `OnVisualTreeCloned`에서 widget을 찾고 bind한다.
+완료 시점은 이벤트가 아니라 `Awaitable` 완료로 표현한다.
 
 ```csharp
-protected override void OnVisualTreeCloned()
+public sealed class AdventureIntentUIFlow
 {
-    QueryWidgets();
-    BindWidgets();
-    BindCombatEvents();
-}
-
-private void BindWidgets()
-{
-    _intentBadge.Bind(_widgetEvents.IntentBadge);
-}
-```
-
-`AdventureView`는 `IntentBadgeWidgetEvents.RevealCompleted`를 직접 Controller로 전달할 수 있다.
-
-```text
-IntentBadgeWidget
--> IntentBadgeWidgetEvents.RevealCompleted
--> AdventureView
--> AdventureSceneController.OnIntentRevealCompleted()
-```
-
-최종 결정은 A 방향이다.
-
-```text
-IntentBadgeWidgetEvents
-- 개별 badge animation completion만 알린다.
-
-AdventureView
-- PlayIntentReveal(revealSequence) 내부에서 순차 reveal을 await한다.
-- 전체 reveal sequence가 끝난 뒤 Controller.OnIntentRevealCompleted()를 호출한다.
-```
-
-따라서 개별 `RevealCompleted(cardId)` 하나가 전체 `IntentRevealCompleted`를 의미하지 않는다.
-
-예상 흐름:
-
-```csharp
-private async void OnIntentRevealRequested(
-    IReadOnlyList<MonsterIntentRevealViewModel> revealSequence)
-{
-    await PlayIntentReveal(revealSequence);
-    _controller.OnIntentRevealCompleted();
-}
-
-private async Awaitable PlayIntentReveal(
-    IReadOnlyList<MonsterIntentRevealViewModel> revealSequence)
-{
-    for (int i = 0; i < revealSequence.Count; i++)
+    public async Awaitable PlayRefresh(
+        MonsterIntentRevealViewModel viewModel,
+        Func<bool> canContinue)
     {
-        MonsterIntentRevealViewModel item = revealSequence[i];
-        AdventureMonsterCardWidget widget = _cardDealer.GetMonsterCard(item.CardId);
-        await widget.ShowIntent(item.IntentItems);
+        if (!TryFindIntentCard(viewModel.CardId, out IAdventureIntentCardWidget widget))
+            return;
+
+        await widget.RefreshIntentAsync(viewModel.Items);
     }
 }
 ```
-
-`IntentBadgeWidgetEvents.RevealCompleted`는 필요하면 `AdventureView` 내부 상태, 디버그, 개별 카드 animation chain에 사용할 수 있다. 하지만 PlayerTurn 입력 오픈 같은 전체 흐름 전환은 `PlayIntentReveal` 완료 기준으로 처리한다.
-
-이 이벤트는 `AdventureWidgetEvents`에 속한다.
 
 이유:
 
 ```text
-- IntentBadgeWidgetEvents는 Flow -> View 요청이 아니다.
-- Widget animation completion을 View에 알리는 widget-local event다.
-- View는 이 completion을 받은 뒤 현재 프로젝트 흐름에 맞게 Controller로 전달한다.
+IntentBadgeWidgetEvents를 두면 "개별 위젯 애니메이션 완료"와
+"화면 전체 intent sequence 완료"가 쉽게 섞인다.
+
+현재 필요한 것은 위젯 completion broadcast가 아니라
+UIFlow 내부에서 순서를 await하는 것이다.
+```
+
+따라서:
+
+```text
+개별 badge animation 완료
+-> Awaitable 완료
+
+전체 intent reveal sequence 완료
+-> AdventureIntentUIFlow.PlayReveal 완료
+
+Controller로 다음 흐름을 알려야 하는 경우
+-> View가 UIFlow await 이후 Controller를 호출
 ```
 
 주의:
 
 ```text
-- IntentBadgeWidgetEvents는 widget completion event다.
-- AdventureCombatEvents.IntentRevealRequested는 Flow -> View 요청 event다.
-- 두 이벤트를 같은 객체에 섞지 않는다.
+AdventureCombatEvents.IntentRefreshRequested는 Flow -> View 요청 event다.
+IntentBadgeWidget은 해당 event를 직접 구독하지 않는다.
+AdventureWidgetEvents에는 현재 IntentBadgeWidgetEvents를 두지 않는다.
 ```
 
 V1은 하나만 표시해도 된다.
@@ -1037,19 +1085,20 @@ AdventureView -> AdventureTurnFlow.OnIntentRevealCompleted()
 
 ```text
 AdventureTurnFlow
--> AdventureCombatEvents 요청 발행
--> AdventureView가 요청 수신
--> Widget/View animation 실행
--> Widget completion을 AdventureView가 수신
--> AdventureView가 AdventureSceneController에 전달
--> AdventureSceneController가 적절한 Flow로 위임
+-> AdventureScreenEvents / AdventureCombatEvents request
+-> AdventureGameToScreenEventBinder
+-> AdventureView
+-> AdventureScreenUIFlow
+-> Widget/View animation
+-> Awaitable result
+-> GameFlow continues or stops
 ```
 
 ### Event Location
 
 Intent reveal 요청 이벤트는 `Scenes.Adventure.Events.Flow.AdventureCombatEvents`에 둔다.
 
-Intent reveal 완료 이벤트는 별도 scene event object로 만들지 않는다. Widget 또는 View animation completion은 `AdventureView`가 받고, `AdventureView`가 `AdventureSceneController`로 전달한다.
+Intent reveal 완료 이벤트는 별도 scene event object로 만들지 않는다. Widget 또는 View animation completion은 `AdventureView`가 받고, `AdventureView`가 `AdventureScreenController`로 전달한다.
 
 이유:
 
@@ -1061,7 +1110,7 @@ Domains.Intent:
 Scenes.Adventure:
 - 계산된 intent를 실제 AdventureView에 어떻게 연결할지 조립
 - combat presentation request를 AdventureCombatEvents로 발행
-- View completion을 Controller로 전달
+- 다음 GameFlow 진행 여부가 필요한 presentation은 Awaitable 결과로 받음
 ```
 
 요청 이벤트:
@@ -1069,31 +1118,30 @@ Scenes.Adventure:
 ```csharp
 public sealed class AdventureCombatEvents
 {
-    public Action PlayerTurnBannerRequested;
-    public Action<IReadOnlyList<MonsterIntentRevealViewModel>> IntentRevealRequested;
-    public Action<uint> IntentTriggeredRequested;
-    public Action EnemyTurnBannerRequested;
-    public Action<ECombatEndResult> ResultRequested;
+    public Func<MonsterIntentRevealViewModel, Awaitable> IntentRefreshRequested;
+    public Func<uint, Awaitable<bool>> IntentTriggeredRequested;
+    public Func<ECombatEndResult, Awaitable<bool>> ResultRequested;
 }
 ```
 
 변경 결정:
 
 ```text
-기존 EnemyTurnCompleted는 설계상 폐기한다.
-다음 구현에서 EnemyTurnBannerRequested로 변경한다.
+기존 EnemyTurnCompleted / EnemyTurnBannerRequested 분리는 현재 설계상 폐기한다.
+EnemyTurn 시작 presentation은 AdventureScreenEvents.EnemyTurnStarted가 담당한다.
+Combat 결과 presentation은 AdventureCombatEvents.ResultRequested가 담당한다.
 ```
 
 이름 규칙:
 
 ```text
 Requested
-- Flow -> View presentation request
-- 예: PlayerTurnBannerRequested, IntentRevealRequested, IntentTriggeredRequested, EnemyTurnBannerRequested
+- Flow -> Screen/View presentation request
+- 예: IntentRefreshRequested, IntentTriggeredRequested, ResultRequested
 
 Completed
 - Widget/View animation completion
-- View가 completion을 받아 Controller로 전달
+- 현재 GameFlow 진행을 막아야 하는 presentation은 Completed 이벤트 대신 Awaitable<bool> 반환값으로 완료 여부를 돌려준다.
 ```
 
 `AdventureCombatEvents`의 역할:
@@ -1101,7 +1149,8 @@ Completed
 ```text
 - Flow에서 AdventureView로 보내는 combat presentation request
 - View animation을 직접 실행하지 않음
-- View completion을 받지 않음
+- View completion을 별도 이벤트로 받지 않음
+- 다음 GameFlow 진행 여부가 필요한 request는 Awaitable<bool> gate로 받음
 ```
 
 `AdventureWidgetEvents`의 역할:
@@ -1111,27 +1160,28 @@ Completed
 - Pouch clicked
 - EndTurn clicked
 - SkillSlot clicked
-- IntentBadge reveal/refresh/trigger completed
+- Card clicked
 ```
 
-`AdventureSceneController`의 역할:
+`AdventureScreenController`의 역할:
 
 ```text
-- AdventureView가 전달한 completion을 받아 적절한 Flow로 위임
+- GameFlow 시작/입력 처리의 application boundary 역할
+- View completion callback을 받는 객체가 아님
 - Flow와 View 사이의 직접 참조를 막는 중간 조정자
 ```
 
-완료 흐름:
+현재 presentation request/response 흐름:
 
 ```text
-PlayerTurnBannerCompleted
-IntentRevealCompleted
-EnemyTurnBannerCompleted
-
-Widget 또는 View animation
+GameFlow
+-> AdventureGameEvents / AdventureCombatEvents request
+-> AdventureGameToScreenEventBinder
 -> AdventureView
--> AdventureSceneController
--> Flow
+-> AdventureScreenUIFlow
+-> Widget
+-> Awaitable result
+-> GameFlow continues or stops
 ```
 
 예상 `AdventureView` 흐름:
@@ -1139,29 +1189,19 @@ Widget 또는 View animation
 ```csharp
 public sealed partial class AdventureView
 {
-    private readonly AdventureCombatEvents _combatEvents;
-    private readonly AdventureSceneController _controller;
-
-    protected override void OnVisualTreeCloned()
+    internal async Awaitable<bool> OnGameIntentTriggeredRequested(uint cardId)
     {
-        QueryWidgets();
-        BindCombatEvents();
-        BindWidgetEvents();
-    }
+        int screenLifetimeVersion = _screenLifetimeVersion;
 
-    private void BindCombatEvents()
-    {
-        _combatEvents.PlayerTurnBannerRequested += OnPlayerTurnBannerRequested;
-        _combatEvents.IntentRevealRequested += OnIntentRevealRequested;
-        _combatEvents.EnemyTurnBannerRequested += OnEnemyTurnBannerRequested;
-        _combatEvents.ResultRequested += OnCombatResultRequested;
-    }
+        if (!IsCurrentScreenLifetime(screenLifetimeVersion))
+            return false;
 
-    private async void OnIntentRevealRequested(
-        IReadOnlyList<MonsterIntentRevealViewModel> revealSequence)
-    {
-        await PlayIntentReveal(revealSequence);
-        _controller.OnIntentRevealCompleted();
+        bool completed =
+            await _screenUIFlow.PlayIntentTriggered(
+                cardId,
+                () => IsCurrentScreenLifetime(screenLifetimeVersion));
+
+        return completed && IsCurrentScreenLifetime(screenLifetimeVersion);
     }
 }
 ```
@@ -1171,7 +1211,8 @@ public sealed partial class AdventureView
 ```text
 - Flow는 AdventureView를 직접 알지 않는다.
 - AdventureView는 Flow를 직접 호출하지 않는다.
-- AdventureView는 현재 프로젝트 흐름에 맞게 AdventureSceneController에 완료를 전달한다.
+- AdventureView는 presentation 완료를 Controller callback으로 되돌리지 않는다.
+- GameFlow 진행이 presentation 완료에 의존하면 Awaitable<bool> gate를 사용한다.
 - Completion 전용 scene event object를 추가하지 않는다.
 ```
 
@@ -1188,8 +1229,8 @@ Adventure Intent Reveal 흐름까지 연결한다.
 ```text
 - Intent 계산
 - Presenter에서 reveal sequence 생성
-- AdventureCombatEvents.IntentRevealRequested 발행
-- AdventureView가 OnVisualTreeCloned에서 combat event를 bind
+- AdventureCombatEvents.IntentRefreshRequested / IntentTriggeredRequested 요청
+- AdventureGameToScreenEventBinder가 View callback을 연결
 - AdventureMonsterCardWidget에 intent 표시
 - Flow와 View는 직접 참조하지 않음
 ```
@@ -1206,8 +1247,8 @@ Adventure Intent Reveal 흐름까지 연결한다.
 1. PlayerTurn에 몬스터 카드에 Intent가 표시된다.
 2. 표시된 Intent는 IntentRuntime에 cached ResolvedIntentActionData로 남아 있다.
 3. EnemyTurn은 action을 다시 계산하지 않는다.
-4. AdventureEnemyActionFlow는 action 시작 시 IntentTriggeredRequested(cardId)를 발행한다.
-5. Intent trigger animation과 enemy action은 같은 시점에 시작될 수 있다.
+4. AdventureEnemyActionFlow는 action 시작 직전에 IntentTriggeredRequested(cardId)를 요청한다.
+5. Intent trigger animation이 완료된 경우에만 enemy action을 시작한다.
 6. AdventureEnemyActionFlow는 cached ResolvedIntentActionData.FinalActionModel을 실행한다.
 7. 실행 후 Intent consume이 호출된다.
 8. consume 결과로 sequence index가 advance된다.
@@ -1229,11 +1270,10 @@ Adventure Intent Reveal 흐름까지 연결한다.
 
 ```text
 1. Events 코드 정리
-   - AdventureCombatEvents.IntentRevealRequested 추가
+   - AdventureCombatEvents.IntentRefreshRequested 추가
    - AdventureCombatEvents.IntentTriggeredRequested 추가
-   - AdventureCombatEvents.EnemyTurnCompleted -> EnemyTurnBannerRequested 변경
-   - IntentBadgeWidgetEvents 추가
-   - AdventureWidgetEvents에 IntentBadgeWidgetEvents 추가
+   - AdventureCombatEvents.ResultRequested 추가
+   - screen 단위 presentation request는 AdventureScreenEvents로 분리
 
 2. Intent Presentation ViewModel 추가
    - IntentItemViewModel
@@ -1252,15 +1292,15 @@ Adventure Intent Reveal 흐름까지 연결한다.
    - 역할별 UXML
 
 5. Intent reveal 연결
-   - AdventureCombatEvents.IntentRevealRequested
-   - AdventureView.PlayIntentReveal(revealSequence)
+   - AdventureScreenEvents.PlayerTurnStarted 또는 초기 presentation ViewModel의 intent reveal sequence
+   - AdventureView / AdventureScreenUIFlow / AdventureIntentUIFlow
    - AdventureMonsterCardWidget.ShowIntent(...)
-   - 전체 sequence 완료 후 Controller.OnIntentRevealCompleted()
+   - PlayerTurn 시작 reveal은 CoinStatus/Pouch gate로 기다리지 않음
 
 6. Intent trigger 연결
    - AdventureCombatEvents.IntentTriggeredRequested
    - AdventureMonsterCardWidget.TriggerIntent(...)
-   - trigger animation은 enemy action을 block하지 않음
+   - trigger animation이 완료되면 enemy action 시작 가능
 
 7. EnemyTurn 계약 연결
    - EnemyTurn은 cached ResolvedIntentActionData 실행
@@ -1295,26 +1335,51 @@ Adventure Intent Reveal 흐름까지 연결한다.
 - 기존 Domains.Combat.Intent 제거
 - IntentBadgeWidget 추가
 - AdventureMonsterCardWidget 추가
-- CardDealer가 CombatCardWidget 대신 AdventureMonsterCardWidget을 생성하도록 전환
+- AdventureCardWidgetFactory가 CombatCardWidget 대신 AdventureMonsterCardWidget을 생성하도록 전환
 - CombatCardWidget 제거
-- AdventureCombatEvents.IntentRevealRequested / IntentTriggeredRequested 추가
-- AdventureViewEventBinder가 Intent reveal / trigger request를 View에 연결
-- AdventureView가 CardDealer를 통해 intent reveal / trigger animation 요청을 받을 수 있음
+- AdventureCombatEvents.IntentRefreshRequested / IntentTriggeredRequested 추가
+- AdventureGameToScreenEventBinder + AdventureWidgetToScreenEventBinder가 Intent reveal / trigger request를 View에 연결
+- AdventureView/UIFlow가 AdventureMonsterCardWidget에 intent reveal / trigger animation 요청을 전달할 수 있음
 - 전투 인카운터 시작 후 IntentPrepareFlow.PrepareAll 실행
-- 전투 인카운터 시작 후 IntentPresenter.CreateRevealSequence 결과로 IntentRevealRequested 발행
-- 적 행동 시작 시 IntentTriggeredRequested 발행
+- PlayerTurnStarted ViewModel에 IntentPresenter reveal sequence를 포함
+- PlayerTurn UI 순서를 Intent reveal 시작 -> 배너 + HealthBar 완료 -> CoinStatus/Pouch 표시로 정리
+- 적 행동 시작 직전 IntentTriggeredRequested 요청
 - 적 행동 완료 시 IntentConsumeFlow.Consume 호출
+- AdventureCombatEncounterFlow가 새 전투 시작 시 IntentRuntime과 ActionExecutionBindingStore를 초기화
+- AdventureStartFlow가 Adventure runtime 초기화 시 IntentRuntime과 ActionExecutionBindingStore를 초기화
 - Monster_TestSlime용 첫 MonsterActionModel asset 추가
 - IntentDisplay_Attack asset 추가
 - IntentNumber_TestSlime_Attack asset 추가
 - Monster_TestSlime.ActionSequence에 첫 action 연결
+- Intent 표시/실행 binding 누락은 fallback 없이 fail-fast 처리
+- Tools/Codex/Validate Intent Assets 메뉴 검증기 추가
+- Intent asset 검증기는 Monster -> Action -> IntentDisplay 참조를 따라가며 중복 없이 검사
+- EnemyTurn의 cached action / action binding 누락을 fail-fast 처리
+- 죽은 enemy card는 UI 퇴장 완료 후 AdventureCards와 AdventureCombatRuntime에서 함께 제거
+- IntentRuntime cache와 ActionExecutionBindingStore binding은 active combat reset 시 정리
+- EnemyTurn enemy 순회는 사망 처리로 EnemyCardIds가 변경되어도 다음 적을 건너뛰지 않도록 snapshot 기준으로 실행
 
-아직 남음:
-- Intent icon Sprite 제작 및 IntentDisplay_Attack에 연결
-- 나머지 MonsterActionModel / IntentDisplay asset 재작성
-- EnemyTurn이 cached FinalActionModel을 직접 실행하도록 연결
-- PlayerTurn 재진입 시점의 reveal 순서 정교화
-- AdventurePlayerCardWidget / AdventureChoiceCardWidget 분리
+현재 에셋 상태:
+- 현재 `Assets/@Resources/Model/Monsters`의 실제 MonsterModel은 `Monster_TestSlime.asset` 하나다.
+- TestSlime은 새 `MonsterActionModel / IntentDisplayModel / IntentNumberRuleModel` 경로로 연결되어 있다.
+- 새 몬스터를 추가할 때는 같은 방식으로 MonsterActionModel / IntentDisplay asset을 작성하고 `Tools/Codex/Validate Intent Assets`로 검증한다.
+```
+
+Intent runtime lifetime rule:
+
+```text
+IntentRuntime
+ActionExecutionBindingStore
+-> active combat 단위 상태
+```
+
+이유:
+
+```text
+IntentRuntime은 CardId별 cached action/display 계약을 저장한다.
+ActionExecutionBindingStore는 monster action과 AbilitySpecHandle의 런타임 binding을 저장한다.
+둘 다 다음 전투에서 재사용할 데이터가 아니다.
+따라서 새 combat encounter가 시작되면 이전 combat의 intent cache와 action handle binding을 비운다.
 ```
 
 ## Open Questions
@@ -1322,19 +1387,13 @@ Adventure Intent Reveal 흐름까지 연결한다.
 아직 구현 전에 결정이 필요한 항목:
 
 ```text
-1. AdventureSceneController가 IntentRevealCompleted를 받은 뒤 어느 Flow method로 위임하는가
-   - AdventureTurnFlow.OnIntentRevealCompleted
-   - AdventureSceneController 내부에서 입력 오픈
-   - 별도 PlayerInputFlow로 위임
+1. AdventureMonsterCardWidget의 Intent UI 구조 확장
+   - 현재는 단일 아이콘 슬롯
+   - 향후 리스트 컨테이너 / tooltip/detail 지원 여부 결정 필요
 
-2. AdventureMonsterCardWidget의 Intent UI 구조
-   - 단일 아이콘 슬롯
-   - 리스트 컨테이너
-   - tooltip/detail 지원 여부
+2. 기존 MonsterModel.ActionSequence asset들을 새 MonsterActionModel 구조로 어떻게 재작성할지
 
-3. 기존 MonsterModel.ActionSequence asset들을 새 MonsterActionModel 구조로 어떻게 재작성할지
-
-4. Intent dependency 이벤트를 V1에서 실제 자동 연결할지, 구조만 열어두고 수동 refresh로 시작할지
+3. Intent dependency 이벤트를 V1에서 실제 자동 연결할지, 구조만 열어두고 수동 refresh로 시작할지
 ```
 
 ## Cold Assessment

@@ -28,7 +28,6 @@ namespace Domains.Adventure
     {
         None,
         ChoiceSelection,
-        SkillTargetSelection,
     }
 
     public enum AdventureEncounterType
@@ -84,30 +83,20 @@ namespace Domains.Adventure
     }
 
     // Role:
-    // Stores shared card-click input mode for Adventure.
-    // It decides whether a card click means choice selection or skill targeting.
+    // Stores game-side card input mode for Adventure choice selection.
+    // Skill targeting is screen-local UI state owned by AdventureSkillUIFlow.
     public sealed class AdventureInputState
     {
         public AdventureInputMode CurrentMode { get; private set; }
-        public GameplayAbilitySpecHandle SelectedSkillHandle { get; private set; } =
-            GameplayAbilitySpecHandle.Invalid;
 
         public void EnterChoiceSelection()
         {
             CurrentMode = AdventureInputMode.ChoiceSelection;
-            SelectedSkillHandle = GameplayAbilitySpecHandle.Invalid;
-        }
-
-        public void EnterSkillTargetSelection(GameplayAbilitySpecHandle handle)
-        {
-            CurrentMode = AdventureInputMode.SkillTargetSelection;
-            SelectedSkillHandle = handle;
         }
 
         public void Clear()
         {
             CurrentMode = AdventureInputMode.None;
-            SelectedSkillHandle = GameplayAbilitySpecHandle.Invalid;
         }
     }
 
@@ -144,6 +133,17 @@ namespace Domains.Adventure
         public void Remove(uint cardId)
         {
             _registry.Remove(cardId);
+        }
+
+        public void RemoveAll(IReadOnlyList<uint> cardIds)
+        {
+            if (cardIds == null)
+                return;
+
+            for (int i = 0; i < cardIds.Count; i++)
+            {
+                Remove(cardIds[i]);
+            }
         }
 
         public void Clear()
@@ -199,6 +199,17 @@ namespace Domains.Adventure
         public void ClearZone(ECardZone zone)
         {
             _state.GetMutableCardIds(zone).Clear();
+        }
+
+        public IReadOnlyList<uint> TakeCardIds(ECardZone zone)
+        {
+            List<uint> source = _state.GetMutableCardIds(zone);
+            if (source.Count == 0)
+                return Array.Empty<uint>();
+
+            List<uint> result = new(source);
+            source.Clear();
+            return result;
         }
 
         public void Clear()
@@ -508,6 +519,19 @@ namespace Domains.Adventure
         public bool MarkDeathResolved(uint cardId)
         {
             return _resolvedDeathCardIds.Add(cardId);
+        }
+
+        public bool RemoveCard(uint cardId)
+        {
+            if (!_sideByCardId.TryGetValue(cardId, out ECombatSide side))
+                return false;
+
+            _sideByCardId.Remove(cardId);
+            _resolvedDeathCardIds.Remove(cardId);
+            if (side == ECombatSide.Player)
+                return _playerCardIds.Remove(cardId);
+
+            return _enemyCardIds.Remove(cardId);
         }
 
         public void Clear()

@@ -14,6 +14,33 @@ The runtime path assumes required Adventure data exists. Do not add runtime fall
 - `AdventureEncounterDeckDefinition` owns start entries, shuffled entries, and boss entry directly.
 - `CardDeckModel`, `CardDeckTable`, and `ECardDeck` are removed from the Adventure scene entry path.
 
+## Stage Draw Rule
+
+`AdventureStageDefinition.DrawCount` and `AdventureRegionModel.StartDrawCount` describe how many encounter/choice cards are drawn into the right board side.
+
+They do not include the player card.
+
+Reason:
+
+- the player card is placed once on the left board side by `AdventureStageFlow`
+- encounter candidates and choice cards live on the right board side
+- subtracting one from `DrawCount` makes the model field mean "total board cards including player", which conflicts with the current board ownership model
+
+Current rule:
+
+```text
+Choice stage
+-> draw `DrawCount` right-side offer cards
+
+No explicit stage definition
+-> draw `StartDrawCount` right-side offer cards
+
+ImmediateEncounter stage
+-> draw exactly 1 right-side encounter card
+```
+
+`ImmediateEncounter` is forced to one card because there is no player choice UI in that mode. Drawing multiple right-side cards and then immediately committing only the first would create invisible discarded offers and make the opening board misleading.
+
 ## Pending Content Work
 
 ### Localization Table Work

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Game.Data;
+using Game.Scenes.Adventure;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
@@ -14,10 +15,19 @@ using UnityEngine.Localization.Tables;
 public static class CodexAdventureChoiceCardUIAssetGenerator
 {
     private const string AssetFolder = "Assets/@Resources/Model/Adventure/ChoiceCards";
+    private const string IconFolder = "Assets/@Resources/UI/ChoiceCards";
     private const string TablePath = "Assets/@Resources/Model/Tables/AdventureChoiceCardUITable.asset";
-    private const string ModelTableLabel = "ModelTable";
+    private const string AdventureViewUxmlPath = "Assets/@Scripts/Domains/View/Adventure/AdventureView.uxml";
+    private const string ChoiceWidgetUxmlPath = "Assets/@Scripts/Domains/View/Card/AdventureChoiceCardWidget.uxml";
+    private const string PlayerWidgetUxmlPath = "Assets/@Scripts/Domains/View/Adventure/AdventurePlayerCardWidget.uxml";
+    private const string MonsterWidgetUxmlPath = "Assets/@Scripts/Domains/View/Adventure/AdventureMonsterCardWidget.uxml";
+    private const string DisplayWidgetUxmlPath = "Assets/@Scripts/Domains/View/Adventure/AdventureDisplayCardWidget.uxml";
+    private const string PortraitFaceWidgetUxmlPath = "Assets/@Scripts/Domains/View/Card/PortraitCardFaceWidget/PortraitCardFaceWidget.uxml";
+    private const string LockedFaceWidgetUxmlPath = "Assets/@Scripts/Domains/View/Card/LockedCardFaceWidget/LockedCardFaceWidget.uxml";
+    private const string SkillSlotWidgetUxmlPath = "Assets/@Scripts/Domains/View/Common/SkillSlotWidget.uxml";
     private const string LocalizationCollection = "AdventureView";
     private const string DefaultGroupName = "Default Local Group";
+    private const string UIGroupName = "UI";
 
     private static readonly FieldInfo NameField =
         typeof(AbstractModel).GetField("_name", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -41,6 +51,7 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
             EChoiceCardType type,
             string assetName,
             string localizationKey,
+            string iconPath,
             string korean,
             string english,
             string japanese,
@@ -49,6 +60,7 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
             Type = type;
             AssetName = assetName;
             LocalizationKey = localizationKey;
+            IconPath = iconPath;
             Korean = korean;
             English = english;
             Japanese = japanese;
@@ -58,6 +70,7 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
         public EChoiceCardType Type { get; }
         public string AssetName { get; }
         public string LocalizationKey { get; }
+        public string IconPath { get; }
         public string Korean { get; }
         public string English { get; }
         public string Japanese { get; }
@@ -70,6 +83,7 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
             EChoiceCardType.Monster,
             "ChoiceCardUI_Monster",
             "choice_card_monster",
+            $"{IconFolder}/choice-card-icon-monster.png",
             "몬스터",
             "Monster",
             "モンスター",
@@ -78,6 +92,7 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
             EChoiceCardType.Elite,
             "ChoiceCardUI_Elite",
             "choice_card_elite",
+            $"{IconFolder}/choice-card-icon-elite.png",
             "엘리트",
             "Elite",
             "エリート",
@@ -86,6 +101,7 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
             EChoiceCardType.Boss,
             "ChoiceCardUI_Boss",
             "choice_card_boss",
+            $"{IconFolder}/choice-card-icon-boss.png",
             "보스",
             "Boss",
             "ボス",
@@ -94,6 +110,7 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
             EChoiceCardType.Event,
             "ChoiceCardUI_Event",
             "choice_card_event",
+            $"{IconFolder}/choice-card-icon-event.png",
             "이벤트",
             "Event",
             "イベント",
@@ -102,12 +119,14 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
             EChoiceCardType.Shop,
             "ChoiceCardUI_Shop",
             "choice_card_shop",
+            $"{IconFolder}/choice-card-icon-shop.png",
             "상점",
             "Shop",
             "ショップ",
             "choice-card--shop"),
     };
 
+    [MenuItem("Tools/Codex/Generate Adventure Choice Card UI Assets")]
     public static void Generate()
     {
         EnsureFolders();
@@ -122,6 +141,7 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
 
         AdventureChoiceCardUITable table = CreateOrUpdateTable(models);
         ConfigureAddressables(table, models);
+        ConfigureWidgetAddressables();
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -132,6 +152,7 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
     {
         EnsureFolder("Assets/@Resources/Model/Adventure");
         EnsureFolder(AssetFolder);
+        EnsureFolder(IconFolder);
         EnsureFolder("Assets/@Resources/Model/Tables");
     }
 
@@ -163,7 +184,9 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
         DisplayNameField.SetValue(
             model,
             new LocalizedString(LocalizationCollection, definition.LocalizationKey));
-        IconField.SetValue(model, null);
+        IconField.SetValue(
+            model,
+            AssetDatabase.LoadAssetAtPath<Sprite>(definition.IconPath));
         UssClassNameField.SetValue(model, definition.UssClassName);
         EditorUtility.SetDirty(model);
         return model;
@@ -214,10 +237,44 @@ public static class CodexAdventureChoiceCardUIAssetGenerator
 
         string tableGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(table));
         AddressableAssetEntry tableEntry = settings.CreateOrMoveEntry(tableGuid, group);
-        tableEntry.address = "AdventureChoiceCardUITable";
-        tableEntry.SetLabel(ModelTableLabel, true, true);
+        tableEntry.address = AdventureSceneAddressables.AdventureChoiceCardUITable;
+        tableEntry.SetLabel(AdventureSceneAddressables.ModelTableLabel, true, true);
 
         EditorUtility.SetDirty(settings);
+    }
+
+    private static void ConfigureWidgetAddressables()
+    {
+        AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+        if (settings == null)
+            throw new InvalidOperationException("AddressableAssetSettings not found.");
+
+        AddressableAssetGroup group = settings.FindGroup(UIGroupName) ?? settings.DefaultGroup;
+        ConfigureWidgetAddressable(settings, group, AdventureViewUxmlPath, AdventureSceneAddressables.AdventureView);
+        ConfigureWidgetAddressable(settings, group, ChoiceWidgetUxmlPath, AdventureSceneAddressables.AdventureChoiceCardWidget);
+        ConfigureWidgetAddressable(settings, group, PlayerWidgetUxmlPath, AdventureSceneAddressables.AdventurePlayerCardWidget);
+        ConfigureWidgetAddressable(settings, group, MonsterWidgetUxmlPath, AdventureSceneAddressables.AdventureMonsterCardWidget);
+        ConfigureWidgetAddressable(settings, group, DisplayWidgetUxmlPath, AdventureSceneAddressables.AdventureDisplayCardWidget);
+        ConfigureWidgetAddressable(settings, group, PortraitFaceWidgetUxmlPath, AdventureSceneAddressables.PortraitCardFaceWidget);
+        ConfigureWidgetAddressable(settings, group, LockedFaceWidgetUxmlPath, AdventureSceneAddressables.LockedCardFaceWidget);
+        ConfigureWidgetAddressable(settings, group, SkillSlotWidgetUxmlPath, AdventureSceneAddressables.SkillSlotWidget);
+
+        EditorUtility.SetDirty(settings);
+    }
+
+    private static void ConfigureWidgetAddressable(
+        AddressableAssetSettings settings,
+        AddressableAssetGroup group,
+        string widgetUxmlPath,
+        string widgetAddress)
+    {
+        string guid = AssetDatabase.AssetPathToGUID(widgetUxmlPath);
+        if (string.IsNullOrWhiteSpace(guid))
+            throw new InvalidOperationException($"Adventure card widget UXML not found: {widgetUxmlPath}");
+
+        AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, group);
+        entry.address = widgetAddress;
+        entry.SetLabel(AdventureSceneAddressables.AdventureSceneLabel, true, true);
     }
 
     private static void EnsureLocalizationEntries()

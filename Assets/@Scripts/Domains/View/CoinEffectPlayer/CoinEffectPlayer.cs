@@ -34,6 +34,7 @@ namespace Domains.Adventure
         private readonly List<CoinEffect> _active = new();
 
         private VisualElement _effectLayer;
+        private int _playVersion;
 
         public void Bind(VisualElement effectLayer)
         {
@@ -50,6 +51,8 @@ namespace Domains.Adventure
             if (!CanPlay(coinFlip, source, headsTarget, tailsTarget))
                 return;
 
+            Clear();
+            int playVersion = ++_playVersion;
             EnsurePool(coinFlip.Count);
 
             CoinEffectCompletion completion = new(coinFlip.Count);
@@ -57,13 +60,16 @@ namespace Domains.Adventure
 
             for (int i = 0; i < coinFlip.Count; i++)
             {
+                if (playVersion != _playVersion)
+                    return;
+
                 ECoinFace face = coinFlip.Faces[i];
                 int faceIndex = layoutCounter.Next(face);
                 int faceCount = layoutCounter.GetCount(face);
                 VisualElement target = GetTarget(face, headsTarget, tailsTarget);
                 CoinEffect coin = Rent(face);
 
-                _ = PlayOne(coin, face, faceIndex, faceCount, source, target, onArrived, completion);
+                _ = PlayOne(coin, face, faceIndex, faceCount, source, target, onArrived, completion, playVersion);
 
                 await Awaitable.WaitForSecondsAsync(CoinStaggerSeconds);
             }
@@ -73,10 +79,17 @@ namespace Domains.Adventure
 
         public void Clear()
         {
+            _playVersion++;
             for (int i = _active.Count - 1; i >= 0; i--)
             {
                 Return(_active[i]);
             }
+        }
+
+        public void Unbind()
+        {
+            Clear();
+            _effectLayer = null;
         }
 
         private bool CanPlay(
@@ -101,27 +114,37 @@ namespace Domains.Adventure
             VisualElement source,
             VisualElement targetElement,
             Action<ECoinFace> onArrived,
-            CoinEffectCompletion completion)
+            CoinEffectCompletion completion,
+            int playVersion)
         {
             CoinEffectPath path = GetPath(face, faceIndex, faceCount, source, targetElement);
 
             coin.Reset(path.Start);
 
             await Awaitable.NextFrameAsync();
-            await PlayMotion(coin, face, path, onArrived);
-            Return(coin);
+            if (playVersion != _playVersion)
+            {
+                completion.Complete();
+                return;
+            }
+
+            bool completed = await PlayMotion(coin, face, path, onArrived, playVersion);
+            if (completed)
+                Return(coin);
+
             completion.Complete();
         }
 
-        private async Awaitable PlayMotion(
+        private async Awaitable<bool> PlayMotion(
             CoinEffect coin,
             ECoinFace face,
             CoinEffectPath path,
-            Action<ECoinFace> onArrived)
+            Action<ECoinFace> onArrived,
+            int playVersion)
         {
             bool arrived = false;
 
-            await Animate(CoinMotionSeconds, t =>
+            bool completed = await Animate(CoinMotionSeconds, playVersion, t =>
             {
                 CoinMotionFrame frame = GetMotionFrame(path, t);
                 coin.SetOffset(frame.Position.x, 0f);
@@ -134,8 +157,13 @@ namespace Domains.Adventure
                 }
             });
 
-            if (!arrived)
+            if (!completed)
+                return false;
+
+            if (!arrived && playVersion == _playVersion)
                 onArrived?.Invoke(face);
+
+            return true;
         }
 
         private CoinEffect Rent(ECoinFace face)
@@ -215,12 +243,15 @@ namespace Domains.Adventure
                 : tailsTarget;
         }
 
-        private static async Awaitable Animate(float durationSeconds, Action<float> onUpdate)
+        private async Awaitable<bool> Animate(float durationSeconds, int playVersion, Action<float> onUpdate)
         {
             float elapsedSeconds = 0f;
 
             while (elapsedSeconds < durationSeconds)
             {
+                if (playVersion != _playVersion)
+                    return false;
+
                 elapsedSeconds += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsedSeconds / durationSeconds);
                 onUpdate(t);
@@ -228,7 +259,11 @@ namespace Domains.Adventure
                 await Awaitable.NextFrameAsync();
             }
 
+            if (playVersion != _playVersion)
+                return false;
+
             onUpdate(1f);
+            return true;
         }
 
         private static CoinMotionFrame GetMotionFrame(CoinEffectPath path, float progress)

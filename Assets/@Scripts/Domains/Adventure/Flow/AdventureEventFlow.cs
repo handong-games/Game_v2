@@ -1,24 +1,22 @@
 using Domains.Card;
+using System;
 
 namespace Domains.Adventure
 {
     // Role:
     // Starts and completes Event encounters.
-    // It does not open UI panels directly.
+    // It detaches the selected card from board state, but registry removal is delayed until UI exit completes.
     public sealed class AdventureEventFlow
     {
         private readonly AdventureProgress _progress;
         private readonly AdventureBoard _board;
-        private readonly AdventureRunState _runState;
 
         public AdventureEventFlow(
             AdventureProgress progress,
-            AdventureBoard board,
-            AdventureRunState runState)
+            AdventureBoard board)
         {
-            _progress = progress;
-            _board = board;
-            _runState = runState;
+            _progress = progress ?? throw new ArgumentNullException(nameof(progress));
+            _board = board ?? throw new ArgumentNullException(nameof(board));
         }
 
         public AdventureEncounterStartResult Start(AdventureChoiceCommitResult result)
@@ -30,7 +28,6 @@ namespace Domains.Adventure
         public void Complete(uint offerCardId)
         {
             _board.RemoveCard(ECardZone.Right, offerCardId);
-            _runState.CurrentRun?.AdvanceStage();
         }
     }
 }

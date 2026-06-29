@@ -7,13 +7,15 @@ using Domains.Intent.Runtime;
 using Game.AbilitySystem;
 using Game.Scenes.Adventure.Events.Flow;
 using Gameplay.GAS;
+using System;
+using UnityEngine;
 using CardActor = Domains.Card.Card;
 
 namespace Domains.Adventure
 {
     // Role:
     // Executes all living enemy actions for the current enemy turn.
-    // It reports EnemyTurnCompleted after the enemy turn execution finishes.
+    // It does not decide the next turn; AdventureTurnFlow does that after awaiting execution.
     public sealed class AdventureEnemyActionFlow
     {
         private readonly AdventureCards _cards;
@@ -22,8 +24,10 @@ namespace Domains.Adventure
         private readonly IntentRuntime _intentRuntime;
         private readonly ActionExecutionBindingStore _actionBindings;
         private readonly IntentConsumeFlow _intentConsumeFlow;
-        private int _pendingActions;
-        private bool _completionSent;
+        private bool _isExecuting;
+        private bool _executionCompleted;
+        private AwaitableCompletionSource _turnCompletionSource;
+        private PendingEnemyActionCompletion _currentActionCompletion;
 
         public AdventureEnemyActionFlow(
             AdventureCards cards,
@@ -33,30 +37,52 @@ namespace Domains.Adventure
             ActionExecutionBindingStore actionBindings,
             IntentConsumeFlow intentConsumeFlow)
         {
-            _cards = cards;
-            _combat = combat;
-            _events = events;
-            _intentRuntime = intentRuntime;
-            _actionBindings = actionBindings;
-            _intentConsumeFlow = intentConsumeFlow;
+            _cards = cards ?? throw new ArgumentNullException(nameof(cards));
+            _combat = combat ?? throw new ArgumentNullException(nameof(combat));
+            _events = events ?? throw new ArgumentNullException(nameof(events));
+            _intentRuntime = intentRuntime ?? throw new ArgumentNullException(nameof(intentRuntime));
+            _actionBindings = actionBindings ?? throw new ArgumentNullException(nameof(actionBindings));
+            _intentConsumeFlow = intentConsumeFlow ?? throw new ArgumentNullException(nameof(intentConsumeFlow));
         }
 
-        public void ExecuteEnemyTurn()
+        public async Awaitable ExecuteEnemyTurn()
         {
             if (_combat.IsEnded)
                 return;
 
-            _completionSent = false;
-            _pendingActions = 0;
-
-            if (_combat.PlayerCardIds.Count == 0 ||
-                !_cards.TryGet(_combat.PlayerCardIds[0], out CardActor playerCard))
+            if (_isExecuting)
             {
-                CompleteEnemyTurn();
+                if (_turnCompletionSource != null)
+                    await _turnCompletionSource.Awaitable;
+
                 return;
             }
 
-            IReadOnlyList<uint> enemyCardIds = _combat.EnemyCardIds;
+            _isExecuting = true;
+            _executionCompleted = false;
+            _turnCompletionSource = new AwaitableCompletionSource();
+
+            try
+            {
+                await ExecuteEnemyTurnCore();
+            }
+            finally
+            {
+                StopExecution();
+                CompleteTurnAwaiters();
+            }
+        }
+
+        private async Awaitable ExecuteEnemyTurnCore()
+        {
+            if (_combat.PlayerCardIds.Count == 0 ||
+                !_cards.TryGet(_combat.PlayerCardIds[0], out CardActor playerCard))
+            {
+                MarkExecutionCompleted();
+                return;
+            }
+
+            List<uint> enemyCardIds = new(_combat.EnemyCardIds);
             for (int i = 0; i < enemyCardIds.Count; i++)
             {
                 if (!_cards.TryGet(enemyCardIds[i], out CardActor enemyCard))
@@ -65,32 +91,47 @@ namespace Domains.Adventure
                 if (!IsAlive(enemyCard))
                     continue;
 
-                _pendingActions++;
-                _events.IntentTriggeredRequested?.Invoke(enemyCard.CardId);
-                ExecuteIntentAction(enemyCard, playerCard);
+                if (_events.IntentTriggeredRequested == null)
+                    throw new InvalidOperationException(
+                        $"{nameof(AdventureCombatEvents.IntentTriggeredRequested)} is not bound.");
+
+                bool intentTriggerPresentationCompleted =
+                    await _events.IntentTriggeredRequested.Invoke(enemyCard.CardId);
+
+                if (!intentTriggerPresentationCompleted)
+                    return;
+
+                if (_combat.IsEnded || _executionCompleted)
+                {
+                    return;
+                }
+
+                await ExecuteIntentAction(enemyCard, playerCard);
+
+                if (_combat.IsEnded || _executionCompleted)
+                {
+                    return;
+                }
             }
 
-            if (_pendingActions == 0)
-                CompleteEnemyTurn();
+            MarkExecutionCompleted();
         }
 
-        private void ExecuteIntentAction(CardActor enemyCard, CardActor playerCard)
+        private async Awaitable ExecuteIntentAction(CardActor enemyCard, CardActor playerCard)
         {
-            if (!TryGetFinalAction(enemyCard.CardId, out MonsterActionModel actionModel))
-            {
-                OnEnemyActionCompleted(enemyCard.CardId);
-                return;
-            }
+            MonsterActionModel actionModel = GetFinalAction(enemyCard.CardId);
 
             if (!_actionBindings.TryGetHandle(
                     enemyCard.CardId,
                     actionModel,
                     out GameplayAbilitySpecHandle handle))
             {
-                OnEnemyActionCompleted(enemyCard.CardId);
-                return;
+                throw new InvalidOperationException(
+                    $"Intent action binding is missing. Card: {enemyCard.CardId}, Action: {actionModel.name}.");
             }
 
+            PendingEnemyActionCompletion actionCompletion = new();
+            _currentActionCompletion = actionCompletion;
             bool started = enemyCard.AbilitySystem.TriggerAbilityFromGameplayEvent(
                 handle,
                 new GameplayEventData(AbilityGameplayTags.EventTurnStarted)
@@ -98,51 +139,101 @@ namespace Domains.Adventure
                     Instigator = enemyCard.AbilitySystem,
                     Target = playerCard.AbilitySystem,
                     OptionalObject = new CombatTurnActionContext(
-                        () => OnEnemyActionCompleted(enemyCard.CardId)),
+                        actionCompletion.Complete),
                 });
 
             if (!started)
-                OnEnemyActionCompleted(enemyCard.CardId);
+            {
+                ClearCurrentActionCompletion(actionCompletion);
+                throw new InvalidOperationException(
+                    $"Failed to start enemy intent action. Card: {enemyCard.CardId}, Action: {actionModel.name}.");
+            }
+
+            await actionCompletion.Awaitable;
+            ClearCurrentActionCompletion(actionCompletion);
+
+            if (_combat.IsEnded || _executionCompleted)
+                return;
+
+            CompleteEnemyAction(enemyCard.CardId);
         }
 
-        private bool TryGetFinalAction(uint enemyCardId, out MonsterActionModel actionModel)
+        private MonsterActionModel GetFinalAction(uint enemyCardId)
         {
-            actionModel = null;
-
             if (!_intentRuntime.TryGet(enemyCardId, out IntentRuntimeState state))
-                return false;
+                throw new InvalidOperationException(
+                    $"Cached intent runtime state is missing. Card: {enemyCardId}.");
 
             if (!state.TryGetCachedResolvedAction(out ResolvedIntentActionData resolvedAction))
-                return false;
+                throw new InvalidOperationException(
+                    $"Cached resolved intent action is missing. Card: {enemyCardId}.");
 
-            actionModel = resolvedAction.FinalActionModel;
-            return actionModel != null;
+            return resolvedAction.FinalActionModel ??
+                   throw new InvalidOperationException(
+                       $"Cached resolved intent action has null final action. Card: {enemyCardId}.");
         }
 
-        private void OnEnemyActionCompleted(uint enemyCardId)
+        private void CompleteEnemyAction(uint enemyCardId)
         {
-            if (_combat.IsEnded || _completionSent)
+            if (_combat.IsEnded || _executionCompleted)
                 return;
 
             _intentConsumeFlow.Consume(enemyCardId);
-            _pendingActions--;
-            if (_pendingActions <= 0)
-                CompleteEnemyTurn();
         }
 
-        private void CompleteEnemyTurn()
+        private void MarkExecutionCompleted()
         {
-            if (_completionSent)
+            if (_executionCompleted)
                 return;
 
-            _completionSent = true;
-            _events.EnemyTurnCompleted?.Invoke();
+            _executionCompleted = true;
+        }
+
+        private void StopExecution()
+        {
+            _isExecuting = false;
+        }
+
+        public void CancelExecution()
+        {
+            _executionCompleted = true;
+            _currentActionCompletion?.Complete();
+        }
+
+        private void CompleteTurnAwaiters()
+        {
+            AwaitableCompletionSource completionSource = _turnCompletionSource;
+            _turnCompletionSource = null;
+            completionSource?.SetResult();
+        }
+
+        private void ClearCurrentActionCompletion(PendingEnemyActionCompletion actionCompletion)
+        {
+            if (_currentActionCompletion == actionCompletion)
+                _currentActionCompletion = null;
         }
 
         private static bool IsAlive(CardActor card)
         {
             return card != null &&
                    !card.AbilitySystem.OwnedTags.HasTagExact(StateGameplayTags.Dead);
+        }
+
+        private sealed class PendingEnemyActionCompletion
+        {
+            private readonly AwaitableCompletionSource _completionSource = new();
+            private bool _completed;
+
+            public Awaitable Awaitable => _completionSource.Awaitable;
+
+            public void Complete()
+            {
+                if (_completed)
+                    return;
+
+                _completed = true;
+                _completionSource.SetResult();
+            }
         }
     }
 }

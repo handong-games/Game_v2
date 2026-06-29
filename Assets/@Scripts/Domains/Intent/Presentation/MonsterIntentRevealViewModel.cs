@@ -11,8 +11,14 @@ namespace Domains.Intent.Presentation
             uint cardId,
             IReadOnlyList<IntentItemViewModel> items)
         {
+            if (items == null)
+                throw new ArgumentNullException(nameof(items));
+
+            if (items.Count == 0)
+                throw new InvalidOperationException("Monster intent reveal requires at least one item.");
+
             CardId = cardId;
-            Items = items ?? Array.Empty<IntentItemViewModel>();
+            Items = items;
         }
 
         public uint CardId { get; }

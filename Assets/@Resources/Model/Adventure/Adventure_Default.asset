@@ -48,6 +48,8 @@ MonoBehaviour:
   _stages:
   - _startMode: 1
     _drawCount: 2
+  - _startMode: 0
+    _drawCount: 2
   _encounterDeck:
     _startEntries:
     - _type: 0

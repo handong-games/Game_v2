@@ -1,3 +1,4 @@
+using System;
 using Game.Data;
 
 using Domains.Card;
@@ -11,6 +12,12 @@ namespace Domains.Adventure
             CardFaceViewModel front,
             CardFaceViewModel back)
         {
+            if (face == ECardFace.Front && front == null)
+                throw new ArgumentException("Front card face view model is required when the visible face is Front.", nameof(front));
+
+            if (face == ECardFace.Back && back == null)
+                throw new ArgumentException("Back card face view model is required when the visible face is Back.", nameof(back));
+
             Face = face;
             Front = front;
             Back = back;

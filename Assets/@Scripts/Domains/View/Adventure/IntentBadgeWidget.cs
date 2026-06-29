@@ -1,5 +1,5 @@
 using Domains.Intent.Presentation;
-using Game.Scenes.Adventure.Events.Widgets;
+using Game.Core.Managers.View;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -17,45 +17,64 @@ namespace Domains.View.Widgets
 
         private VisualElement _icon;
         private Label _number;
-        private IntentBadgeWidgetEvents _events;
 
         public IntentBadgeWidget()
         {
             RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
         }
 
-        public void Bind(IntentBadgeWidgetEvents events)
-        {
-            _events = events;
-        }
-
         public async Awaitable Show(IntentItemViewModel item)
         {
+            EnsureReferences();
+            if (item == null)
+                throw new System.ArgumentNullException(nameof(item));
+
             Apply(item);
-            RemoveFromClassList(HiddenClass);
+            RemoveFromClassList(RevealedClass);
             RemoveFromClassList(RefreshClass);
             RemoveFromClassList(TriggeredClass);
-            AddToClassList(RevealedClass);
+            AddToClassList(HiddenClass);
+
             await Awaitable.NextFrameAsync();
-            _events?.RevealCompleted?.Invoke();
+
+            Awaitable transition = ViewTransitionAwaiter.WaitForEnd(this);
+            RemoveFromClassList(HiddenClass);
+            AddToClassList(RevealedClass);
+            await transition;
         }
 
         public async Awaitable Refresh(IntentItemViewModel item)
         {
+            EnsureReferences();
+            if (item == null)
+                throw new System.ArgumentNullException(nameof(item));
+
             Apply(item);
             RemoveFromClassList(RefreshClass);
             await Awaitable.NextFrameAsync();
+
+            Awaitable pulseTransition = ViewTransitionAwaiter.WaitForEnd(this);
             AddToClassList(RefreshClass);
-            await Awaitable.NextFrameAsync();
-            _events?.RefreshCompleted?.Invoke();
+            await pulseTransition;
+
+            Awaitable settleTransition = ViewTransitionAwaiter.WaitForEnd(this);
+            RemoveFromClassList(RefreshClass);
+            await settleTransition;
         }
 
         public async Awaitable Trigger()
         {
+            RemoveFromClassList(HiddenClass);
+            RemoveFromClassList(RefreshClass);
+            RemoveFromClassList(TriggeredClass);
+            AddToClassList(RevealedClass);
+
+            await Awaitable.NextFrameAsync();
+
+            Awaitable transition = ViewTransitionAwaiter.WaitForEnd(this);
             RemoveFromClassList(RevealedClass);
             AddToClassList(TriggeredClass);
-            await Awaitable.NextFrameAsync();
-            _events?.TriggerCompleted?.Invoke();
+            await transition;
         }
 
         public void Hide()
@@ -68,15 +87,13 @@ namespace Domains.View.Widgets
 
         private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
-            _icon = this.Q<VisualElement>(IconName);
-            _number = this.Q<Label>(NumberName);
+            EnsureReferences();
             Hide();
         }
 
         private void Apply(IntentItemViewModel item)
         {
-            if (_icon == null || _number == null)
-                return;
+            EnsureReferences();
 
             if (item?.Icon != null)
             {
@@ -91,6 +108,23 @@ namespace Domains.View.Widgets
             _number.style.display = item != null && item.HasNumber
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
+        }
+
+        private void InitializeReferences()
+        {
+            _icon ??= this.Q<VisualElement>(IconName);
+            _number ??= this.Q<Label>(NumberName);
+        }
+
+        private void EnsureReferences()
+        {
+            InitializeReferences();
+
+            if (_icon == null)
+                throw new System.InvalidOperationException($"Required element missing: {IconName}");
+
+            if (_number == null)
+                throw new System.InvalidOperationException($"Required element missing: {NumberName}");
         }
     }
 }

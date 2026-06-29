@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using Domains.Combat;
-using Game.AbilitySystem;
 using Game.Messages;
+using UnityEngine;
 using VContainer.Unity;
-using CardActor = Domains.Card.Card;
 
 namespace Domains.Adventure
 {
@@ -16,7 +14,7 @@ namespace Domains.Adventure
         private readonly GameplayMessageManager _messageManager;
         private readonly AdventureCardAvatarRegistry _avatarRegistry;
         private readonly AdventureCombatRuntime _combat;
-        private readonly AdventureCards _cards;
+        private readonly AdventureEnemyDeathFlow _enemyDeathFlow;
         private readonly AdventureCombatResultFlow _resultFlow;
         private IDisposable _subscription;
 
@@ -24,14 +22,14 @@ namespace Domains.Adventure
             GameplayMessageManager messageManager,
             AdventureCardAvatarRegistry avatarRegistry,
             AdventureCombatRuntime combat,
-            AdventureCards cards,
+            AdventureEnemyDeathFlow enemyDeathFlow,
             AdventureCombatResultFlow resultFlow)
         {
-            _messageManager = messageManager;
-            _avatarRegistry = avatarRegistry;
-            _combat = combat;
-            _cards = cards;
-            _resultFlow = resultFlow;
+            _messageManager = messageManager ?? throw new ArgumentNullException(nameof(messageManager));
+            _avatarRegistry = avatarRegistry ?? throw new ArgumentNullException(nameof(avatarRegistry));
+            _combat = combat ?? throw new ArgumentNullException(nameof(combat));
+            _enemyDeathFlow = enemyDeathFlow ?? throw new ArgumentNullException(nameof(enemyDeathFlow));
+            _resultFlow = resultFlow ?? throw new ArgumentNullException(nameof(resultFlow));
         }
 
         public void Start()
@@ -47,43 +45,34 @@ namespace Domains.Adventure
             _subscription = null;
         }
 
-        private void OnCombatDeathMessage(GameplayDeathMessage message)
+        private async void OnCombatDeathMessage(GameplayDeathMessage message)
         {
-            if (_combat.IsEnded || message.Avatar == null)
-                return;
-
-            if (!_avatarRegistry.TryGetCardId(message.Avatar, out uint cardId))
-                return;
-
-            if (!_combat.TryGetSide(cardId, out ECombatSide side))
-                return;
-
-            if (!_combat.MarkDeathResolved(cardId))
-                return;
-
-            if (side == ECombatSide.Player)
+            try
             {
-                _resultFlow.CompleteCombat(ECombatEndResult.Defeat);
-                return;
+                if (_combat.IsEnded || message.Avatar == null)
+                    return;
+
+                if (!_avatarRegistry.TryGetCardId(message.Avatar, out uint cardId))
+                    return;
+
+                if (!_combat.TryGetSide(cardId, out ECombatSide side))
+                    return;
+
+                if (side == ECombatSide.Player)
+                {
+                    if (!_combat.MarkDeathResolved(cardId))
+                        return;
+
+                    await _resultFlow.CompleteCombat(ECombatEndResult.Defeat);
+                    return;
+                }
+
+                await _enemyDeathFlow.HandleEnemyDeath(cardId);
             }
-
-            if (AreAllEnemiesDead())
-                _resultFlow.CompleteCombat(ECombatEndResult.Victory);
-        }
-
-        private bool AreAllEnemiesDead()
-        {
-            IReadOnlyList<uint> enemyCardIds = _combat.EnemyCardIds;
-            for (int i = 0; i < enemyCardIds.Count; i++)
+            catch (Exception exception)
             {
-                if (!_cards.TryGet(enemyCardIds[i], out CardActor enemyCard))
-                    continue;
-
-                if (!enemyCard.AbilitySystem.OwnedTags.HasTagExact(StateGameplayTags.Dead))
-                    return false;
+                Debug.LogException(exception);
             }
-
-            return true;
         }
     }
 }

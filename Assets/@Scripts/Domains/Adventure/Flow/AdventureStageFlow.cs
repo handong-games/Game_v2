@@ -34,19 +34,19 @@ namespace Domains.Adventure
             AdventureEncounterSequenceRuntime encounterSequence,
             AdventureOfferFactory offerFactory)
         {
-            _runState = runState;
-            _region = region;
-            _progress = progress;
-            _player = player;
-            _cards = cards;
-            _board = board;
-            _stage = stage;
-            _input = input;
-            _encounterSequence = encounterSequence;
-            _offerFactory = offerFactory;
+            _runState = runState ?? throw new ArgumentNullException(nameof(runState));
+            _region = region ?? throw new ArgumentNullException(nameof(region));
+            _progress = progress ?? throw new ArgumentNullException(nameof(progress));
+            _player = player ?? throw new ArgumentNullException(nameof(player));
+            _cards = cards ?? throw new ArgumentNullException(nameof(cards));
+            _board = board ?? throw new ArgumentNullException(nameof(board));
+            _stage = stage ?? throw new ArgumentNullException(nameof(stage));
+            _input = input ?? throw new ArgumentNullException(nameof(input));
+            _encounterSequence = encounterSequence ?? throw new ArgumentNullException(nameof(encounterSequence));
+            _offerFactory = offerFactory ?? throw new ArgumentNullException(nameof(offerFactory));
         }
 
-        public void StartCurrentStage()
+        public void StartCurrentStage(bool removeExistingStageCards = true)
         {
             AdventureRun run = _runState.CurrentRun;
             if (run == null)
@@ -55,8 +55,9 @@ namespace Domains.Adventure
             _progress.EnterStageStart();
             _stage.Clear();
             _input.Clear();
-            _board.ClearZone(ECardZone.Right);
-            _board.ClearZone(ECardZone.Removed);
+            IReadOnlyList<uint> existingStageCardIds = TakeStageBoardCardIds();
+            if (removeExistingStageCards)
+                _cards.RemoveAll(existingStageCardIds);
 
             if (_player.PlayerCard != null)
                 _board.PlaceCard(ECardZone.Left, _player.PlayerCard.CardId);
@@ -81,8 +82,18 @@ namespace Domains.Adventure
             if (_stage.StartMode == AdventureStageStartMode.Choice)
             {
                 _progress.EnterChoice();
-                _input.EnterChoiceSelection();
             }
+        }
+
+        public void OpenChoiceSelection()
+        {
+            if (_progress.CurrentPhase != AdventurePhase.Choice ||
+                _stage.StartMode != AdventureStageStartMode.Choice)
+            {
+                return;
+            }
+
+            _input.EnterChoiceSelection();
         }
 
         private static AdventureStageDefinition GetStage(
@@ -99,6 +110,9 @@ namespace Domains.Adventure
             AdventureRegionModel adventure,
             AdventureStageDefinition stage)
         {
+            if (stage?.StartMode == AdventureStageStartMode.ImmediateEncounter)
+                return 1;
+
             uint drawCount;
             if (stage != null)
             {
@@ -117,7 +131,26 @@ namespace Domains.Adventure
                 drawCount = adventure.StartDrawCount;
             }
 
-            return (int)Math.Max(0, drawCount - 1);
+            return (int)Math.Max(1, drawCount);
+        }
+
+        public IReadOnlyList<uint> TakeStageBoardCardIds()
+        {
+            List<uint> cardIds = new();
+            AddTakenCardIds(cardIds, ECardZone.Right);
+            AddTakenCardIds(cardIds, ECardZone.Removed);
+            return cardIds;
+        }
+
+        private void AddTakenCardIds(
+            List<uint> cardIds,
+            ECardZone zone)
+        {
+            IReadOnlyList<uint> takenCardIds = _board.TakeCardIds(zone);
+            for (int i = 0; i < takenCardIds.Count; i++)
+            {
+                cardIds.Add(takenCardIds[i]);
+            }
         }
     }
 }

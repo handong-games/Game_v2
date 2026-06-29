@@ -1,4 +1,7 @@
 using Domains.Intent.Flow;
+using Domains.Intent.Execution;
+using Domains.Intent.Runtime;
+using System;
 
 namespace Domains.Adventure
 {
@@ -10,22 +13,30 @@ namespace Domains.Adventure
         private readonly AdventureProgress _progress;
         private readonly AdventurePlayer _player;
         private readonly AdventureCombatRuntime _combat;
+        private readonly IntentRuntime _intentRuntime;
+        private readonly ActionExecutionBindingStore _actionBindings;
         private readonly IntentExecutionSetupFlow _intentExecutionSetupFlow;
 
         public AdventureCombatEncounterFlow(
             AdventureProgress progress,
             AdventurePlayer player,
             AdventureCombatRuntime combat,
+            IntentRuntime intentRuntime,
+            ActionExecutionBindingStore actionBindings,
             IntentExecutionSetupFlow intentExecutionSetupFlow)
         {
-            _progress = progress;
-            _player = player;
-            _combat = combat;
-            _intentExecutionSetupFlow = intentExecutionSetupFlow;
+            _progress = progress ?? throw new ArgumentNullException(nameof(progress));
+            _player = player ?? throw new ArgumentNullException(nameof(player));
+            _combat = combat ?? throw new ArgumentNullException(nameof(combat));
+            _intentRuntime = intentRuntime ?? throw new ArgumentNullException(nameof(intentRuntime));
+            _actionBindings = actionBindings ?? throw new ArgumentNullException(nameof(actionBindings));
+            _intentExecutionSetupFlow = intentExecutionSetupFlow ?? throw new ArgumentNullException(nameof(intentExecutionSetupFlow));
         }
 
         public AdventureEncounterStartResult Start(AdventureChoiceCommitResult result)
         {
+            _intentRuntime.Clear();
+            _actionBindings.Clear();
             _combat.InitializeCombat(_player.PlayerCard.CardId, result.OfferCardId);
             _intentExecutionSetupFlow.Setup(result.OfferCardId);
             _progress.EnterCombat();

@@ -1,6 +1,5 @@
 ﻿using Game.Data;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.UIElements;
 
@@ -11,10 +10,8 @@ namespace Domains.View.Widgets
     {
         private const string PortraitName = "card-portrait";
         private const string NameLabelName = "card-front-name";
-        private const string Address = "PortraitCardFaceWidget";
         private const string WidgetName = "portrait-card";
 
-        private static VisualTreeAsset _template;
         private VisualElement _portrait;
         private Label _name;
         private LocalizedString _localizedName;
@@ -26,10 +23,21 @@ namespace Domains.View.Widgets
             RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
         }
 
-        public static VisualElement Create()
+        public static VisualElement Create(VisualTreeAsset template)
         {
-            TemplateContainer container = LoadTemplate().CloneTree();
+            if (template == null)
+                throw new System.ArgumentNullException(nameof(template));
+
+            TemplateContainer container = template.CloneTree();
+            return Create(container);
+        }
+
+        private static VisualElement Create(TemplateContainer container)
+        {
             PortraitCardFaceWidget widget = container.Q<PortraitCardFaceWidget>(WidgetName);
+            if (widget == null)
+                throw new System.InvalidOperationException($"Required element missing: {WidgetName}");
+
             widget.RemoveFromHierarchy();
             return widget;
         }
@@ -41,7 +49,11 @@ namespace Domains.View.Widgets
 
         public void Bind(PortraitCardFaceViewModel viewModel)
         {
+            if (viewModel == null)
+                throw new System.ArgumentNullException(nameof(viewModel));
+
             _pendingViewModel = viewModel;
+            InitializeReferences();
             ApplyBinding();
         }
 
@@ -61,15 +73,17 @@ namespace Domains.View.Widgets
 
         private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
-            _portrait = this.Q<VisualElement>(PortraitName);
-            _name = this.Q<Label>(NameLabelName);
+            InitializeReferences();
+            EnsureReferences();
+            ApplyBinding();
         }
 
         private void ApplyBinding()
         {
-            if (_portrait == null || _name == null || _pendingViewModel == null)
+            if (_pendingViewModel == null)
                 return;
 
+            EnsureReferences();
             Unbind();
 
             _portrait.style.backgroundImage = _pendingViewModel.Portrait != null
@@ -92,13 +106,20 @@ namespace Domains.View.Widgets
             Unbind();
         }
 
-        private static VisualTreeAsset LoadTemplate()
+        private void EnsureReferences()
         {
-            if (_template != null)
-                return _template;
+            if (_portrait == null)
+                throw new System.InvalidOperationException($"Required element missing: {PortraitName}");
 
-            _template = Addressables.LoadAssetAsync<VisualTreeAsset>(Address).WaitForCompletion();
-            return _template;
+            if (_name == null)
+                throw new System.InvalidOperationException($"Required element missing: {NameLabelName}");
         }
+
+        private void InitializeReferences()
+        {
+            _portrait ??= this.Q<VisualElement>(PortraitName);
+            _name ??= this.Q<Label>(NameLabelName);
+        }
+
     }
 }

@@ -18,6 +18,7 @@ namespace Domains.View.Widgets
         private const string UiHiddenClass = "ui-hidden";
         private const string FromBottomClass = "ui-transition--from-bottom";
         private const string EnterClass = "ui-transition--enter";
+        private const string DamageClass = "health-widget--damage";
 
         private VisualElement _fillClip;
         private VisualElement _damagePreview;
@@ -105,6 +106,37 @@ namespace Domains.View.Widgets
             _text.text = $"{_currentHealth} / {_maxHealth}";
         }
 
+        public async Awaitable PlayDamageCue(int amount)
+        {
+            if (amount <= 0 || !_isElementReady)
+                return;
+
+            RemoveFromClassList(DamageClass);
+            _damagePreviewText.text = $"-{amount}";
+            _damagePreviewText.RemoveFromClassList(UiHiddenClass);
+
+            await Awaitable.NextFrameAsync();
+            if (!_isElementReady)
+                return;
+
+            AddToClassList(DamageClass);
+
+            await Awaitable.NextFrameAsync();
+            if (!_isElementReady)
+                return;
+
+            await Awaitable.NextFrameAsync();
+            if (!_isElementReady)
+                return;
+
+            RemoveFromClassList(DamageClass);
+
+            if (!_previewHealth.HasValue)
+            {
+                _damagePreviewText.AddToClassList(UiHiddenClass);
+            }
+        }
+
         private void RefreshPreview()
         {
             if (!_previewHealth.HasValue)
@@ -133,23 +165,40 @@ namespace Domains.View.Widgets
             _damagePreviewText.RemoveFromClassList(UiHiddenClass);
         }
 
-        public async Awaitable Show()
+        public async Awaitable Show(ViewTransitionManager transitionManager)
         {
             if (_isShown)
+            {
+                ApplyShownState();
                 return;
+            }
 
             _isShown = true;
 
-            await ViewTransitionManager.Instance.Play(this, EnterClass);
+            if (transitionManager != null)
+            {
+                await transitionManager.Play(this, EnterClass);
+                return;
+            }
+
+            ApplyShownState();
         }
 
         public void Hide()
         {
             _isShown = false;
+            RemoveFromClassList(DamageClass);
             HidePreview();
             RemoveFromClassList(EnterClass);
             AddToClassList(HiddenClass);
             AddToClassList(FromBottomClass);
+        }
+
+        private void ApplyShownState()
+        {
+            RemoveFromClassList(HiddenClass);
+            RemoveFromClassList(FromBottomClass);
+            AddToClassList(EnterClass);
         }
 
         private void OnAttachedToPanel(AttachToPanelEvent evt)
@@ -158,7 +207,9 @@ namespace Domains.View.Widgets
             _text = this.Q<Label>(TextName);
             _damagePreview = this.Q<VisualElement>(DamagePreviewName);
             _damagePreviewText = this.Q<Label>(DamagePreviewTextName);
+            EnsureReferences();
             _isElementReady = true;
+            RefreshState();
         }
 
         private void OnDetachedFromPanel(DetachFromPanelEvent evt)
@@ -172,6 +223,7 @@ namespace Domains.View.Widgets
             if (!_isElementReady)
                 return;
 
+            EnsureReferences();
             _fillClip.style.width = Length.Percent(_ratio * 100f);
             _text.text = $"{_currentHealth} / {_maxHealth}";
         }
@@ -216,6 +268,21 @@ namespace Domains.View.Widgets
         private static float GetHealthRatio(int currentHealth, int maxHealth)
         {
             return Mathf.Clamp01((float)Mathf.Max(0, currentHealth) / Mathf.Max(1, maxHealth));
+        }
+
+        private void EnsureReferences()
+        {
+            if (_fillClip == null)
+                throw new System.InvalidOperationException($"Required element missing: {FillClipName}");
+
+            if (_text == null)
+                throw new System.InvalidOperationException($"Required element missing: {TextName}");
+
+            if (_damagePreview == null)
+                throw new System.InvalidOperationException($"Required element missing: {DamagePreviewName}");
+
+            if (_damagePreviewText == null)
+                throw new System.InvalidOperationException($"Required element missing: {DamagePreviewTextName}");
         }
     }
 }

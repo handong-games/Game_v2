@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="360" viewBox="0 0 920 360">
+  <defs>
+    <style>
+      .label { font: 15px sans-serif; fill: #2b2b2b; }
+      .small { font: 12px sans-serif; fill: #555; }
+      .deck-card { fill: #f6e4b8; stroke: #8e6c3f; stroke-width: 2; }
+      .top-card { fill: #fff1c9; stroke: #c99545; stroke-width: 3; }
+      .target-card { fill: #fff7dc; stroke: #b77848; stroke-width: 2; stroke-dasharray: 6 5; }
+      .motion { fill: none; stroke: #2e7dd1; stroke-width: 4; stroke-linecap: round; }
+      .motion-soft { fill: none; stroke: #2e7dd1; stroke-width: 2; stroke-dasharray: 6 6; opacity: .55; }
+      .arrow { fill: #2e7dd1; }
+      .stage { fill: rgba(50,130,170,.12); stroke: rgba(50,130,170,.35); stroke-width: 1; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path class="arrow" d="M0,0 L10,4 L0,8 Z"/>
+    </marker>
+  </defs>
+
+  <rect width="920" height="360" fill="#fbfaf5"/>
+  <text x="34" y="34" class="label">Deck top-card deal motion</text>
+  <text x="34" y="56" class="small">Anchor stays fixed at the destination. Only the card body moves from the top card of the deck.</text>
+
+  <rect x="72" y="96" width="160" height="190" rx="10" class="stage"/>
+  <text x="92" y="88" class="small">Card deck</text>
+
+  <g transform="translate(112 132)">
+    <rect x="18" y="18" width="86" height="128" rx="8" class="deck-card"/>
+    <rect x="12" y="12" width="86" height="128" rx="8" class="deck-card"/>
+    <rect x="6" y="6" width="86" height="128" rx="8" class="deck-card"/>
+    <rect x="0" y="0" width="86" height="128" rx="8" class="top-card"/>
+    <text x="22" y="70" class="small">top</text>
+  </g>
+
+  <circle cx="155" cy="196" r="5" fill="#d34444"/>
+  <text x="92" y="306" class="small">Start: top card center</text>
+
+  <path d="M155 196 L155 164" class="motion-soft" marker-end="url(#arrowhead)"/>
+  <text x="168" y="168" class="small">1. pull upward</text>
+
+  <path d="M155 164 C290 88, 475 88, 640 184" class="motion" marker-end="url(#arrowhead)"/>
+  <text x="344" y="98" class="small">2. straight-feeling dealer slide with slight arc</text>
+
+  <g transform="translate(620 112)">
+    <rect x="0" y="0" width="150" height="224" rx="10" class="target-card"/>
+    <line x1="-18" y1="112" x2="168" y2="112" stroke="#999" stroke-dasharray="5 5"/>
+    <line x1="75" y1="-18" x2="75" y2="242" stroke="#999" stroke-dasharray="5 5"/>
+    <text x="36" y="116" class="small">anchor</text>
+  </g>
+  <text x="602" y="88" class="small">Destination anchor is already fixed</text>
+
+  <g transform="translate(474 170) scale(.62)">
+    <rect x="0" y="0" width="150" height="224" rx="10" fill="#fff1c9" stroke="#c99545" stroke-width="3" opacity=".76"/>
+    <text x="38" y="118" class="small">card body</text>
+  </g>
+
+  <text x="64" y="338" class="small">Implementation meaning: use cardDeck top-card center as start position, then animate placement.Card, not placement.Anchor.</text>
+</svg>

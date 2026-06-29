@@ -18,8 +18,8 @@ namespace Domains.Adventure
             if (!parameters.Context.TryGetSourceObject(out CoinFlipCueData data))
                 return;
 
-            IAdventureGameplayCueReceiver receiver =
-                target.GetAvatar<IAdventureGameplayCueReceiver>();
+            IAdventureCoinFlipCueReceiver receiver =
+                target.GetAvatar<IAdventureCoinFlipCueReceiver>();
 
             receiver?.HandleCoinFlipCue(data);
         }

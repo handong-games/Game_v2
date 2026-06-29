@@ -1,6 +1,7 @@
 ﻿using Domains.Adventure;
 using Domains.Card;
 using Game.Data;
+using System;
 using UnityEngine.UIElements;
 
 namespace Domains.View.Widgets
@@ -16,15 +17,26 @@ namespace Domains.View.Widgets
         private VisualElement _frontSlot;
         private VisualElement _backSlot;
         private CardViewModel _pendingViewModel;
+        private CardFaceWidgetTemplates _faceTemplates;
 
         public CardWidget()
         {
             RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
         }
 
-        public void Bind(CardViewModel viewModel)
+        public void Bind(
+            CardViewModel viewModel,
+            CardFaceWidgetTemplates faceTemplates)
         {
+            if (viewModel == null)
+                throw new ArgumentNullException(nameof(viewModel));
+
+            if (faceTemplates == null)
+                throw new ArgumentNullException(nameof(faceTemplates));
+
             _pendingViewModel = viewModel;
+            _faceTemplates = faceTemplates;
+            EnsureSlots();
             ApplyBinding();
         }
 
@@ -32,6 +44,7 @@ namespace Domains.View.Widgets
         {
             UnbindChildren(_frontSlot);
             UnbindChildren(_backSlot);
+            ClearFaces();
         }
 
         public void SetFace(ECardFace face)
@@ -42,44 +55,52 @@ namespace Domains.View.Widgets
 
         private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
-            _frontSlot = this.Q<VisualElement>(FrontSlotName);
-            _backSlot = this.Q<VisualElement>(BackSlotName);
+            EnsureSlots();
+            ApplyBinding();
         }
 
         private void ApplyBinding()
         {
-            if (_frontSlot == null || _backSlot == null || _pendingViewModel == null)
+            if (_pendingViewModel == null)
                 return;
 
             Unbind();
-            ClearFaces();
-            AddFace(_frontSlot, _pendingViewModel.Front);
-            AddFace(_backSlot, _pendingViewModel.Back);
+            AddFace(_frontSlot, _pendingViewModel.Front, _faceTemplates);
+            AddFace(_backSlot, _pendingViewModel.Back, _faceTemplates);
             SetFace(_pendingViewModel.Face);
         }
 
         private void ClearFaces()
         {
+            if (_frontSlot == null || _backSlot == null)
+                return;
+
             _frontSlot.Clear();
             _backSlot.Clear();
         }
 
-        private static void AddFace(VisualElement slot, CardFaceViewModel viewModel)
+        private static void AddFace(
+            VisualElement slot,
+            CardFaceViewModel viewModel,
+            CardFaceWidgetTemplates faceTemplates)
         {
-            VisualElement face = CardFaceWidgetFactory.Create(viewModel);
-            if (face != null)
-            {
-                slot.Add(face);
+            if (viewModel == null)
+                return;
 
-                if (face is ICardFaceWidget faceWidget)
-                {
-                    faceWidget.Bind(viewModel);
-                }
+            VisualElement face = CardFaceWidgetFactory.Create(viewModel, faceTemplates);
+            slot.Add(face);
+
+            if (face is ICardFaceWidget faceWidget)
+            {
+                faceWidget.Bind(viewModel);
             }
         }
 
         private static void UnbindChildren(VisualElement slot)
         {
+            if (slot == null)
+                return;
+
             foreach (VisualElement child in slot.Children())
             {
                 if (child is ICardFaceWidget faceWidget)
@@ -87,6 +108,23 @@ namespace Domains.View.Widgets
                     faceWidget.Unbind();
                 }
             }
+        }
+
+        private void InitializeSlots()
+        {
+            _frontSlot ??= this.Q<VisualElement>(FrontSlotName);
+            _backSlot ??= this.Q<VisualElement>(BackSlotName);
+        }
+
+        private void EnsureSlots()
+        {
+            InitializeSlots();
+
+            if (_frontSlot == null)
+                throw new InvalidOperationException($"Required element missing: {FrontSlotName}");
+
+            if (_backSlot == null)
+                throw new InvalidOperationException($"Required element missing: {BackSlotName}");
         }
     }
 }

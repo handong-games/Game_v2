@@ -1,5 +1,6 @@
 using Game.Core.Managers.View;
 using Game.Scenes.Adventure.Events.Widgets;
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -29,7 +30,7 @@ namespace Domains.View.Widgets
 
         public void Bind(AdventurePouchWidgetEvents events)
         {
-            _events = events;
+            _events = events ?? throw new ArgumentNullException(nameof(events));
         }
 
         public void Unbind()
@@ -37,25 +38,25 @@ namespace Domains.View.Widgets
             _events = null;
         }
 
-        public async Awaitable Show()
+        public async Awaitable Show(ViewTransitionManager transitionManager)
         {
             PrepareHidden();
-            if (_image == null)
+            if (_image == null || transitionManager == null)
                 return;
 
             SetClickable(true);
             StartIdleAnimation();
-            await ViewTransitionManager.Instance.Play(_image, EnterClass);
+            await transitionManager.Play(_image, EnterClass);
         }
 
-        public async Awaitable Hide()
+        public async Awaitable Hide(ViewTransitionManager transitionManager)
         {
-            if (_image == null)
+            if (_image == null || transitionManager == null)
                 return;
 
             SetClickable(false);
             StopIdleAnimation();
-            await ViewTransitionManager.Instance.Play(_image, ExitClass);
+            await transitionManager.Play(_image, ExitClass);
         }
 
         private void PrepareHidden()
@@ -93,13 +94,12 @@ namespace Domains.View.Widgets
             StopIdleAnimation();
         }
 
-        private async void OnPointerDown(PointerDownEvent evt)
+        private void OnPointerDown(PointerDownEvent evt)
         {
             if (pickingMode != PickingMode.Position)
                 return;
 
             evt.StopImmediatePropagation();
-            await Hide();
             _events?.Clicked?.Invoke();
         }
 

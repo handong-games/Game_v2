@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using Game.Core.Managers.View;
 using UnityEngine;
 using UnityEngine.Localization;
@@ -42,22 +43,32 @@ namespace Domains.View.Widgets
         [UxmlAttribute("region-name-key")]
         public string RegionNameKey { get; set; }
 
+        [UxmlAttribute("result-table")]
+        public string ResultTable { get; set; }
+
+        [UxmlAttribute("victory-key")]
+        public string VictoryKey { get; set; }
+
+        [UxmlAttribute("defeat-key")]
+        public string DefeatKey { get; set; }
+
         public Banner()
         {
             RegisterCallback<AttachToPanelEvent>(OnAttachedToPanel);
         }
 
-        public Awaitable PresentConfiguredRegion()
+        public Awaitable PresentConfiguredRegion(ViewTransitionManager transitionManager)
         {
             LocalizedString kicker = new(RegionTable, RegionKickerKey);
             LocalizedString regionName = new(RegionTable, RegionNameKey);
 
             return PresentRegion(
                 GetLocalizedText(kicker),
-                GetLocalizedText(regionName));
+                GetLocalizedText(regionName),
+                transitionManager);
         }
 
-        public Awaitable PresentPlayerTurn(int turnNumber)
+        public Awaitable PresentPlayerTurn(int turnNumber, ViewTransitionManager transitionManager)
         {
             LocalizedString turnText = new(TurnTable, PlayerTurnKey);
             string format = GetLocalizedText(turnText);
@@ -69,53 +80,77 @@ namespace Domains.View.Widgets
                     ["turnNumber"] = turnNumber,
                 });
 
-            return PresentTurn(formattedText);
+            return PresentTurn(formattedText, transitionManager);
         }
 
-        public Awaitable PresentEnemyTurn()
+        public Awaitable PresentEnemyTurn(ViewTransitionManager transitionManager)
         {
             LocalizedString turnText = new(TurnTable, EnemyTurnKey);
-            return PresentTurn(GetLocalizedText(turnText));
+            return PresentTurn(GetLocalizedText(turnText), transitionManager);
         }
 
-        public async Awaitable PresentRegion(string kicker, string regionName)
+        public Awaitable PresentVictory(ViewTransitionManager transitionManager)
         {
+            LocalizedString resultText = new(ResultTable, VictoryKey);
+            return PresentTurn(GetLocalizedText(resultText), transitionManager);
+        }
+
+        public Awaitable PresentDefeat(ViewTransitionManager transitionManager)
+        {
+            LocalizedString resultText = new(ResultTable, DefeatKey);
+            return PresentTurn(GetLocalizedText(resultText), transitionManager);
+        }
+
+        public async Awaitable PresentRegion(
+            string kicker,
+            string regionName,
+            ViewTransitionManager transitionManager)
+        {
+            InitializeReferences();
             SetMode(RegionClass, TurnClass);
 
             _regionKicker.text = kicker;
             _regionName.text = regionName;
 
-            await Present();
+            await Present(transitionManager);
         }
 
-        public Awaitable PresentRegion(LocalizedString kicker, LocalizedString regionName)
+        public Awaitable PresentRegion(
+            LocalizedString kicker,
+            LocalizedString regionName,
+            ViewTransitionManager transitionManager)
         {
             return PresentRegion(
                 kicker.GetLocalizedString(),
-                regionName.GetLocalizedString());
+                regionName.GetLocalizedString(),
+                transitionManager);
         }
 
-        public async Awaitable PresentTurn(string turnText)
+        public async Awaitable PresentTurn(
+            string turnText,
+            ViewTransitionManager transitionManager)
         {
+            InitializeReferences();
             SetMode(TurnClass, RegionClass);
 
             _turnText.text = turnText;
 
-            await Present();
+            await Present(transitionManager);
         }
 
-        private async Awaitable Present()
+        private async Awaitable Present(ViewTransitionManager transitionManager)
         {
-            await ViewTransitionManager.Instance.Play(this, EnterClass);
+            if (transitionManager == null)
+                throw new ArgumentNullException(nameof(transitionManager));
+
+            await transitionManager.Play(this, EnterClass);
             await Awaitable.WaitForSecondsAsync(HoldSeconds);
-            await ViewTransitionManager.Instance.Play(this, ExitClass);
+            await transitionManager.Play(this, ExitClass);
         }
 
         private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
-            _regionKicker = this.Q<Label>(RegionKickerName);
-            _regionName = this.Q<Label>(RegionNameName);
-            _turnText = this.Q<Label>(TurnTextName);
+            InitializeReferences();
         }
 
         private static string GetLocalizedText(LocalizedString localizedString)
@@ -132,6 +167,13 @@ namespace Domains.View.Widgets
             RemoveFromClassList(ExitClass);
             AddToClassList(enabledClass);
             AddToClassList(HiddenClass);
+        }
+
+        private void InitializeReferences()
+        {
+            _regionKicker ??= this.Q<Label>(RegionKickerName);
+            _regionName ??= this.Q<Label>(RegionNameName);
+            _turnText ??= this.Q<Label>(TurnTextName);
         }
     }
 }

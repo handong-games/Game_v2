@@ -13,10 +13,15 @@ namespace Domains.View.Widgets
             AddToClassList("skill-slot-group");
         }
 
-        public void Bind(IReadOnlyList<Domains.CharacterSelect.CharacterSelectSkillSlotViewModel> skillSlots)
+        public void Bind(
+            IReadOnlyList<Domains.CharacterSelect.CharacterSelectSkillSlotViewModel> skillSlots,
+            VisualTreeAsset template)
         {
+            if (template == null)
+                throw new System.ArgumentNullException(nameof(template));
+
             int count = skillSlots?.Count ?? 0;
-            EnsureSlotCount(count);
+            EnsureSlotCount(count, template);
 
             for (int i = 0; i < _slots.Count; i++)
             {
@@ -31,11 +36,11 @@ namespace Domains.View.Widgets
             }
         }
 
-        private void EnsureSlotCount(int count)
+        private void EnsureSlotCount(int count, VisualTreeAsset template)
         {
             while (_slots.Count < count)
             {
-                SkillSlotWidget slot = new();
+                SkillSlotWidget slot = new(template);
                 slot.AddToClassList("skill-slot-group__slot");
                 _slots.Add(slot);
                 Add(slot);

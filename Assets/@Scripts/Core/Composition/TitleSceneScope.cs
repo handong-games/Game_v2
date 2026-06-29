@@ -22,6 +22,8 @@ namespace Game.Core.Composition
         {
             builder.Register<TitleSceneBgmOwner>(Lifetime.Scoped);
             builder.Register<TitleSceneLocalizationOwner>(Lifetime.Scoped);
+            builder.Register<TitleSceneCardFaceTemplateLoader>(Lifetime.Scoped);
+            builder.Register<TitleSceneSkillSlotTemplateLoader>(Lifetime.Scoped);
             builder.Register<ISceneViewNavigator, SceneViewNavigator>(Lifetime.Scoped);
             builder.Register<TitleSceneNavigator>(Lifetime.Scoped);
             builder.RegisterEntryPoint<TitleSceneEntryPoint>();

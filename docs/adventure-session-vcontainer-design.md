@@ -53,18 +53,20 @@ AdventureScene.OnLoaded
 -> AdventureSceneEntryPoint.Start()
 -> AdventureSceneLocalization.Preload()
 -> AdventureSceneScope receives legacy run-state service aliases from parent session scope
--> AdventureController(run-state services)
--> AdventureView(adventureController)
+-> AdventureScreenController(run-state services)
+-> AdventureView(adventureScreenController)
+-> AdventureGameToScreenEventBinder.Bind()
+-> AdventureWidgetToScreenEventBinder.Bind()
 -> IViewHost.Attach(adventureView)
--> AdventureViewEventBinder.Bind()
--> AdventureView.OnShown()
+-> AdventureScreenController.StartAdventure()
 
 AdventureScene.OnUnloaded
 -> AdventureSceneScope disposed
 -> AdventureSceneEntryPoint.Dispose()
--> AdventureViewEventBinder.Dispose()
+-> AdventureWidgetToScreenEventBinder.Dispose()
+-> AdventureGameToScreenEventBinder.Dispose()
 -> IViewHost.Detach(adventureView)
--> scoped AdventureView / AdventureController / AdventureSceneLocalization disposed
+-> scoped AdventureView / AdventureScreenController / AdventureSceneLocalization disposed
 ```
 
 Current BaseScene bridge:
@@ -99,17 +101,19 @@ Current code scan checkpoint:
 
 ```text
 AdventureScene creates and disposes AdventureSceneScope.
-AdventureSceneScope owns AdventureSceneEntryPoint, AdventureSceneLocalization, AdventureController, AdventureViewEventBinder, and AdventureView.
-AdventureView receives AdventureController through constructor injection.
-AdventureController receives run-state services through constructor injection.
-AdventureEvents and AdventureWidgetEvents are scoped event holders.
+AdventureSceneScope owns AdventureSceneEntryPoint, AdventureSceneLocalization, AdventureScreenController, AdventureGameToScreenEventBinder, AdventureWidgetToScreenEventBinder, and AdventureView.
+AdventureView receives AdventureScreenController through constructor injection.
+AdventureScreenController receives scene flow dependencies through constructor injection.
+AdventureEncounterStartFlow owns choice commit -> concrete encounter start transition.
+AdventureGameEvents and AdventureWidgetEvents are scoped event holders.
 CombatService owns a GameplayMessageManager death subscription and releases it in Dispose.
 ```
 
 Stabilized legacy risks:
 
 ```text
-AdventureViewEventBinder centralizes AdventureEvents and widget event subscription.
+AdventureGameToScreenEventBinder centralizes game-flow-to-screen subscriptions.
+AdventureWidgetToScreenEventBinder centralizes widget-input-to-screen subscriptions.
 AdventureView.Dispose unregisters cue handlers defensively and tolerates unbound widget fields.
 ```
 
@@ -134,11 +138,12 @@ Unity loads AdventureScene
 -> AdventureSceneEntryPoint.Start()
 -> AdventureSceneLocalization.Preload()
 -> AdventureSceneScope resolves run-state service aliases from AdventureSessionLifetimeScope
--> AdventureController(run-state services)
--> AdventureView(adventureController)
+-> AdventureScreenController(run-state services)
+-> AdventureView(adventureScreenController)
+-> AdventureGameToScreenEventBinder.Bind()
+-> AdventureWidgetToScreenEventBinder.Bind()
 -> IViewHost.Attach(adventureView)
--> AdventureViewEventBinder.Bind()
--> AdventureView.OnShown()
+-> AdventureScreenController.StartAdventure()
 ```
 
 Cold assessment:
@@ -162,31 +167,32 @@ AdventureView.OnVisualTreeCloned()
 -> caches UXML elements
 -> binds widgets to AdventureWidgetEvents
 
-AdventureViewEventBinder.Bind()
--> runs after IViewHost.Attach and before AdventureView.OnShown
--> subscribes AdventureEvents.Board.DealRequested to AdventureView.OnCardsDrawn
--> subscribes AdventureEvents.Board.RefreshRequested to AdventureView.OnBoardChanged
--> subscribes AdventureEvents.Combat.PlayerTurnBannerRequested to AdventureView.OnTurnBannerRequested
--> subscribes AdventureEvents.Combat.EnemyTurnBannerRequested to AdventureView.OnEnemyTurnBannerRequested
--> subscribes AdventureEvents.Combat.ResultRequested to AdventureView.OnCombatEnded
--> subscribes AdventureWidgetEvents.Turn.EndTurnClicked to AdventureView.OnEndTurnClicked
--> subscribes Pouch.Clicked to AdventureView.OnPouchClicked
+AdventureGameToScreenEventBinder.Bind()
+-> runs before AdventureSceneNavigator.ShowAdventure()
+-> connects AdventureGameEvents.Screen.InitialPresentationPrepared to AdventureView.OnGameInitialPresentationPrepared
+-> connects AdventureGameEvents.Screen.PlayerTurnStarted to AdventureView.OnGamePlayerTurnStarted
+-> connects AdventureGameEvents.Screen.EnemyTurnStarted to AdventureView.OnGameEnemyTurnStarted
+-> connects AdventureGameEvents.Screen.RewardStarted to AdventureView.OnGameRewardStarted
+-> connects AdventureGameEvents.Screen.ChoiceRefreshStarted to AdventureView.OnGameChoiceRefreshStarted
+-> connects AdventureGameEvents.Board.RefreshRequested to AdventureView.OnGameBoardRefreshRequested
+-> connects AdventureGameEvents.Combat.ResultRequested to AdventureView.OnGameCombatEnded
 
-AdventureView.OnShown()
--> subscribes CoinFlipCueEventBus.Published
--> subscribes CoinChangeCueEventBus.Published
+AdventureWidgetToScreenEventBinder.Bind()
+-> subscribes AdventureWidgetEvents.Turn.EndTurnClicked to AdventureView.OnWidgetEndTurnClicked
+-> subscribes AdventureWidgetEvents.Pouch.Clicked to AdventureView.OnWidgetPouchClicked
+-> subscribes AdventureWidgetEvents.Card.Clicked to AdventureView.OnWidgetCardClicked
+-> subscribes AdventureWidgetEvents.SkillSlot.SelectionChanged to AdventureView.OnWidgetSkillSlotSelectionChanged
 
-CombatService.ReadyCombat()
--> subscribes GameplayMessageManager death messages
--> publishes AdventureEvents.Combat.ResultRequested
+AdventureCombatResultFlow.NotifyResult()
+-> publishes AdventureGameEvents.Combat.ResultRequested
 ```
 
 Risk:
 
 ```text
-AdventureEvents and AdventureWidgetEvents are scoped event holders in AdventureSceneScope.
-AdventureViewEventBinder centralizes View event subscription and unsubscription.
-If AdventureViewEventBinder is not disposed with AdventureSceneScope, stale subscribers can survive into the next scene flow.
+AdventureGameEvents and AdventureWidgetEvents are scoped event holders in AdventureSceneScope.
+AdventureGameToScreenEventBinder and AdventureWidgetToScreenEventBinder centralize View event subscription and unsubscription by direction.
+If these binders are not disposed with AdventureSceneScope, stale subscribers can survive into the next scene flow.
 ```
 
 Current stateful services:

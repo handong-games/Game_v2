@@ -1,0 +1,14 @@
+.adventure-display-card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.adventure-display-card__card {
+    position: absolute;
+    left: 0;
+    top: 96px;
+    width: 240px;
+    height: 358px;
+}

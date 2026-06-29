@@ -6,10 +6,12 @@
     <Style src="project://database/Assets/@Scripts/Domains/View/Card/ChoiceCardFaceWidget/ChoiceCardFaceWidget.uss?fileID=7433441132597879392&amp;guid=9a6a9176167349ea8d6b85bad1a57d7a&amp;type=3#ChoiceCardFaceWidget"/>
     <Style src="project://database/Assets/@Scripts/Domains/View/HealthWidget/HealthWidget.uss?fileID=7433441132597879392&amp;guid=9ce742e2a19e437e94f7107a91dfd104&amp;type=3#HealthWidget"/>
     <widgets:AdventureMonsterCardWidget name="adventure-monster-card" class="adventure-monster-card" picking-mode="Ignore">
-        <widgets:IntentBadgeWidget name="adventure-monster-card-intent-badge" class="adventure-monster-card__intent-badge intent-badge intent-badge--hidden" picking-mode="Ignore">
-            <ui:VisualElement name="intent-badge-icon" class="intent-badge__icon" picking-mode="Ignore"/>
-            <ui:Label name="intent-badge-number" class="intent-badge__number" picking-mode="Ignore"/>
-        </widgets:IntentBadgeWidget>
+        <ui:VisualElement name="adventure-monster-card-intent-widget" class="adventure-monster-card__intent-widget" picking-mode="Ignore">
+            <widgets:IntentBadgeWidget name="adventure-monster-card-intent-badge" class="intent-badge intent-badge--hidden" picking-mode="Ignore">
+                <ui:VisualElement name="intent-badge-icon" class="intent-badge__icon" picking-mode="Ignore"/>
+                <ui:Label name="intent-badge-number" class="intent-badge__number" picking-mode="Ignore"/>
+            </widgets:IntentBadgeWidget>
+        </ui:VisualElement>
         <widgets:HealthWidget name="adventure-monster-card-health-widget" class="adventure-monster-card__health-widget health-widget ui-transition--hidden ui-transition--from-bottom" picking-mode="Ignore">
             <ui:VisualElement name="health-widget-background" class="health-widget__background" picking-mode="Ignore"/>
             <ui:VisualElement name="health-widget-mask" class="health-widget__mask" picking-mode="Ignore"/>

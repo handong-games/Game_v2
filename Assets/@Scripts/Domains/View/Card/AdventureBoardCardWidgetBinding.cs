@@ -15,16 +15,28 @@ namespace Domains.View.Widgets
             AdventureBoardCardViewModel viewModel,
             VisualElement element,
             Action<AdventureBoardCardPlacement> onPlaced,
-            Action dispose)
+            Action dispose,
+            bool isInteractive = true,
+            VisualElement interactionTarget = null)
         {
             ViewModel = viewModel;
             Element = element;
             _onPlaced = onPlaced;
             _dispose = dispose;
+            IsInteractive = isInteractive;
+            InteractionTarget = interactionTarget ?? element;
+
+            if (IsInteractive && InteractionTarget == null)
+                throw new ArgumentNullException(nameof(interactionTarget));
+
+            if (IsInteractive)
+                InteractionTarget.pickingMode = PickingMode.Position;
         }
 
         public AdventureBoardCardViewModel ViewModel { get; }
         public VisualElement Element { get; }
+        public VisualElement InteractionTarget { get; }
+        public bool IsInteractive { get; }
         public AdventureBoardCardPlacement Placement { get; private set; }
 
         public void BindPlacement(AdventureBoardCardPlacement placement)

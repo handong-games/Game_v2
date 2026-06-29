@@ -1,119 +1,45 @@
-using Domains.Combat;
-using Domains.Player;
-using Game.Core.Managers.View;
+using System;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Domains.Adventure
 {
+    // Role:
+    // Plays AdventureView intro animation and binds runtime card presentation after it completes.
     public sealed partial class AdventureView
     {
-        private const string AdventureIntroShownClass = "adventure-view--intro-shown";
-        private const int TurnBannerExitStartMs = 1200;
-
-        private async Awaitable PlayIntroAnimation()
+        private async Awaitable<bool> PlayIntroOnce(
+            int screenLifetimeVersion,
+            AdventureInitialPresentationViewModel initialPresentation)
         {
-            // Reset Animation
-            _adventureRoot?.RemoveFromClassList(AdventureIntroShownClass);
+            if (_introStarted)
+                return true;
 
-            Awaitable introCompletion = WaitForIntroCompletion();
-
-            if (_banner != null)
-            {
-                _ = _banner.PresentRegion(
-                    _entryPresentation.Subtitle,
-                    _entryPresentation.Title);
-            }
-
-            await Awaitable.NextFrameAsync();
-
-            _boardUIFlow.PlaceCards(_controller.GetBoardCards());
-            RegisterCardEvents();
-            _adventureRoot?.AddToClassList(AdventureIntroShownClass);
-            await introCompletion;
-
-            if (_entryPresentation == null)
-                return;
-
-            BindGameplayCueReceivers();
-            _controller.OnInitialBoardShown();
+            _introStarted = true;
+            return await PlayIntroAnimation(screenLifetimeVersion, initialPresentation);
         }
 
-        private async Awaitable PlayTurnBannerAnimation()
+        private async Awaitable<bool> PlayIntroAnimation(
+            int screenLifetimeVersion,
+            AdventureInitialPresentationViewModel initialPresentation)
         {
-            CombatTurnViewModel turn = _controller.GetCombatTurnViewModel();
-            ViewTransitionTimeline timeline = new ViewTransitionTimeline();
+            if (initialPresentation == null)
+                throw new ArgumentNullException(nameof(initialPresentation));
 
-            timeline
-                .Run(0, () => _banner.PresentPlayerTurn(turn.TurnNumber))
-                .Run(TurnBannerExitStartMs, _pouch.Show);
+            await _screenUIFlow.PlayIntro(
+                _screenWidgets.AdventureRoot,
+                _screenWidgets.Background,
+                _screenWidgets.Emblem,
+                _screenWidgets.CardDeck,
+                _screenWidgets.ResourceStatusBar,
+                _screenWidgets.Banner,
+                initialPresentation,
+                () => IsCurrentScreenLifetime(screenLifetimeVersion));
 
-            await _viewTransitionManager.Play(timeline);
-        }
+            if (!IsCurrentScreenLifetime(screenLifetimeVersion))
+                return false;
 
-        private Awaitable PlayEnemyTurnBannerAnimation()
-        {
-            return _banner.PresentEnemyTurn();
-        }
-
-        private async Awaitable PlayCoinFlipAsync(CoinFlipCueData data)
-        {
-            if (data == null)
-                return;
-
-            await _coinEffectPlayer.Play(
-                data,
-                _pouch,
-                _coinStatusWidget.GetTarget(ECoinFace.Heads),
-                _coinStatusWidget.GetTarget(ECoinFace.Tails),
-                _coinStatusWidget.Add);
-
-            await ShowSkillSlots();
-            await _endTurnWidget.Show();
-        }
-
-        private async Awaitable PlayCoinChangeAsync(CoinChangeCueData data)
-        {
-            if (data == null || !data.HasEntries)
-                return;
-
-            await _coinStatusWidget.Show();
-            await _coinChangeEffectPlayer.Play(
-                data,
-                (face, delta) => _coinStatusWidget.ApplyDelta(face, delta));
-        }
-
-        private Awaitable WaitForIntroCompletion()
-        {
-            if (_adventureRoot == null || _cardDeck == null)
-            {
-                return Awaitable.NextFrameAsync();
-            }
-
-            AwaitableCompletionSource completionSource = new();
-            bool completed = false;
-            EventCallback<TransitionEndEvent> onTransitionEnd = null;
-
-            void Complete()
-            {
-                if (completed)
-                    return;
-
-                completed = true;
-                _cardDeck.UnregisterCallback(onTransitionEnd);
-                completionSource.SetResult();
-            }
-
-            onTransitionEnd = evt =>
-            {
-                if (evt.target != _cardDeck)
-                    return;
-
-                Complete();
-            };
-
-            _cardDeck.RegisterCallback(onTransitionEnd);
-            return completionSource.Awaitable;
+            BindBoardRuntimeConnections(initialPresentation.RuntimeBoardCards);
+            return true;
         }
     }
 }

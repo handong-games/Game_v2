@@ -1,24 +1,24 @@
 using System.Collections.Generic;
 using Domains.Adventure;
 using Domains.Intent.Presentation;
-using Game.Scenes.Adventure.Events.Widgets;
+using Game.Core.Managers.View;
 using Gameplay.GAS;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
 
 namespace Domains.View.Widgets
 {
     [UxmlElement]
-    public sealed partial class AdventureMonsterCardWidget : VisualElement, IAdventureGameplayCueReceiver
+    public sealed partial class AdventureMonsterCardWidget :
+        VisualElement,
+        IAdventureDamageCueReceiver,
+        IAdventureHealthCardWidget,
+        IAdventureIntentCardWidget
     {
-        private const string Address = "AdventureMonsterCardWidget";
         private const string WidgetName = "adventure-monster-card";
         private const string CardWidgetName = "adventure-monster-card-widget";
         private const string HealthWidgetName = "adventure-monster-card-health-widget";
         private const string IntentBadgeName = "adventure-monster-card-intent-badge";
-
-        private static VisualTreeAsset _template;
 
         private CardWidget _cardWidget;
         private HealthWidget _healthWidget;
@@ -30,54 +30,82 @@ namespace Domains.View.Widgets
             RegisterCallback<DetachFromPanelEvent>(OnDetachedFromPanel);
         }
 
-        public static AdventureMonsterCardWidget Create()
+        public static AdventureMonsterCardWidget Create(VisualTreeAsset template)
         {
-            TemplateContainer container = LoadTemplate().Instantiate();
+            if (template == null)
+                throw new System.ArgumentNullException(nameof(template));
+
+            TemplateContainer container = template.Instantiate();
             AdventureMonsterCardWidget widget = container.Q<AdventureMonsterCardWidget>(WidgetName);
+            if (widget == null)
+                throw new System.InvalidOperationException($"Required element missing: {WidgetName}");
+
             widget.RemoveFromHierarchy();
+            widget.InitializeReferences();
             return widget;
+        }
+
+        public VisualElement InteractionTarget
+        {
+            get
+            {
+                EnsureReferences();
+                return _cardWidget;
+            }
         }
 
         public void Bind(
             CardViewModel card,
             AbilitySystemComponent abilitySystem,
-            IntentBadgeWidgetEvents intentBadgeEvents)
+            AdventureCardWidgetTemplates templates)
         {
+            if (templates == null)
+                throw new System.ArgumentNullException(nameof(templates));
+
+            EnsureReferences();
+            if (abilitySystem == null)
+                throw new System.ArgumentNullException(nameof(abilitySystem));
+
             Unbind();
-            _intentBadgeWidget?.Bind(intentBadgeEvents);
-            _cardWidget?.Bind(card);
-            _healthWidget?.Bind(abilitySystem);
+            _cardWidget.Bind(card, templates.FaceTemplates);
+            _healthWidget.Bind(abilitySystem);
         }
 
-        public async Awaitable ShowHealthAsync()
+        public async Awaitable ShowHealthAsync(ViewTransitionManager transitionManager)
         {
-            if (_healthWidget == null)
-                return;
+            EnsureReferences();
+            await _healthWidget.Show(transitionManager);
+        }
 
-            await _healthWidget.Show();
+        public void SetHealth(int currentHealth, int maxHealth)
+        {
+            EnsureReferences();
+            _healthWidget.SetMaxHealth(maxHealth);
+            _healthWidget.SetHealth(currentHealth);
         }
 
         public async Awaitable ShowIntentAsync(IReadOnlyList<IntentItemViewModel> items)
         {
-            if (_intentBadgeWidget == null || items == null || items.Count == 0)
-                return;
+            EnsureReferences();
+            if (items == null || items.Count == 0)
+                throw new System.InvalidOperationException("Monster intent items are missing.");
 
             await _intentBadgeWidget.Show(items[0]);
         }
 
         public async Awaitable RefreshIntentAsync(IReadOnlyList<IntentItemViewModel> items)
         {
-            if (_intentBadgeWidget == null || items == null || items.Count == 0)
-                return;
+            EnsureReferences();
+            if (items == null || items.Count == 0)
+                throw new System.InvalidOperationException("Monster intent items are missing.");
 
             await _intentBadgeWidget.Refresh(items[0]);
         }
 
         public Awaitable TriggerIntentAsync()
         {
-            return _intentBadgeWidget != null
-                ? _intentBadgeWidget.Trigger()
-                : Awaitable.NextFrameAsync();
+            EnsureReferences();
+            return _intentBadgeWidget.Trigger();
         }
 
         public void Unbind()
@@ -87,23 +115,25 @@ namespace Domains.View.Widgets
             _intentBadgeWidget?.Hide();
         }
 
-        public void HandleCoinFlipCue(CoinFlipCueData data)
+        public async void HandleDamageCue(DamageCueData data)
         {
-        }
+            try
+            {
+                EnsureReferences();
+                if (data == null)
+                    return;
 
-        public void HandleCoinChangeCue(CoinChangeCueData data)
-        {
-        }
-
-        public void HandleDamageCue(DamageCueData data)
-        {
+                await _healthWidget.PlayDamageCue(data.Amount);
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception);
+            }
         }
 
         private void OnAttachedToPanel(AttachToPanelEvent evt)
         {
-            _intentBadgeWidget = this.Q<IntentBadgeWidget>(IntentBadgeName);
-            _healthWidget = this.Q<HealthWidget>(HealthWidgetName);
-            _cardWidget = this.Q<CardWidget>(CardWidgetName);
+            EnsureReferences();
         }
 
         private void OnDetachedFromPanel(DetachFromPanelEvent evt)
@@ -111,13 +141,25 @@ namespace Domains.View.Widgets
             Unbind();
         }
 
-        private static VisualTreeAsset LoadTemplate()
+        private void InitializeReferences()
         {
-            if (_template != null)
-                return _template;
+            _intentBadgeWidget ??= this.Q<IntentBadgeWidget>(IntentBadgeName);
+            _healthWidget ??= this.Q<HealthWidget>(HealthWidgetName);
+            _cardWidget ??= this.Q<CardWidget>(CardWidgetName);
+        }
 
-            _template = Addressables.LoadAssetAsync<VisualTreeAsset>(Address).WaitForCompletion();
-            return _template;
+        private void EnsureReferences()
+        {
+            InitializeReferences();
+
+            if (_cardWidget == null)
+                throw new System.InvalidOperationException($"Required element missing: {CardWidgetName}");
+
+            if (_healthWidget == null)
+                throw new System.InvalidOperationException($"Required element missing: {HealthWidgetName}");
+
+            if (_intentBadgeWidget == null)
+                throw new System.InvalidOperationException($"Required element missing: {IntentBadgeName}");
         }
     }
 }

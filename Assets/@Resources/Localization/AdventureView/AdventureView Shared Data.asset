@@ -59,6 +59,14 @@ MonoBehaviour:
     m_Key: choice_card_shop
     m_Metadata:
       m_Items: []
+  - m_Id: 940000007
+    m_Key: combat_victory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 940000008
+    m_Key: combat_defeat
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

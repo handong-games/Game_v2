@@ -1,6 +1,5 @@
 ﻿using Domains.Adventure;
 using Game.Data;
-using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
 
 namespace Domains.View.Widgets
@@ -8,15 +7,23 @@ namespace Domains.View.Widgets
     [UxmlElement]
     public sealed partial class LockedCardFaceWidget : VisualElement, ICardFaceWidget
     {
-        private const string Address = "LockedCardFaceWidget";
         private const string WidgetName = "locked-card";
 
-        private static VisualTreeAsset _template;
-
-        public static VisualElement Create()
+        public static VisualElement Create(VisualTreeAsset template)
         {
-            TemplateContainer container = LoadTemplate().CloneTree();
+            if (template == null)
+                throw new System.ArgumentNullException(nameof(template));
+
+            TemplateContainer container = template.CloneTree();
+            return Create(container);
+        }
+
+        private static VisualElement Create(TemplateContainer container)
+        {
             LockedCardFaceWidget widget = container.Q<LockedCardFaceWidget>(WidgetName);
+            if (widget == null)
+                throw new System.InvalidOperationException($"Required element missing: {WidgetName}");
+
             widget.RemoveFromHierarchy();
             return widget;
         }
@@ -34,14 +41,6 @@ namespace Domains.View.Widgets
         {
         }
 
-        private static VisualTreeAsset LoadTemplate()
-        {
-            if (_template != null)
-                return _template;
-
-            _template = Addressables.LoadAssetAsync<VisualTreeAsset>(Address).WaitForCompletion();
-            return _template;
-        }
     }
 }
     

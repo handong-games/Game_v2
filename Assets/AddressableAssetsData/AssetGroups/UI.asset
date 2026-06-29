@@ -53,6 +53,24 @@ MonoBehaviour:
     m_SerializedLabels:
     - AdventureScene
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1c209fbdaadb4d46926c065bbc26b796
+    m_Address: AdventurePlayerCardWidget
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AdventureScene
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a4efbcb04109480586468a87c8fc6228
+    m_Address: AdventureMonsterCardWidget
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AdventureScene
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ea2b7737dcbd4e388583784c71b412bf
+    m_Address: AdventureDisplayCardWidget
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AdventureScene
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 775dff4732e123841a609387b335eff8
     m_Address: CharacterSelectView
     m_ReadOnly: 0

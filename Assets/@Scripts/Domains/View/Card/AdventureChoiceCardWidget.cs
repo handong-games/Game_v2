@@ -1,7 +1,6 @@
 using System;
 using Domains.Adventure;
 using Game.Data;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Localization;
 using UnityEngine.UIElements;
 
@@ -11,11 +10,8 @@ namespace Domains.View.Widgets
     // Renders one adventure choice card and owns only choice-card UI binding state.
     public sealed class AdventureChoiceCardWidget : BaseCardWidget
     {
-        private const string Address = "AdventureChoiceCardWidget";
         private const string IconName = "choice-card-icon";
         private const string LabelName = "choice-card-label";
-
-        private static VisualTreeAsset _template;
 
         private readonly VisualElement _icon;
         private readonly Label _label;
@@ -23,8 +19,8 @@ namespace Domains.View.Widgets
         private LocalizedString _localizedLabel;
         private string _uiClassName;
 
-        public AdventureChoiceCardWidget()
-            : base(GetTemplate())
+        public AdventureChoiceCardWidget(VisualTreeAsset template)
+            : base(template)
         {
             _icon = Content.Q<VisualElement>(IconName);
             if (_icon == null)
@@ -37,28 +33,32 @@ namespace Domains.View.Widgets
             RegisterCallback<DetachFromPanelEvent>(_ => Unbind());
         }
 
-        public uint BoardCardId { get; private set; }
         public EChoiceCardType ChoiceType { get; private set; }
 
         public void Bind(
-            uint boardCardId,
             AdventureChoiceCardViewModel viewModel,
             AdventureChoiceCardUIModel uiModel)
         {
+            if (viewModel == null)
+                throw new ArgumentNullException(nameof(viewModel));
+
+            if (uiModel == null)
+                throw new ArgumentNullException(nameof(uiModel));
+
             Unbind();
 
-            BoardCardId = boardCardId;
             ChoiceType = viewModel.ChoiceType;
 
-            _uiClassName = uiModel.UssClassName;
-            if (!string.IsNullOrWhiteSpace(_uiClassName))
-            {
-                Root.AddToClassList(_uiClassName);
-            }
+            string uiClassName = uiModel.UssClassName;
+            if (string.IsNullOrWhiteSpace(uiClassName))
+                throw new InvalidOperationException($"Choice card USS class is missing: {ChoiceType}");
 
-            _icon.style.backgroundImage = uiModel.Icon != null
-                ? new StyleBackground(Background.FromSprite(uiModel.Icon))
-                : StyleKeyword.Null;
+            if (uiModel.Icon == null)
+                throw new InvalidOperationException($"Choice card icon is missing: {ChoiceType}");
+
+            _uiClassName = uiClassName;
+            Root.AddToClassList(_uiClassName);
+            _icon.style.backgroundImage = new StyleBackground(Background.FromSprite(uiModel.Icon));
 
             _localizedLabel = uiModel.DisplayName;
             if (_localizedLabel == null || _localizedLabel.IsEmpty)
@@ -86,15 +86,6 @@ namespace Domains.View.Widgets
         private void SetLabel(string value)
         {
             _label.text = value ?? string.Empty;
-        }
-
-        private static VisualTreeAsset GetTemplate()
-        {
-            _template ??= Addressables
-                .LoadAssetAsync<VisualTreeAsset>(Address)
-                .WaitForCompletion();
-
-            return _template;
         }
     }
 }

@@ -47,6 +47,7 @@ namespace Domains.View.Widgets
         protected VisualElement CardBackground { get; }
         protected VisualElement Frame { get; }
         protected VisualElement Content { get; }
+        public VisualElement InteractionTarget => Root;
 
         public void SetSelected(bool selected)
         {

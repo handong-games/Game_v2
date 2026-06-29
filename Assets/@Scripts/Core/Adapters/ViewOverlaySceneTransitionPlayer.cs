@@ -1,5 +1,6 @@
 using Game.Core.Managers.View;
 using Game.Core.Ports;
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -14,8 +15,8 @@ namespace Game.Core.Adapters
             ViewManager viewManager,
             ViewTransitionManager viewTransitionManager)
         {
-            _viewManager = viewManager;
-            _viewTransitionManager = viewTransitionManager;
+            _viewManager = viewManager ?? throw new ArgumentNullException(nameof(viewManager));
+            _viewTransitionManager = viewTransitionManager ?? throw new ArgumentNullException(nameof(viewTransitionManager));
         }
 
         public async Awaitable FadeOut()

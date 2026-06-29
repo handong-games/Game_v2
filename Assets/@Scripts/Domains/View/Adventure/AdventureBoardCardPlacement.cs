@@ -21,6 +21,11 @@ namespace Domains.View.Widgets
         public VisualElement Card { get; }
         public VisualElement Slot { get; }
         public VisualElement Anchor { get; }
-        public int Index { get; }
+        public int Index { get; private set; }
+
+        public void SetIndex(int index)
+        {
+            Index = index;
+        }
     }
 }

@@ -62,6 +62,14 @@ MonoBehaviour:
     m_Localized: Shop
     m_Metadata:
       m_Items: []
+  - m_Id: 940000007
+    m_Localized: Victory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 940000008
+    m_Localized: Defeat
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

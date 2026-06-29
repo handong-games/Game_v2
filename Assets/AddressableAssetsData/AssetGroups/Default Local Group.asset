@@ -114,12 +114,6 @@ MonoBehaviour:
     m_SerializedLabels:
     - ModelTable
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a4efbcb04109480586468a87c8fc6228
-    m_Address: AdventureMonsterCardWidget
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - AdventureScene
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bf6919fca4ee979419085a58e622ace2
     m_Address: ChoiceCardUI_Elite
     m_ReadOnly: 0

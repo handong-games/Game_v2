@@ -33,24 +33,7 @@
     display: none;
 }
 
-.skill-slot__fallback-name {
-    width: 78%;
-    color: rgba(42, 34, 30, 0.92);
-    -unity-text-generator: advanced;
-    -unity-font-style: bold;
-    font-size: 12px;
-    -unity-text-auto-size: best-fit 7px 12px;
-    -unity-text-align: middle-center;
-    white-space: normal;
-    overflow: hidden;
-    display: none;
-}
-
 .skill-slot--has-icon .skill-slot__icon {
-    display: flex;
-}
-
-.skill-slot--has-label .skill-slot__fallback-name {
     display: flex;
 }
 
